@@ -1,3 +1,12 @@
+```
+______________________________________________________________________________
+    _     _    _     _  ______    _     _    __    ______      __      _     _
+    /|   /     /    /     /       /    /     / |     /       /    )    /    / 
+---/-| -/-----/----/-----/-------/___ /-----/__|----/-------/---------/___ /--
+  /  | /     /    /     /       /    /     /   |   /       /         /    /   
+_/___|/_____(____/_____/_______/____/_____/____|__/_______(____/____/____/____
+```
+
 # Nuthatch.
 
 A lightweight framework for computer algebra using `FLINT` and `Python-FLINT`
@@ -16,7 +25,8 @@ easily build new algebraic objects.
 - A `Python` package, which plays well with the ecosystem of packages.
 Eventually, this will include wheel builds and `pip install` capabilities.
 - Built for parallelizability?
-
+- Mathematical.
+- No automatic coercions.
 
 
 # What it is not.
@@ -39,6 +49,15 @@ for an element, or `self.codomain` for some kind of morphism, as attributes
 - We do not automatically coerce numbers into Integers. A number such as `7` in
 the Python prompt will always still produce an `int`, so it can be used as an
 index in lists, etc.
+
+
+
+# Style.
+
+```
+from art import *
+tprint("NUTHATCH", font="bigchief")
+```
 
 
 
