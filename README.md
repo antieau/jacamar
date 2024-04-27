@@ -26,7 +26,23 @@ easily build new algebraic objects.
 Eventually, this will include wheel builds and `pip install` capabilities.
 - Built for parallelizability?
 - Mathematical.
-- No automatic coercions.
+- Fundamental principle: no automatic coercions.
+
+
+
+# Coercion model.
+
+We more or less inherit some basic coercions from `Python-FLINT`. Where it
+makes sense, binary operations like `__add__(self,other)` or
+`__mul__(self,other)` return elements of type `other.__class__`. Thus, the
+constructor for this class must be able to take the output of the underlying
+data `self._data + other._data` and construct a new element with it. In
+practice, this corresponds to pretending like all such operations correspond to
+a left action of the ring of `self` on the ring or module of `other`.
+
+We try for this to fail whenever something non-obvious is happening.
+In particular, all arithmetic operations should fail when mixing `Nuthatch`
+classes with bare `Python` classes.
 
 
 # What it is not.
