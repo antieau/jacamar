@@ -12,6 +12,10 @@ class AbstractRingElement:
         self.ring = ring
         self._data = data
 
+    @property
+    def data(self):
+        return self._data
+
     # Arithmetic functions.
     def __add__(self, other):
         """Returns self + other with type that of other."""
