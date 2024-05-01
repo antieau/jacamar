@@ -16,7 +16,7 @@ class Integer(AbstractRingElement):
         AbstractRingElement.__init__(
             self,
             ZZ,
-            self._data_class(n),
+            n,
         )
 
     def is_prime(self):

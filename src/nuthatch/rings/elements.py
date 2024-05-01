@@ -10,7 +10,10 @@ operations are implemented.
 class AbstractRingElement:
     def __init__(self, ring, data):
         self.ring = ring
-        self._data = data
+        if isinstance(data, self.ring.element_class):
+            self._data = data._data
+        else:
+            self._data = self.ring.element_class._data_class(data)
 
     @property
     def data(self):
@@ -34,6 +37,7 @@ class AbstractRingElement:
         return self.__class__(-self._data)
 
     def __truediv__(self, other):
+        """Returns self / other with type that of self."""
         return NotImplemented
 
     def __floordiv__(self, other):

@@ -6,8 +6,8 @@ classes.
 """
 
 import pytest
-from flint import fmpz
-from nuthatch.rings.integers import ZZ, ZZ_py, Integer, IntegerPython, IntegerRing, IntegerRingPython
+from flint import fmpz, DomainError
+from nuthatch.rings.integers import ZZ, ZZ_py, Integer, IntegerPython
 
 
 class TestInteger:
@@ -30,6 +30,7 @@ class TestInteger:
         assert ZZ_py(159728757) == IntegerPython(159728757)
         with pytest.raises(AttributeError):
             159728757 == ZZ(159728757)
+        assert ZZ(159728757).data == fmpz(159728757)
 
     def test_add(self):
         """Tests __add__."""
@@ -38,6 +39,16 @@ class TestInteger:
         with pytest.raises(AttributeError):
             ZZ(7) + 7
 
+    def test_iadd(self):
+        """Tests __iadd__."""
+        x = ZZ(61146125)
+        x += ZZ(98582632)
+        assert x == ZZ(159728757)
+
+        x_py = ZZ_py(61146125)
+        x_py += ZZ_py(98582632)
+        assert x == ZZ_py(159728757)
+
     def test_sub(self):
         """Tests __sub__."""
         assert ZZ(61146125) - ZZ(98582632) == ZZ(-37436507)
@@ -45,17 +56,37 @@ class TestInteger:
         with pytest.raises(AttributeError):
             ZZ(7) - 7
 
+    def test_isub(self):
+        """Tests __isub__."""
+        x = ZZ(61146125)
+        x -= ZZ(98582632)
+        assert x == ZZ(-37436507)
+
+        x_py = ZZ_py(61146125)
+        x_py -= ZZ_py(98582632)
+        assert x == ZZ_py(-37436507)
+
     def test_neg(self):
         """Tests __neg__."""
-        assert - ZZ(98582632) == ZZ(-98582632)
-        assert - ZZ_py(98582632) == ZZ_py(-98582632)
-      
+        assert -ZZ(98582632) == ZZ(-98582632)
+        assert -ZZ_py(98582632) == ZZ_py(-98582632)
+
     def test_mul(self):
         """Tests __mul__."""
         assert ZZ(61146125) * ZZ(98582632) == ZZ(6027945939101000)
         assert ZZ_py(61146125) * ZZ_py(98582632) == ZZ_py(6027945939101000)
         with pytest.raises(AttributeError):
             ZZ(7) * 7
+
+    def test_imul(self):
+        """Tests __imul__."""
+        x = ZZ(61146125)
+        x *= ZZ(98582632)
+        assert x == ZZ(6027945939101000)
+
+        x_py = ZZ_py(61146125)
+        x_py *= ZZ_py(98582632)
+        assert x == ZZ_py(6027945939101000)
 
     def test_truediv_notimplemented(self):
         """Tests that x/y returns NotImplemented."""
@@ -64,10 +95,19 @@ class TestInteger:
         with pytest.raises(TypeError):
             ZZ_py(7) / ZZ_py(7)
 
+    def test_itruediv_notimplemented(self):
+        """Tests that x /= y returns NotImplemented."""
+        with pytest.raises((DomainError, TypeError)):
+            x = ZZ(7)
+            x /= ZZ(7)
+        with pytest.raises(TypeError):
+            x_py = ZZ_py(7)
+            x_py /= ZZ_py(7)
+
     def test_divmod(self):
         """Tests integer division and remainder."""
-        assert divmod(ZZ(98582632),ZZ(61146125)) == (ZZ(1),ZZ(37436507))
-        assert divmod(ZZ_py(98582632),ZZ_py(61146125)) == (ZZ_py(1),ZZ_py(37436507))
+        assert divmod(ZZ(98582632), ZZ(61146125)) == (ZZ(1), ZZ(37436507))
+        assert divmod(ZZ_py(98582632), ZZ_py(61146125)) == (ZZ_py(1), ZZ_py(37436507))
         with pytest.raises(TypeError):
             ZZ(7) / 7
 
@@ -79,12 +119,32 @@ class TestInteger:
         with pytest.raises(AttributeError):
             ZZ(7) // 2
 
+    def test_ifloordiv(self):
+        """Tests __ifloordiv__."""
+        x = ZZ(7)
+        x //= ZZ(2)
+        assert x == ZZ(3)
+
+        x_py = ZZ_py(7)
+        x_py //= ZZ_py(2)
+        assert x == ZZ_py(3)
+
     def test_mod(self):
         """Tests __mod___."""
         assert ZZ(11) % ZZ(7) == ZZ(4)
         assert ZZ_py(11) % ZZ_py(7) == ZZ_py(4)
         with pytest.raises(AttributeError):
             ZZ(7) % 3
+
+    def test_imod(self):
+        """Tests __imod__."""
+        x = ZZ(11)
+        x %= ZZ(7)
+        assert x == ZZ(4)
+
+        x_py = ZZ_py(11)
+        x_py %= ZZ_py(7)
+        assert x == ZZ_py(4)
 
     def test_pow(self):
         """Tests powering."""
@@ -93,23 +153,33 @@ class TestInteger:
         assert ZZ(415) ** ZZ(6) == ZZ(5108443333890625)
         assert ZZ_py(415) ** ZZ_py(6) == ZZ_py(5108443333890625)
 
+    def test_ipow(self):
+        """Tests __ipow__."""
+        x = ZZ(415)
+        x **= ZZ(6)
+        assert x == ZZ(5108443333890625)
+
+        x_py = ZZ_py(415)
+        x_py **= ZZ_py(6)
+        assert x == ZZ_py(5108443333890625)
+
     def test_mixing(self):
         """Test correct type of output."""
-        assert isinstance(ZZ(7)+ZZ_py(9),IntegerPython)
-        assert isinstance(ZZ(7)*ZZ_py(9),IntegerPython)
-        assert isinstance(ZZ(7)-ZZ_py(9),IntegerPython)
-        assert isinstance(ZZ(7)**ZZ_py(9),Integer)
-        assert isinstance(ZZ(11) % ZZ_py(4),Integer)
-        assert isinstance(divmod(ZZ(11),ZZ_py(4))[0],Integer)
-        assert isinstance(ZZ(7) // ZZ_py(2),Integer)
+        assert isinstance(ZZ(7) + ZZ_py(9), IntegerPython)
+        assert isinstance(ZZ(7) * ZZ_py(9), IntegerPython)
+        assert isinstance(ZZ(7) - ZZ_py(9), IntegerPython)
+        assert isinstance(ZZ(7) ** ZZ_py(9), Integer)
+        assert isinstance(ZZ(11) % ZZ_py(4), Integer)
+        assert isinstance(divmod(ZZ(11), ZZ_py(4))[0], Integer)
+        assert isinstance(ZZ(7) // ZZ_py(2), Integer)
 
-        assert isinstance(ZZ_py(7)+ZZ(9),Integer)
-        assert isinstance(ZZ_py(7)*ZZ(9),Integer)
-        assert isinstance(ZZ_py(7)-ZZ(9),Integer)
-        assert isinstance(ZZ_py(7)**ZZ(9),IntegerPython)
-        assert isinstance(ZZ_py(11) % ZZ(4),IntegerPython)
-        assert isinstance(divmod(ZZ_py(11),ZZ(4))[0],IntegerPython)
-        assert isinstance(ZZ_py(7) // ZZ(2),IntegerPython)
+        assert isinstance(ZZ_py(7) + ZZ(9), Integer)
+        assert isinstance(ZZ_py(7) * ZZ(9), Integer)
+        assert isinstance(ZZ_py(7) - ZZ(9), Integer)
+        assert isinstance(ZZ_py(7) ** ZZ(9), IntegerPython)
+        assert isinstance(ZZ_py(11) % ZZ(4), IntegerPython)
+        assert isinstance(divmod(ZZ_py(11), ZZ(4))[0], IntegerPython)
+        assert isinstance(ZZ_py(7) // ZZ(2), IntegerPython)
 
     def test_prime(self):
         """Tests is_prime."""
