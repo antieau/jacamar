@@ -74,6 +74,7 @@ index in lists, etc.
 - black
 - pylint
 - coverage
+- python environments
 
 
 # Style.
