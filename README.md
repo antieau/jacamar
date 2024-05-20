@@ -97,10 +97,3 @@ index in lists, etc.
 from art import *
 tprint("NUTHATCH", font="bigchief")
 ```
-
-
-
-# Release plan.
-
-- `v0.1.0` - AbstractRings, ZZ, `ZZ_py`, `ZZ_word`, GF(p), PolynomialRings, Matrices
-- `v0.2.0` - LaurentPolynomialRings, PowerSeriesRings
