@@ -13,6 +13,9 @@ Exposed classes:
  - PowerSeriesRingHomomorphism, and
  - Series.
 
+AUTHORS:
+- Benjamin Antieau (2024): initial version.
+
 """
 
 from nuthatch.rings.elements import AbstractRingElement
@@ -126,29 +129,13 @@ class _Series:
             return self.parent().zero()
         return self * other.inverse()
 
-    def map_coefficients(self, transformation):
-        newterm_list = [
-            (deg, coeff.map_coefficients(transformation))
-            for deg, coeff in self.term_list
-        ]
-        return self.parent()._element_class(self.parent(), newterm_list)
-
-    def __floordiv__(self, n):
-        """
-        Divides the coefficients of self by n, which must support floordiv in the coefficient ring.
-        """
-        return self.map_coefficients(lambda c: c // n)
-
     def __rmul__(self, other):
-        if other.parent() != self.parent().coefficient_ring():
-            return NotImplemented
-        else:
-            # TODO: this could result in zero terms.
-            return self.__class__(
-                self.parent(),
-                [(deg, other * coefficient) for deg, coefficient in self.term_list],
-                self.precision_cap,
-            )
+        # TODO: this could result in zero terms.
+        return self.__class__(
+            self.base_ring,
+            [(deg, other * coefficient) for deg, coefficient in self.term_list],
+            self.precision_cap,
+        )
 
     def __mul__(self, other):
         """

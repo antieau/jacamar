@@ -1,5 +1,5 @@
 """
-TEST_INTEGERS.
+TEST_INTEGERS
 
 Tests for the Integer, IntegerPython, IntegerRing, and IntegerRingPython
 classes.

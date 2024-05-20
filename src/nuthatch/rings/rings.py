@@ -2,6 +2,9 @@
 RINGS
 
 A module for commutative rings.
+
+AUTHORS:
+- Benjamin Antieau (2024).
 """
 
 

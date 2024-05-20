@@ -2,6 +2,9 @@
 MORPHISMS
 
 Base classes for morphisms of commutative rings.
+
+AUTHORS:
+- Benjamin Antieau (2024).
 """
 
 

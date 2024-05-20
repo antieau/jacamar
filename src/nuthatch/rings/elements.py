@@ -4,6 +4,9 @@ ELEMENTS
 Base classes for elements in commutative rings. The abstract class stores a
 concrete `data` attribute, on which it is assumed that the standard arithmetic
 operations are implemented.
+
+AUTHORS:
+- Benjamin Antieau (2024).
 """
 
 

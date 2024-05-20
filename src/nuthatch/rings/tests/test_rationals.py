@@ -1,5 +1,5 @@
 """
-TEST_RATIONALS.
+TEST_RATIONALS
 
 Tests for the Rational and RationalRing classes.
 """

@@ -2,6 +2,9 @@
 RATIONALS
 
 Base class for QQ.
+
+AUTHORS:
+- Benjamin Antieau (2024).
 """
 
 import flint

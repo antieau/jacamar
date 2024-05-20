@@ -9,6 +9,9 @@ odd indices indicate their powers. The empty tuple () represents the monomial
 of 1.
 
 We attempt to trim away zero terms whenever possible.
+
+AUTHORS:
+- Benjamin Antieau (2024): initial version.
 """
 
 import flint

@@ -6,6 +6,9 @@ holds a `data` attribute. We assume that this points to a class on which all
 matrix operations can be performed and we overload matrices in that way. We
 provide a generic implementation of these operations as `_MatrixGeneric`. Special
 examples are provided by `FLINT`.
+
+AUTHORS:
+- Benjamin Antieau (2024): initial version.
 """
 
 import flint

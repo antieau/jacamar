@@ -43,3 +43,5 @@ from nuthatch.rings.integers import *
 from nuthatch.rings.polynomials import *
 from nuthatch.rings.rationals import *
 from nuthatch.rings.series import *
+
+__version__ = "0.0"

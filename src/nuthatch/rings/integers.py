@@ -2,6 +2,9 @@
 INTEGERS
 
 Base classes for ZZ and ZZ_py.
+
+AUTHORS:
+- Benjamin Antieau (2024).
 """
 
 import flint

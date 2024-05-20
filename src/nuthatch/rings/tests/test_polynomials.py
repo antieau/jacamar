@@ -1,5 +1,5 @@
 """
-TEST_POLYNOMIALS.
+TEST_POLYNOMIALS
 
 Tests for the _Monomial, _Polynomial, Polynomial, and PolynomialRing classes.
 """
