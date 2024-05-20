@@ -14,11 +14,6 @@ at its core.
 
 
 
-# Speed TODO.
-
-- Move \_data to data and remove @property for faster access.
-
-
 # What it is.
 
 - `Nuthatch` is designed to provide a minimal layer of abstraction, giving a
