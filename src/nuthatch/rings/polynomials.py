@@ -16,6 +16,7 @@ from nuthatch.rings.elements import AbstractRingElement
 from nuthatch.rings.rings import AbstractRing
 from nuthatch.rings.integers import ZZ, ZZ_py
 
+
 class _Monomial:
     """
     The class of a monomial in a _Polynomial.
@@ -26,6 +27,7 @@ class _Monomial:
     TODO:
     - make this into C or Rust code
     """
+
     def __init__(self, t):
         self.exponent = t
 
@@ -37,11 +39,11 @@ class _Monomial:
         j = 0
         while j < len(self.exponent):
             if self.exponent[j] < i:
-                j +=2 
+                j += 2
                 continue
             elif self.exponent[j] == i:
-                return self.exponent[j+1]
-            else: # t[j] > i
+                return self.exponent[j + 1]
+            else:  # t[j] > i
                 return 0
         return 0
 
@@ -62,7 +64,7 @@ class _Monomial:
         other_len = len(other.exponent)
         while self_index < self_len and other_index < other_len:
             if self.exponent[self_index] < other.exponent[other_index]:
-                new_list.extend(self.exponent[self_index:self_index+2])
+                new_list.extend(self.exponent[self_index : self_index + 2])
                 self_index += 2
             elif self.exponent[self_index] == other.exponent[other_index]:
                 x = self.exponent[self_index + 1] + other.exponent[other_index + 1]
@@ -72,17 +74,17 @@ class _Monomial:
                 self_index += 2
                 other_index += 2
             else:
-                new_list.extend(other.exponent[other_index:other_index+2])
+                new_list.extend(other.exponent[other_index : other_index + 2])
                 other_index += 2
 
         # Now that we've reached the end of at least one list, we add
         # everything from the other list.
         while self_index < self_len:
-            new_list.extend(self.exponent[self_index:self_index+2])
+            new_list.extend(self.exponent[self_index : self_index + 2])
             self_index += 2
 
         while other_index < other_len:
-            new_list.extend(other.exponent[other_index:other_index+2])
+            new_list.extend(other.exponent[other_index : other_index + 2])
             other_index += 2
 
         return other.__class__(tuple(new_list))
@@ -97,6 +99,7 @@ class _Polynomial:
     The `data` input should be a dictionary `{m:c}` where `m` is a `_Monomial`
     and `c` is an element of the data_class of the element_class of the `base_ring`.
     """
+
     def __init__(self, base_ring, monomial_dictionary):
         self.base_ring = base_ring
         self.monomial_dictionary = monomial_dictionary
@@ -104,7 +107,7 @@ class _Polynomial:
     def is_zero(self):
         if len(self.monomial_dictionary) == 0:
             return True
-        for _,c in self.monomial_dictionary.items():
+        for _, c in self.monomial_dictionary.items():
             if c != self.base_ring.zero.data:
                 return False
         return True
@@ -124,7 +127,7 @@ class _Polynomial:
             new_dict = self.monomial_dictionary.copy()
             other_dict = other.monomial_dictionary
 
-        for m,c in other_dict.items():
+        for m, c in other_dict.items():
             try:
                 new_dict[m] += c
                 if new_dict[m] == other.base_ring.zero.data:
@@ -144,8 +147,8 @@ class _Polynomial:
 
     def __mul__(self, other):
         new_dict = {}
-        for m,c in self.monomial_dictionary.items():
-            for n,d in other.monomial_dictionary.items():
+        for m, c in self.monomial_dictionary.items():
+            for n, d in other.monomial_dictionary.items():
                 k = m * n
                 e = c * d
                 try:
@@ -153,7 +156,7 @@ class _Polynomial:
                 except KeyError:
                     new_dict[k] = e
         final_dict = {}
-        for m,c in new_dict.items():
+        for m, c in new_dict.items():
             if c != other.base_ring.zero.data:
                 final_dict[m] = c
         return other.__class__(other.base_ring, final_dict)
@@ -163,17 +166,19 @@ class _Polynomial:
         We just try to multiply the coefficients of self with other.
         """
         new_dict = {}
-        for m,c in self.monomial_dictionary.items():
-            new_dict[m] = c*other
+        for m, c in self.monomial_dictionary.items():
+            new_dict[m] = c * other
         return self.__class__(self.base_ring, new_dict)
 
     def __eq__(self, other):
-        return (self.base_ring == other.base_ring) & (self.monomial_dictionary == other.monomial_dictionary)
+        return (self.base_ring == other.base_ring) & (
+            self.monomial_dictionary == other.monomial_dictionary
+        )
 
     def __pow__(self, n):
         # TODO: this low level power function should not really be checking for
         # types.
-        if isinstance(n,(flint.fmpz, int)):
+        if isinstance(n, (flint.fmpz, int)):
             if n < 0:
                 raise TypeError("Cannot power a polynomial by a negative integer.")
             elif n == 0:
@@ -204,6 +209,7 @@ class Polynomial(AbstractRingElement):
     The ring of coefficients is `self.base_ring` while the ambient polynomial
     ring is `self.ring`.
     """
+
     data_class = _Polynomial
 
     def __init__(self, ring, data):
@@ -233,12 +239,12 @@ class Polynomial(AbstractRingElement):
             for j in range(len(key.exponent) // 2):
                 term += "*"
                 term += self.ring._prefix
-                term += str(key.exponent[2*j])
+                term += str(key.exponent[2 * j])
                 term += f"^{key.exponent[2*j+1]}"
         return_string = term
 
         # Parse the latter keys
-        for i in range(1,len(keys)):
+        for i in range(1, len(keys)):
             key = keys[i]
             value = self.data.monomial_dictionary[key]
             # Parse the key
@@ -253,14 +259,13 @@ class Polynomial(AbstractRingElement):
             for j in range(len(key.exponent) // 2):
                 term += "*"
                 term += self.ring._prefix
-                term += str(key.exponent[2*j])
+                term += str(key.exponent[2 * j])
                 term += f"^{key.exponent[2*j+1]}"
             return_string += term
         return return_string
 
     def __repr__(self):
         return str(self)
-
 
 
 class PolynomialRing(AbstractRing):
@@ -273,6 +278,7 @@ class PolynomialRing(AbstractRing):
     - `prefix`      -- a string such as 'x' from which the generators x0,x1,... are named
     - `weights`     -- a list of `ngens` weights; if `None`, these default to 1; they are Python integers
     """
+
     element_class = Polynomial
 
     def __init__(
@@ -286,17 +292,26 @@ class PolynomialRing(AbstractRing):
         self.base_ring = base_ring
         self.ngens = ngens
         self._prefix = prefix
-        self._names = [prefix+str(i) for i in range(ngens)]
+        self._names = [prefix + str(i) for i in range(ngens)]
         if weights is None:
             self.weights = [1 for i in range(ngens)]
         else:
             if len(weights) != ngens:
-                raise ValueError(f"The number {len(weights)} is not equal to the number of generators {ngens}.")
+                raise ValueError(
+                    f"The number {len(weights)} is not equal to the number of generators {ngens}."
+                )
             self.weights = weights
 
         self.gens = []
         for i in range(self.ngens):
-            self.gens.append(Polynomial(self,_Polynomial(self.base_ring,{_Monomial((i,1)):self.base_ring.one.data})))
+            self.gens.append(
+                Polynomial(
+                    self,
+                    _Polynomial(
+                        self.base_ring, {_Monomial((i, 1)): self.base_ring.one.data}
+                    ),
+                )
+            )
 
         # Initialize one and zero since these are used so often.
         self.one = self(1)
@@ -315,7 +330,11 @@ class PolynomialRing(AbstractRing):
             if data == 0:
                 return Polynomial(self, _Polynomial(self.base_ring, {}))
             else:
-                return Polynomial(self, _Polynomial(
-                    self.base_ring, {_Monomial(()):self.base_ring.element_class.data_class(data)})
+                return Polynomial(
+                    self,
+                    _Polynomial(
+                        self.base_ring,
+                        {_Monomial(()): self.base_ring.element_class.data_class(data)},
+                    ),
                 )
         return Polynomial(self, data)

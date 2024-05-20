@@ -34,7 +34,6 @@ The goal is to provide a very thin, familiar interface which the user can
 easily abstract and customize for their own purposes.
 """
 
-
 from nuthatch.matrices.matrices import *
 
 from nuthatch.rings.elements import *

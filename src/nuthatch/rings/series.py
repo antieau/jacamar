@@ -17,7 +17,12 @@ Exposed classes:
 
 from nuthatch.rings.elements import AbstractRingElement
 from nuthatch.rings.rings import AbstractRing
-from nuthatch.rings.polynomials import PolynomialRing, _Polynomial, Polynomial, _Monomial
+from nuthatch.rings.polynomials import (
+    PolynomialRing,
+    _Polynomial,
+    Polynomial,
+    _Monomial,
+)
 
 
 class _Series:
@@ -71,7 +76,9 @@ class _Series:
         )
 
     def __eq__(self, other):
-        return (self.term_list == other.term_list) & (self.precision_cap == other.precision_cap)
+        return (self.term_list == other.term_list) & (
+            self.precision_cap == other.precision_cap
+        )
 
     def __ne__(self, other):
         return not self == other
@@ -346,6 +353,7 @@ class PowerSeriesRing(AbstractRing):
     """
     Weighted power series ring.
     """
+
     element_class = Series
 
     def __init__(
@@ -372,15 +380,17 @@ class PowerSeriesRing(AbstractRing):
         self.precision_cap = precision_cap
         self.ngens = ngens
         self._prefix = prefix
-        self._names = [prefix+str(i) for i in range(ngens)]
+        self._names = [prefix + str(i) for i in range(ngens)]
 
         if weights is None:
             self.weights = [1 for i in range(ngens)]
         else:
             if len(weights) != ngens:
-                raise ValueError(f"The number {len(weights)} is not equal to the number of generators {ngens}.")
+                raise ValueError(
+                    f"The number {len(weights)} is not equal to the number of generators {ngens}."
+                )
             for i in weights:
-                if i<=0:
+                if i <= 0:
                     raise ValueError("Weights must be positive.")
             self.weights = weights
 
@@ -388,9 +398,9 @@ class PowerSeriesRing(AbstractRing):
         AbstractRing.__init__(self, Series, exact=base_ring.exact)
 
         self._polynomial_ring = PolynomialRing(
-            base_ring = self.base_ring,
-            ngens = self.ngens,
-            prefix = self._prefix,
+            base_ring=self.base_ring,
+            ngens=self.ngens,
+            prefix=self._prefix,
         )
 
         self.one = self(1)
@@ -410,9 +420,16 @@ class PowerSeriesRing(AbstractRing):
                     self,
                     _Series(
                         self.base_ring,
-                        [(0,self._polynomial_ring.element_class.data_class(self.base_ring,{_Monomial(tuple()):data})),],
-                        self.precision_cap,                        
-                    )
+                        [
+                            (
+                                0,
+                                self._polynomial_ring.element_class.data_class(
+                                    self.base_ring, {_Monomial(tuple()): data}
+                                ),
+                            ),
+                        ],
+                        self.precision_cap,
+                    ),
                 )
         return Series(self, data)
 
@@ -432,25 +449,25 @@ class PowerSeriesRing(AbstractRing):
         Takes a _Polynomial and returns a _Series.
         """
         out_degrees = {}
-        for m,c in flat_polynomial_data.monomial_dictionary.items():
+        for m, c in flat_polynomial_data.monomial_dictionary.items():
             deg = m.degree()
             if deg < self.precision_cap:
                 if deg in out_degrees:
                     out_degrees[deg] += self._polynomial_ring.element_class.data_class(
-                        self.base_ring,
-                        {m:c}
+                        self.base_ring, {m: c}
                     )
                 else:
                     out_degrees[deg] = self._polynomial_ring.element_class.data_class(
-                        self.base_ring,
-                        {m:c}
+                        self.base_ring, {m: c}
                     )
         out_degrees_list = list(out_degrees.keys())
         out_degrees_list.sort()
         term_list = []
         for deg in out_degrees_list:
             term_list.append((deg, out_degrees[deg]))
-        return self.element_class.data_class(self.base_ring, term_list, self.precision_cap)
+        return self.element_class.data_class(
+            self.base_ring, term_list, self.precision_cap
+        )
 
     def _unflatten(self, flat_polynomial):
         """
@@ -464,6 +481,7 @@ class PowerSeriesRing(AbstractRing):
             f"Absolute precision power series ring in {self._names} with weights {self.weights} "
             f"and with absolutely capped precision {self.precision_cap} over {self.base_ring}"
         )
+
     def __repr__(self):
         return self.__str__()
 
@@ -532,6 +550,3 @@ class PowerSeriesRingHomomorphism:
 
     def __repr__(self):
         return self.__str__()
-
-
-
