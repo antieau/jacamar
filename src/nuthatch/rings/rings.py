@@ -11,4 +11,4 @@ class AbstractRing:
         self.exact = exact
 
     def __call__(self, x):
-        return self.element_class(x)
+        return self.element_class(self, x)

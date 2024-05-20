@@ -10,47 +10,49 @@ from nuthatch.rings.rings import AbstractRing
 
 
 class Rational(AbstractRingElement):
-    _data_class = flint.fmpq
+    data_class = flint.fmpq
 
     def __init__(self, *args):
-        if not args:
+        if len(args) == 3:
+            ring, p, q = args
             AbstractRingElement.__init__(
                 self,
-                QQ,
-                0,
+                ring,
+                self.data_class(p, q),
             )
+
         elif len(args) == 2:
-            p, q = args
+            ring, p = args
             AbstractRingElement.__init__(
                 self,
-                QQ,
-                self._data_class(p, q),
+                ring,
+                p,
             )
 
         elif len(args) == 1:
-            p = args[0]
+            ring = args[0]
             AbstractRingElement.__init__(
                 self,
-                QQ,
-                p,
+                ring,
+                0,
             )
 
         else:
             raise TypeError(
-                f"Rational() takes at most 2 arguments, but {len(args)} were given."
+                f"Rational() takes 1, 2, or 3 arguments, but {len(args)} were given."
             )
 
     def __truediv__(self, other):
         """Returns self / other with type that of self."""
-        return self.__class__(self._data / other._data)
+        return self.__class__(self.ring, self.data / other.data)
 
     def __itruediv__(self, other):
         """Modifies self in place by self / other."""
-        self._data /= other._data
+        self.data /= other.data
         return self
 
     def __str__(self):
-        return self._data.__str__()
+        return self.data.__str__()
 
     def __repr__(self):
         return self.__str__()
@@ -61,7 +63,7 @@ class RationalRing(AbstractRing):
         AbstractRing.__init__(self, Rational, exact=True)
 
     def __call__(self, *args):
-        return Rational(*args)
+        return Rational(self, *args)
 
     def __str__(self):
         return "The ring of Rational numbers (via flint.fmpq)."

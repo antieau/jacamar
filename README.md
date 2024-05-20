@@ -14,6 +14,11 @@ at its core.
 
 
 
+# Speed TODO.
+
+- Move \_data to data and remove @property for faster access.
+
+
 # What it is.
 
 - `Nuthatch` is designed to provide a minimal layer of abstraction, giving a
@@ -43,6 +48,14 @@ a left action of the ring of `self` on the ring or module of `other`.
 We try for this to fail whenever something non-obvious is happening.
 In particular, all arithmetic operations should fail when mixing `Nuthatch`
 classes with bare `Python` classes.
+
+Python integers are not automatically coerced. Thus, if `n` is an `int` and `x`
+is an element in some ring, `x**n` will raise a `TypeError`.
+
+In general, `__truediv__` is not defined for non-fields. Similarly, powering by
+non-integer (Integer or IntegerPy) elements in polynomial rings raises a `TypeError`.
+Powering by rational numbers or real numbers might eventually be well-defined
+in certain Puiseux or power series rings.
 
 
 # What it is not.

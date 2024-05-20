@@ -10,37 +10,37 @@ from nuthatch.rings.rings import AbstractRing
 
 
 class Integer(AbstractRingElement):
-    _data_class = flint.fmpz
+    data_class = flint.fmpz
 
-    def __init__(self, n):
+    def __init__(self, ring, n):
         AbstractRingElement.__init__(
             self,
-            ZZ,
+            ring,
             n,
         )
 
     def is_prime(self):
-        return bool(self._data.is_prime())
+        return bool(self.data.is_prime())
 
     def __str__(self):
-        return self._data.__str__()
+        return self.data.__str__()
 
     def __repr__(self):
         return self.__str__()
 
 
 class IntegerPython(AbstractRingElement):
-    _data_class = int
+    data_class = int
 
-    def __init__(self, n):
+    def __init__(self, ring, n):
         AbstractRingElement.__init__(
             self,
-            ZZ_py,
-            self._data_class(n),
+            ring,
+            self.data_class(n),
         )
 
     def __str__(self):
-        return self._data.__str__()
+        return self.data.__str__()
 
     def __repr__(self):
         return self.__str__()
@@ -49,6 +49,8 @@ class IntegerPython(AbstractRingElement):
 class IntegerRing(AbstractRing):
     def __init__(self):
         AbstractRing.__init__(self, Integer, exact=True)
+        self.one = self(1)
+        self.zero = self(0)
 
     def __str__(self):
         return "The ring of Integers (via flint.fmpz)."
@@ -60,6 +62,8 @@ class IntegerRing(AbstractRing):
 class IntegerRingPython(AbstractRing):
     def __init__(self):
         AbstractRing.__init__(self, IntegerPython, exact=True)
+        self.one = self(1)
+        self.zero = self(0)
 
     def __str__(self):
         return "The ring of Integers (via Python's int)."
@@ -68,6 +72,6 @@ class IntegerRingPython(AbstractRing):
         return self.__str__()
 
 
-# Create global version of the integer ring.
+# Create global version of the integer rings.
 ZZ = IntegerRing()
 ZZ_py = IntegerRingPython()

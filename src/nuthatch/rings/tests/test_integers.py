@@ -18,16 +18,16 @@ class TestInteger:
         assert ZZ_py(6027945939101000).ring == ZZ_py
 
     def test_classes(self):
-        assert Integer._data_class == fmpz
-        assert IntegerPython._data_class == int
+        assert Integer.data_class == fmpz
+        assert IntegerPython.data_class == int
 
     def test_equality_among_the_classes(self):
         """Tests that ZZ(n) == ZZ_py(n) == Integer(n) == Integer_py(n)."""
         with pytest.raises(AttributeError):
             fmpz(159728757) == ZZ(159728757)
         assert ZZ(159728757) == ZZ_py(159728757)
-        assert ZZ(159728757) == Integer(159728757)
-        assert ZZ_py(159728757) == IntegerPython(159728757)
+        assert ZZ(159728757) == Integer(ZZ, 159728757)
+        assert ZZ_py(159728757) == IntegerPython(ZZ_py, 159728757)
         with pytest.raises(AttributeError):
             159728757 == ZZ(159728757)
         assert ZZ(159728757).data == fmpz(159728757)

@@ -2,7 +2,7 @@
 MATRICES
 
 A module for dense matrices. We create a single abstract matrix class which
-holds a `_data` attribute. We assume that this points to a class on which all
+holds a `data` attribute. We assume that this points to a class on which all
 matrix operations can be performed and we overload matrices in that way. We
 provide a generic implementation of these operations as `_MatrixGeneric`. Special
 examples are provided by `FLINT`.
@@ -155,7 +155,7 @@ class Matrix:
 
         # If data is provided, there is a fast constructor.
         if data is not None:
-            self._data = data
+            self.data = data
             if self._is_generic:
                 self.nrows = data.nrows
                 self.ncols = data.ncols
@@ -171,11 +171,11 @@ class Matrix:
             self.ncols = ncols
 
             if self.base_ring == ZZ:
-                self._data = flint.fmpz_mat(self.nrows, self.ncols)
+                self.data = flint.fmpz_mat(self.nrows, self.ncols)
             elif self.base_ring == QQ:
-                self._data = flint.fmpq_mat(self.nrows, self.ncols)
+                self.data = flint.fmpq_mat(self.nrows, self.ncols)
             else:
-                self._data = _MatrixGenericData(
+                self.data = _MatrixGenericData(
                     base_ring=self.base_ring,
                     nrows=self.nrows,
                     ncols=self.ncols,
@@ -232,15 +232,15 @@ class Matrix:
                                 # classes wrapping FLINT classes, then the
                                 # following code does not work!
                                 new_entries[i].append(
-                                    self.base_ring(entries[i][j])._data
+                                    self.base_ring(entries[i][j]).data
                                 )
 
             if self.base_ring == ZZ:
-                self._data = flint.fmpz_mat(new_entries)
+                self.data = flint.fmpz_mat(new_entries)
             elif self.base_ring == QQ:
-                self._data = flint.fmpq_mat(new_entries)
+                self.data = flint.fmpq_mat(new_entries)
             else:
-                self._data = _MatrixGenericData(
+                self.data = _MatrixGenericData(
                     base_ring=self.base_ring,
                     nrows=self.nrows,
                     ncols=self.ncols,
@@ -260,10 +260,6 @@ class Matrix:
             entries.append(i_row)
         return entries
 
-    @property
-    def data(self):
-        return self._data
-
     def det(self):
         """Alias for `determinenant` method."""
         return self.determinant()
@@ -271,20 +267,20 @@ class Matrix:
     def determinant(self):
         if self.nrows != self.ncols:
             raise ValueError("matrix must be square")
-        return self.base_ring(self._data.det())
+        return self.base_ring(self.data.det())
 
     def __add__(self, other):
         """Returns self + other with base ring that of other."""
         return other.__class__(
             base_ring=other.base_ring,
-            data=self._data + other._data,
+            data=self.data + other.data,
         )
 
     def __sub__(self, other):
         """Returns self - other with base ring that of other."""
         return other.__class__(
             base_ring=other.base_ring,
-            data=self._data - other._data,
+            data=self.data - other.data,
         )
 
     def __mul__(self, other):
@@ -301,14 +297,14 @@ class Matrix:
 
         return other.__class__(
             base_ring=other.base_ring,
-            data=self._data * other._data,
+            data=self.data * other.data,
         )
 
     def __str__(self):
-        return self._data.__str__()
+        return self.data.__str__()
 
     def __repr__(self):
-        return self._data.__repr__()
+        return self.data.__repr__()
 
     def __eq__(self, other):
-        return self._data == other._data
+        return self.data == other.data
