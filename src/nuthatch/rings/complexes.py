@@ -4,8 +4,8 @@ REALS
 Base class for RR.
 """
 import flint
-from elements import AbstractRingElement
-from rings import AbstractRing
+from nuthatch.rings.elements import AbstractRingElement
+from nuthatch.rings.rings import AbstractRing
 
 
 class ComplexNumber(AbstractRingElement):
