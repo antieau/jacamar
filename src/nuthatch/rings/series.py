@@ -582,6 +582,9 @@ class PowerSeriesRingMorphism(AbstractRingMorphism):
         # TODO: this assumes that the input and output of
         # self.coefficient_morphism consist of elements of the data classes of
         # the base_rings.
+        if isinstance(f,_Monomial):
+            return self._call_on_monomial(f)
+
         x = self.codomain.zero
         for m,c in f.term_data():
             x += self.coefficient_morphism(self.domain(c)) * self._call_on_monomial(m)

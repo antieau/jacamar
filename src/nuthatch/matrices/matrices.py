@@ -311,3 +311,9 @@ class Matrix:
 
     def __eq__(self, other):
         return self.data == other.data
+
+    def __getitem__(self, x):
+        return self.base_ring(self.data[x])
+
+    def __setitem__(self, x, value):
+        self.data.__setitem__(x, value)
