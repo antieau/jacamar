@@ -50,6 +50,9 @@ class _Monomial:
                 return 0
         return 0
 
+    def __getitem__(self, x):
+        return self.exponent.__getitem__(x)
+
     def __hash__(self):
         return hash(self.exponent)
 
@@ -114,6 +117,9 @@ class _Polynomial:
             if c != self.base_ring.zero.data:
                 return False
         return True
+
+    def term_data(self):
+        return self.monomial_dictionary.items()
 
     def __str__(self):
         return str(self.monomial_dictionary)

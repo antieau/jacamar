@@ -18,7 +18,10 @@ AUTHORS:
 
 """
 
+import functools
+import itertools 
 from nuthatch.rings.elements import AbstractRingElement
+from nuthatch.rings.integers import ZZ
 from nuthatch.rings.rings import AbstractRing
 from nuthatch.rings.polynomials import (
     PolynomialRing,
@@ -26,6 +29,7 @@ from nuthatch.rings.polynomials import (
     Polynomial,
     _Monomial,
 )
+from nuthatch.rings.morphisms import AbstractRingMorphism
 
 
 class _Series:
@@ -33,14 +37,14 @@ class _Series:
     Data class for elements of weighted power series ring.
     """
 
-    def __init__(self, base_ring, term_list, precision_cap):
+    def __init__(self, base_ring, term_list, precision):
         """
         The argument term_list is a list [(N,coefficient)] representing g*T^N
         where N is a Python integer and g is a _Polynomial of degree N.
         """
         self.base_ring = base_ring
         self.term_list = term_list
-        self.precision_cap = precision_cap
+        self.precision = precision
 
     def __str__(self):
         return str(self.term_list)
@@ -50,12 +54,12 @@ class _Series:
 
     def __add__(self, other):
         """
-        Add self to other, taking other.precision_cap as the result's precision
+        Add self to other, taking other.precision as the result's precision
         cap.
         """
         term_dict = dict(other.term_list)
         for deg, coeff in self.term_list:
-            if deg < other.precision_cap:
+            if deg < other.precision:
                 if deg in term_dict:
                     term_dict[deg] += coeff
                 else:
@@ -66,7 +70,7 @@ class _Series:
         for deg in sorted_degrees:
             if not term_dict[deg].is_zero():
                 newterm_list.append((deg, term_dict[deg]))
-        return other.__class__(self.base_ring, newterm_list, other.precision_cap)
+        return other.__class__(self.base_ring, newterm_list, other.precision)
 
     def __sub__(self, other):
         return self + (-other)
@@ -75,12 +79,12 @@ class _Series:
         return self.__class__(
             self.base_ring,
             [(deg, -coeff) for deg, coeff in self.term_list],
-            self.precision_cap,
+            self.precision,
         )
 
     def __eq__(self, other):
         return (self.term_list == other.term_list) & (
-            self.precision_cap == other.precision_cap
+            self.precision == other.precision
         )
 
     def __ne__(self, other):
@@ -108,7 +112,7 @@ class _Series:
             ],
         )
         N = 1
-        while N < self.parent()._precision_cap:
+        while N < self.precision:
             N = 2 * N
             newton_approximation_inverse = (
                 newton_approximation_inverse
@@ -134,7 +138,7 @@ class _Series:
         return self.__class__(
             self.base_ring,
             [(deg, other * coefficient) for deg, coefficient in self.term_list],
-            self.precision_cap,
+            self.precision,
         )
 
     def __mul__(self, other):
@@ -146,7 +150,7 @@ class _Series:
         term_dict = {}
         for deg, coeff in self.term_list:
             for deg1, coeff1 in other.term_list:
-                if deg + deg1 < other.precision_cap:
+                if deg + deg1 < other.precision:
                     if deg + deg1 in term_dict:
                         term_dict[deg + deg1] += coeff * coeff1
                     else:
@@ -159,7 +163,7 @@ class _Series:
         for deg in sorted_degrees:
             if not term_dict[deg].is_zero():
                 newterm_list.append((deg, term_dict[deg]))
-        return self.__class__(self.base_ring, newterm_list, other.precision_cap)
+        return self.__class__(self.base_ring, newterm_list, other.precision)
 
     def __pow__(self, n):
         if n == 0:
@@ -205,7 +209,7 @@ class _Series:
         for deg, coeff in self.term_list:
             if coeff != self.parent()._polynomial_ring.zero():
                 return deg
-        return self.parent()._precision_cap
+        return self.parent()._precision
 
     def degree(self):
         degree = -1
@@ -318,6 +322,23 @@ class Series(AbstractRingElement):
             data,
         )
 
+    def term_data(self, a = None, b = None):
+        """
+        An iterator returning the terms of the series, packaged as tuples (m,c)
+        where m is a _Monomial and c is an element of the base_ring.
+        
+        If a and b are provided, return only those terms of total degree
+        between a and b.
+        """
+        iterators = []
+        for n, g in self.data.term_list:
+            if a <= n <= b:
+                iterators.append(g.term_data())
+        return itertools.chain.from_iterable(iterators)
+
+    def __rmul__(self, other):
+        return other.__class__(other.ring, self.data * other.data)
+
     def __str__(self):
         """
         This will return a string representing the underlying element
@@ -334,6 +355,7 @@ class Series(AbstractRingElement):
 
     def __repr__(self):
         return self.__str__()
+
 
 
 class PowerSeriesRing(AbstractRing):
@@ -411,13 +433,49 @@ class PowerSeriesRing(AbstractRing):
                             (
                                 0,
                                 self._polynomial_ring.element_class.data_class(
-                                    self.base_ring, {_Monomial(tuple()): data}
+                                    self.base_ring, {_Monomial(tuple()): self.base_ring(data).data}
                                 ),
                             ),
                         ],
                         self.precision_cap,
                     ),
                 )
+        
+        if isinstance(data, self.base_ring.element_class):
+            return Series(
+                self,
+                _Series(
+                    self.base_ring,
+                    [
+                        (
+                            0,
+                            self._polynomial_ring.element_class.data_class(
+                                self.base_ring, {_Monomial(tuple()): data.data}
+                            ),
+                        ),
+                    ],
+                    self.precision_cap,
+                ),
+            )
+
+        if isinstance(data, self.base_ring.element_class.data_class):
+            return Series(
+                self,
+                _Series(
+                    self.base_ring,
+                    [
+                        (
+                            0,
+                            self._polynomial_ring.element_class.data_class(
+                                self.base_ring, {_Monomial(tuple()): data}
+                            ),
+                        ),
+                    ],
+                    self.precision_cap,
+                ),
+            )
+
+
         return Series(self, data)
 
     def _flatten(self, element):
@@ -473,67 +531,64 @@ class PowerSeriesRing(AbstractRing):
         return self.__str__()
 
 
-class PowerSeriesRingHomomorphism:
+class PowerSeriesRingMorphism(AbstractRingMorphism):
     """
     Homomorphisms of weighted power series ring.
     """
 
     def __init__(
-        self, domain, codomain, coefficient_homomorphism, action_on_generators
+        self, *, domain, codomain, coefficient_morphism, action_on_generators
     ):
-        # A list of elements of codomian giving the image of each
-        # generator of the domain.
         if (
-            domain.coefficient_ring() != coefficient_homomorphism.domain()
-            or codomain.coefficient_ring() != coefficient_homomorphism.codomain()
+            domain.base_ring != coefficient_morphism.domain
+            or codomain.base_ring != coefficient_morphism.codomain
         ):
             raise TypeError(
                 "The coefficient homomorphism is not compatible with the given domain and codomain."
             )
-        if len(action_on_generators) != domain._ngens:
+        if len(action_on_generators) != domain.ngens:
             raise TypeError(
                 "Cannot interpret {} as a homomorphism from {} to {}".format(
                     action_on_generators, domain, codomain
                 )
             )
-        if codomain._precision_cap > domain._precision_cap:
+        if codomain.precision_cap > domain.precision_cap:
             raise ValueError(
                 "Codomain precision cap is larger than domain precision cap."
             )
         for i in range(len(action_on_generators)):
-            if action_on_generators[i].parent() != codomain:
+            if action_on_generators[i].ring != codomain:
                 raise TypeError(
                     "The elements of 'action_on_generators' are not members of the codomain."
                 )
 
-        self._coefficient_homomorphism = coefficient_homomorphism
-        self._domain = domain
-        self._codomain = codomain
-        self._action_on_generators = action_on_generators
-        self._polynomial_action_on_generators = [
-            self._codomain._flatten(g) for g in self._action_on_generators
-        ]
-        # TODO: this probably does not behave correctly on coefficients in general.
-        self._polynomial_homomorphism = self._domain._polynomial_ring.hom(
-            self._polynomial_action_on_generators, self._codomain._polynomial_ring
-        )
+        self.coefficient_morphism = coefficient_morphism
+        self.domain = domain
+        self.codomain = codomain
+        self.action_on_generators = action_on_generators
 
-    def domain(self):
-        return self._domain
+    @functools.cache
+    def _call_on_generator_power(self, idx, e):
+        return self.action_on_generators[idx]**ZZ(e)
 
-    def codomain(self):
-        return self._codomain
+    @functools.cache
+    def _call_on_monomial(self, t):
+        new_term = self.codomain.one
+        for j in range(len(t.exponent)//2):
+            new_term *= self._call_on_generator_power(t[2*j], t[2*j+1])
+        return new_term
 
     def __call__(self, f):
-        if f.parent() != self.domain():
-            raise TypeError("Input function must be an element of the domain.")
-        g = f(self._action_on_generators)
-        return g.map_coefficients(self._coefficient_homomorphism)
+        # TODO: this assumes that the input and output of
+        # self.coefficient_morphism consist of elements of the data classes of
+        # the base_rings.
+        x = self.codomain.zero
+        for m,c in f.term_data():
+            x += self.coefficient_morphism(self.domain(c)) * self._call_on_monomial(m)
+        return x
 
     def __str__(self):
-        return "Homomorphism from {} to {} defined by {} on generators".format(
-            self._domain, self._codomain, self._action_on_generators
-        )
+        return f"Homomorphism from {self.domain} to {self.codomain} defined by {self.action_on_generators} on generators."
 
     def __repr__(self):
         return self.__str__()
