@@ -5,9 +5,14 @@ Tests for the RealNumber and RealRing classes.
 """
 
 import pytest
-from nuthatch.rings.reals import RR
-
-
+import flint
+from nuthatch.rings.reals import RR, RR_py
+from nuthatch.rings.integers import ZZ, ZZ_py
+from nuthatch.rings.polynomials import (
+    _Monomial,
+    _Polynomial,
+)
+from nuthatch.matrices.matrices import Matrix
 class TestRealNumber:
     """Tests for the RealNumber class."""
 
@@ -38,9 +43,38 @@ class TestRealNumber:
         """Tests __repr__."""
         assert RR.__repr__() == "The ring of real numbers (via flint.arb)."
 
-a = TestRealNumber()
-a.test_no_args()
-a.test_truediv()
-a.test_itruediv_notimplemented()
-a.test_repr()
-a.test_str()
+    def test_mult(self):
+        """Test x * y."""
+        assert RR(4.0) * RR(2.25) == RR(9.0)
+
+    def test_add(self):
+        """Test x + y."""
+        assert RR(4.2) + RR(3.5) == RR(7.7)
+
+    def test_sub(self):
+        """Test x - y."""
+        assert RR(2.1) - RR(3.1) == RR(-1.0)
+
+    def test_add_with_integer(self):
+        """Tests __add__ with an integer."""
+        assert ZZ(1) + RR(6.765) == RR(7.765)
+        with pytest.raises(TypeError):
+            RR(6.765) + ZZ(1)
+
+    def test_mult_with_integer(self):
+        """Tests __mult__ with an integer."""
+        assert ZZ(1) * RR(6.765) == RR(6.765)
+        with pytest.raises(TypeError):
+            RR(6.765) * ZZ(1)
+
+    # def test_mult_with_matrix(self):
+    #     """Tests __mult__ with a matrix."""
+    #     mat = Matrix(base_ring=ZZ, entries=[[ZZ(1), ZZ(2)], [ZZ(3), ZZ(4)]])
+    #     assert RR(2.0) * mat == Matrix(base_ring=ZZ, entries=[[ZZ(2), ZZ(4)], [ZZ(6), ZZ(8)]])
+
+    # def test_mult_with_polynomial(self):
+    #     """Tests __mult__ with a polynomial."""
+    #     poly = _Polynomial(RR, {_Monomial((0, 1)): flint.fmpz(1), _Monomial((1, 1)): flint.fmpz(1)})
+    #     assert RR(2.5) * poly == _Polynomial(RR, {_Monomial((0, 1)): flint.arb(2.5), _Monomial((1, 1)): flint.arb(2.5)})
+
+     
