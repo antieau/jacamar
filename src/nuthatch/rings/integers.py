@@ -80,11 +80,28 @@ ZZ = IntegerRing()
 ZZ_py = IntegerRingPython()
 
 
+
+"""
+Select functions of ZZ's based on flint.fmpz attributes. (https://fredrikj.net/python-flint/fmpz.html)
+"""
+
+
 def fac(x):
+    """
+    Integer factorial of x.
+    """
     return x.ring(x.data.fac_ui())
 
+
 def gcd(x, y):
+    """
+    Greatest common factor of x and y.
+    """
     return x.ring(x.data.gcd(y))
 
+
 def factor(x):
+    """
+    Factors of x in polynomial form.
+    """
     return x.ring(x.data.factor())

@@ -79,9 +79,16 @@ class RationalRing(AbstractRing):
 QQ = RationalRing()
 
 
+
+"""
+Select functions of QQ's based on flint.fmpq attributes. (https://fredrikj.net/python-flint/fmpq.html)
+"""
+
+
 def p(x):
     """Returns numerator of x as ZZ."""
     return x.ring(x.data.p())
+
 
 def q(x):
     """Returns denominator of x as ZZ."""

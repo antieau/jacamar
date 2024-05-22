@@ -72,76 +72,151 @@ class ComplexRing(AbstractRing):
 CC = ComplexRing()
 
 
-# Flint.arb functions in nuthatch
+
+"""
+Select functions of CC's based on flint.acb attributes. (https://fredrikj.net/python-flint/acb.html)
+"""
+
+
 def sin(x):
+    """
+    Sine of x.
+    """
     return x.ring(x.data.sin())
 
 
 def cos(x):
+    """
+    Cosine of x.
+    """
     return x.ring(x.data.cos())
 
 
 def tan(x):
+    """
+    Tangent of x.
+    """
     return x.ring(x.data.tan())
 
 
 def asin(x):
+    """
+    Inverse sine of x.
+    """
     return x.ring(x.data.asin())
 
 
 def acos(x):
+    """
+    Inverse cosine of x.
+    """
     return x.ring(x.data.acos())
 
 
 def atan(x):
+    """
+    Inverse tanget of x.
+    """
     return x.ring(x.data.atan())
 
+
 def csc(x):
+    """
+    Cosecant of x.
+    """
     return x.ring(x.data.csc())
 
+
 def sec(x):
+    """
+    Secant of x.
+    """
     return x.ring(x.data.sec())
 
+
 def cot(x):
+    """
+    Cotanget of x.
+    """
     return x.ring(x.data.cot())
 
+
 def acsc(x):
+    """
+    Inverse cosecant of x.
+    """
     return x.ring(x.data.acsc())
 
+
 def asec(x):
+    """
+    Inverse secant of x.
+    """
     return x.ring(x.data.asec())
 
+
 def acot(x):
+    """
+    Inverse cotanget of x.
+    """
     return x.ring(x.data.acot())
 
+
 def abs_lower(x):
+    """
+    The absolute value of the lower bound of x.
+    """
     return x.ring(x.data.abs_lower())
 
 
 def abs_upper(x):
+    """
+    The absolute value of the upper bound of x.
+    """
     return x.ring(x.data.abs_upper())
 
 
 def exp(x):
+    """
+    The constat e raised to the power of x.
+    """
     return x.ring(x.data.exp())
 
 
 def fac(x):
+    """
+    Factorial, using the gamma function of x.
+    """
     return x.ring(x.data.fac())
 
 
 def log(x):
+    """
+    Natural logarithm of x.
+    """
     return x.ring(x.data.log())
+
 
 def root(x, n):
     """nth root of x."""
     return x.ring(x.data.root(n))
 
+
 def sqrt(x):
+    """
+    Square root of x.
+    """
     return x.ring(x.data.sqrt())
 
 def real(x):
+    """
+    Returns the real component of x.
+    """
     return x.ring(x.data.real())
 
+
 def imag(x):
+    """
+    Returns the imaginary component of x.
+    """
     return x.ring(x.data.imag())
