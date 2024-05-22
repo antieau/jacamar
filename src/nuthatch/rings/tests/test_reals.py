@@ -1,5 +1,5 @@
 """
-TEST_RATIONALS
+TEST_REALS
 
 Tests for the RealNumber and RealRing classes.
 """
