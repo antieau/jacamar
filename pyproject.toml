@@ -18,3 +18,7 @@ Home = "https://github.com/antieau/nuthatch"
 
 [tool.pylint."MESSAGES CONTROL"]
 disable = [ "import-error"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+pythonpath = "src"
