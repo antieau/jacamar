@@ -167,7 +167,18 @@ class _Series:
 
     def __pow__(self, n):
         if n == 0:
-            return self.parent().one()
+            return self.__class__(
+                self.base_ring,
+                [
+                    (
+                        0,
+                        _Polynomial(
+                            self.base_ring, {_Monomial(tuple()): self.base_ring.one.data}
+                        ),
+                    ),
+                ],
+                self.precision,
+            )
         else:
             # This is probably not very pythonic. But, it is the only
             # way I can figure out how to get self**n to work. The only other option
@@ -250,8 +261,6 @@ class _Series:
         Evaluates self at a list of inputs.
         """
         if len(other_list) != self.parent()._ngens:
-            print(other_list)
-            print(self.parent()._ngens)
             raise TypeError("Incorrect number of input variables.")
         other_parent = other_list[0].parent()
         if self.parent().base_ring != other_parent.base_ring:
