@@ -94,6 +94,7 @@ class RealRingPython(AbstractRing):
         return self.__str__()
 
 
+# Create a global version of the real ring.
 RR = RealRing()
 RR_py = RealRingPython()
 
@@ -116,6 +117,24 @@ def acos(x):
 def atan(x):
     return x.ring(x.data.atan())
 
+def csc(x):
+    return x.ring(x.data.csc())
+
+def sec(x):
+    return x.ring(x.data.sec())
+
+def cot(x):
+    return x.ring(x.data.cot())
+
+def acsc(x):
+    return x.ring(x.data.acsc())
+
+def asec(x):
+    return x.ring(x.data.asec())
+
+def acot(x):
+    return x.ring(x.data.acot())
+
 def abs_lower(x):
     return x.ring(x.data.abs_lower())
 
@@ -130,3 +149,10 @@ def fac(x):
 
 def log(x):
     return x.ring(x.data.log())
+
+def root(x, n):
+    """nth root of x."""
+    return x.ring(x.data.root(n))
+
+def sqrt(x):
+    return x.ring(x.data.sqrt())

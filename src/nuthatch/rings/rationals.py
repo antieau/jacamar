@@ -75,5 +75,14 @@ class RationalRing(AbstractRing):
         return self.__str__()
 
 
-# Create global version of the integer ring.
+# Create global version of the rational ring.
 QQ = RationalRing()
+
+
+def p(x):
+    """Returns numerator of x as ZZ."""
+    return x.ring(x.data.p())
+
+def q(x):
+    """Returns denominator of x as ZZ."""
+    return x.ring(x.data.q())

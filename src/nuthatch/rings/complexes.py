@@ -1,14 +1,19 @@
 """
-REALS
+COMPLEXES
 
-Base class for RR.
+Base class for CC.
 """
 import flint
+print(flint.acb(4+1j).imag)
 from nuthatch.rings.elements import AbstractRingElement
 from nuthatch.rings.rings import AbstractRing
 
 
 class ComplexNumber(AbstractRingElement):
+    """
+    Base class for complex numbers, built on AbstractRingElement.
+    """
+
     data_class = flint.acb # type: ignore
 
     def __init__(self, *args):
@@ -58,6 +63,10 @@ class ComplexNumber(AbstractRingElement):
 
 
 class ComplexRing(AbstractRing):
+    """
+    Base class for complex rings, built on AbstractRing.
+    """
+
     def __init__(self):
         AbstractRing.__init__(self, ComplexNumber, exact=True)
 
@@ -71,9 +80,11 @@ class ComplexRing(AbstractRing):
         return self.__str__()
 
 
+# Create a global version of the complex ring.
 CC = ComplexRing()
 
 
+# Flint.arb functions in nuthatch
 def sin(x):
     return x.ring(x.data.sin())
 
@@ -92,6 +103,24 @@ def acos(x):
 def atan(x):
     return x.ring(x.data.atan())
 
+def csc(x):
+    return x.ring(x.data.csc())
+
+def sec(x):
+    return x.ring(x.data.sec())
+
+def cot(x):
+    return x.ring(x.data.cot())
+
+def acsc(x):
+    return x.ring(x.data.acsc())
+
+def asec(x):
+    return x.ring(x.data.asec())
+
+def acot(x):
+    return x.ring(x.data.acot())
+
 def abs_lower(x):
     return x.ring(x.data.abs_lower())
 
@@ -106,3 +135,16 @@ def fac(x):
 
 def log(x):
     return x.ring(x.data.log())
+
+def root(x, n):
+    """nth root of x."""
+    return x.ring(x.data.root(n))
+
+def sqrt(x):
+    return x.ring(x.data.sqrt())
+
+def real(x):
+    return x.ring(x.data.real())
+
+def imag(x):
+    return x.ring(x.data.imag())

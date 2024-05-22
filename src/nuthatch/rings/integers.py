@@ -78,3 +78,13 @@ class IntegerRingPython(AbstractRing):
 # Create global version of the integer rings.
 ZZ = IntegerRing()
 ZZ_py = IntegerRingPython()
+
+
+def fac(x):
+    return x.ring(x.data.fac_ui())
+
+def gcd(x, y):
+    return x.ring(x.data.gcd(y))
+
+def factor(x):
+    return x.ring(x.data.factor())
