@@ -40,7 +40,7 @@ class TestComplexNumber:
 
     def test_str(self):
         """Tests __str__."""
-        assert str(CC(2+3j)) == "2.00000000000000 + 3.00000000000000j"
+        assert str(CC(2 + 3j)) == "2.00000000000000 + 3.00000000000000j"
         assert str(CC) == "The ring of complex numbers (via flint.acb)."
 
     def test_repr(self):
@@ -49,19 +49,21 @@ class TestComplexNumber:
 
     def test_mult(self):
         """Test x * y."""
-        assert CC(4+2j) * CC(2) == CC(8+4j)
+        assert CC(4 + 2j) * CC(2) == CC(8 + 4j)
 
     def test_add(self):
         """Test x + y."""
-        assert CC(3-2j) + CC(1+1j) == CC(4-1j)
+        assert CC(3 - 2j) + CC(1 + 1j) == CC(4 - 1j)
 
     def test_sub(self):
         """Test x - y."""
-        assert CC(5-2j) - CC(2+3j) == CC(3-5j)
+        assert CC(5 - 2j) - CC(2 + 3j) == CC(3 - 5j)
 
     def test_mult_with_polynomial(self):
         """Tests __mult__ with a polynomial."""
-        poly = _Polynomial(CC, {_Monomial((0, 1)): flint.fmpz(1), _Monomial((1, 1)): flint.fmpz(1)})
+        poly = _Polynomial(
+            CC, {_Monomial((0, 1)): flint.fmpz(1), _Monomial((1, 1)): flint.fmpz(1)}
+        )
 
     def test_add_with_integer(self):
         """Tests __add__ with an integer."""
@@ -77,12 +79,12 @@ class TestComplexNumber:
 
     def test_add_with_real(self):
         """Tests __add__ with an integer."""
-        assert RR(1.5) + CC(2+1j) == CC(3.5+1j)
+        assert RR(1.5) + CC(2 + 1j) == CC(3.5 + 1j)
         with pytest.raises(TypeError):
-            CC(2+1j) + RR(1.5)
+            CC(2 + 1j) + RR(1.5)
 
     def test_mult_with_real(self):
         """Tests __mult__ with an integer."""
-        assert RR(2) * CC(1+1j) == CC(2+2j)
+        assert RR(2) * CC(1 + 1j) == CC(2 + 2j)
         with pytest.raises(TypeError):
-            CC(1+1j) + RR(2)
+            CC(1 + 1j) + RR(2)

@@ -13,6 +13,8 @@ from nuthatch.rings.polynomials import (
     _Polynomial,
 )
 from nuthatch.matrices.matrices import Matrix
+
+
 class TestRealNumber:
     """Tests for the RealNumber class."""
 
@@ -76,5 +78,3 @@ class TestRealNumber:
     #     """Tests __mult__ with a polynomial."""
     #     poly = _Polynomial(RR, {_Monomial((0, 1)): flint.fmpz(1), _Monomial((1, 1)): flint.fmpz(1)})
     #     assert RR(2.5) * poly == _Polynomial(RR, {_Monomial((0, 1)): flint.arb(2.5), _Monomial((1, 1)): flint.arb(2.5)})
-
-     
