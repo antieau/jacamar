@@ -183,13 +183,6 @@ def exp(x):
     return x.ring(x.data.exp())
 
 
-def fac(x):
-    """
-    Factorial, using the gamma function of x.
-    """
-    return x.ring(x.data.fac())
-
-
 def log(x):
     """
     Natural logarithm of x.
@@ -212,11 +205,11 @@ def real(x):
     """
     Returns the real component of x.
     """
-    return x.ring(x.data.real())
+    return x.ring(x.data.real)
 
 
 def imag(x):
     """
     Returns the imaginary component of x.
     """
-    return x.ring(x.data.imag())
+    return x.ring(x.data.imag)

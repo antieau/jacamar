@@ -6,7 +6,11 @@ Tests for the RealNumber and RealRing classes.
 
 import pytest
 import flint
-from nuthatch.rings.complexes import CC
+from nuthatch.rings.complexes import (
+    CC, sin, cos, tan, asin, imag, real,
+    acos, atan, csc, sec, cot, abs_lower,
+    abs_upper, exp, log, root, sqrt
+)
 from nuthatch.rings.reals import RR, RR_py
 from nuthatch.rings.integers import ZZ, ZZ_py
 from nuthatch.rings.polynomials import (
@@ -88,3 +92,75 @@ class TestComplexNumber:
         assert RR(2) * CC(1 + 1j) == CC(2 + 2j)
         with pytest.raises(TypeError):
             CC(1 + 1j) + RR(2)
+
+
+class TestComplexNumberFunctions:
+    """Tests flint CC functions."""
+    def test_sin(self):
+        """Tests the sin global function."""
+        assert str(sin(CC(1))) == '[0.841470984807897 +/- 6.08e-16]'
+
+    def test_cos(self):
+        """Tests the cos global function."""
+        assert str(cos(CC(1))) == str(flint.acb(1).cos())
+
+    def test_tan(self):
+        """Tests the tan function."""
+        assert str(tan(CC(1))) == str(flint.acb(1).tan())
+
+    def test_asin(self):
+        """Tests the asin global function."""
+        assert str(asin(CC(1))) == str(flint.acb(1).asin())
+
+    def test_acos(self):
+        """Tests the acos function."""
+        assert str(acos(CC(1))) == str(flint.acb(1).acos())
+
+    def test_atan(self):
+        """Tests the atan function."""
+        assert str(atan(CC(1))) == str(flint.acb(1).atan())
+
+    def test_csc(self):
+        """Tests the csc global function."""
+        assert str(csc(CC(1))) == str(flint.acb(1).csc())
+
+    def test_sec(self):
+        """Tests the sec function."""
+        assert str(sec(CC(1))) == str(flint.acb(1).sec())
+
+    def test_cot(self):
+        """Tests the cot function."""
+        assert str(cot(CC(1))) == str(flint.acb(1).cot())
+        
+    def test_abs_upper(self):
+        """Tests the abs_upper global function."""
+        assert str(abs_upper(CC("1.5+/-1"))) == str(flint.acb("1.5+/-1").abs_upper())
+
+    def test_abs_lower(self):
+        """Tests the abs_lower function."""
+        assert str(abs_lower(CC("1.5+/-1"))) == str(flint.acb("1.5+/-1").abs_lower())
+        
+    def test_exp(self):
+        """Tests the exp global function."""
+        assert str(exp(CC(2+1j))) == str(flint.acb(2+1j).exp())
+
+    def test_log(self):
+        """Tests the log function."""
+        assert str(log(CC(3.3))) == str(flint.acb(3.3).log())
+
+    def test_root(self):
+        """Tests the root function."""
+        assert str(root(CC(7+2j), 3)) == str(flint.acb(7+2j).root(3))
+
+    def test_sqrt(self):
+        """Tests the sqrt function."""
+        assert str(sqrt(CC(4))) == str(flint.acb(4).sqrt())
+
+    def test_imag(self):
+        """Tests the sqrt function."""
+        assert str(imag(CC(4+3j))) == str(flint.acb(4+3j).imag)
+    
+    def test_real(self):
+        """Tests the sqrt function."""
+        assert str(real(CC(4+3j))) == str(flint.acb(4+3j).real)
+

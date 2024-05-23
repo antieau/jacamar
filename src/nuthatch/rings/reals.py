@@ -162,27 +162,6 @@ def cot(x):
     return x.ring(x.data.cot())
 
 
-def acsc(x):
-    """
-    Inverse cosecant of x.
-    """
-    return x.ring(x.data.acsc())
-
-
-def asec(x):
-    """
-    Inverse secant of x.
-    """
-    return x.ring(x.data.asec())
-
-
-def acot(x):
-    """
-    Inverse cotanget of x.
-    """
-    return x.ring(x.data.acot())
-
-
 def abs_lower(x):
     """
     The absolute value of the lower bound of x.
@@ -204,7 +183,7 @@ def exp(x):
     return x.ring(x.data.exp())
 
 
-def fac(x):
+def factorial(x):
     """
     Factorial, using the gamma function of x.
     """
