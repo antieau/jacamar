@@ -11,6 +11,7 @@ from nuthatch.rings.integers import ZZ, ZZ_py
 from nuthatch.rings.polynomials import (
     _Monomial,
     _Polynomial,
+    PolynomialRing,
 )
 from nuthatch.matrices.matrices import Matrix
 
@@ -64,17 +65,24 @@ class TestRealNumber:
             RR(6.765) + ZZ(1)
 
     def test_mult_with_integer(self):
-        """Tests __mult__ with an integer."""
+        """Tests ___mul__ with an integer."""
         assert ZZ(1) * RR(6.765) == RR(6.765)
         with pytest.raises(TypeError):
             RR(6.765) * ZZ(1)
 
     # def test_mult_with_matrix(self):
-    #     """Tests __mult__ with a matrix."""
+    #     """Tests ___mul__ with a matrix."""
     #     mat = Matrix(base_ring=ZZ, entries=[[ZZ(1), ZZ(2)], [ZZ(3), ZZ(4)]])
     #     assert RR(2.0) * mat == Matrix(base_ring=ZZ, entries=[[ZZ(2), ZZ(4)], [ZZ(6), ZZ(8)]])
 
-    # def test_mult_with_polynomial(self):
-    #     """Tests __mult__ with a polynomial."""
-    #     poly = _Polynomial(RR, {_Monomial((0, 1)): flint.fmpz(1), _Monomial((1, 1)): flint.fmpz(1)})
-    #     assert RR(2.5) * poly == _Polynomial(RR, {_Monomial((0, 1)): flint.arb(2.5), _Monomial((1, 1)): flint.arb(2.5)})
+    def test_polynomial(self):
+        """Tests creation of real polynomials."""
+        r = PolynomialRing(base_ring=RR,ngens=2,prefix='x')
+        x0,x1=r.gens
+        f=x0+x1
+        assert f**ZZ(2)==x0**ZZ(2) + ZZ(2)*x0*x1+x1**ZZ(2)
+
+        r = PolynomialRing(base_ring=RR_py,ngens=2,prefix='x')
+        x0,x1=r.gens
+        f=x0+x1
+        assert f**ZZ_py(2)==x0**ZZ_py(2) + ZZ_py(2)*x0*x1+x1**ZZ_py(2)
