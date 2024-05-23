@@ -58,7 +58,9 @@ class RealRing(AbstractRing):
     """
 
     def __init__(self):
-        AbstractRing.__init__(self, RealNumber, exact=True)
+        AbstractRing.__init__(self, RealNumber, exact=False)
+        self.one = self(1)
+        self.zero = self(0)
 
     def __call__(self, *args):
         return RealNumber(self, *args)
@@ -76,7 +78,9 @@ class RealRingPython(AbstractRing):
     """
 
     def __init__(self):
-        AbstractRing.__init__(self, RealNumberPython, exact=True)
+        AbstractRing.__init__(self, RealNumberPython, exact=False)
+        self.one = self(1)
+        self.zero = self(0)
 
     def __call__(self, *args):
         return RealNumberPython(self, *args)
