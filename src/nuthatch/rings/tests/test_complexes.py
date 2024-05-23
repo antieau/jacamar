@@ -159,8 +159,9 @@ class TestComplexNumberFunctions:
     def test_imag(self):
         """Tests the sqrt function."""
         assert str(imag(CC(4+3j))) == str(flint.acb(4+3j).imag)
+        assert type(imag(CC(4+3j))) == type(RR(3))
     
     def test_real(self):
         """Tests the sqrt function."""
         assert str(real(CC(4+3j))) == str(flint.acb(4+3j).real)
-
+        assert type(real(CC(4+3j))) == type(RR(4))

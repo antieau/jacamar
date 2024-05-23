@@ -7,7 +7,7 @@ Base class for CC.
 import flint
 from nuthatch.rings.elements import AbstractRingElement
 from nuthatch.rings.rings import AbstractRing
-
+from nuthatch.rings.reals import RR
 
 class ComplexNumber(AbstractRingElement):
     """
@@ -205,11 +205,11 @@ def real(x):
     """
     Returns the real component of x.
     """
-    return x.ring(x.data.real)
+    return RR(str(x.ring(x.data.real)))
 
 
 def imag(x):
     """
     Returns the imaginary component of x.
     """
-    return x.ring(x.data.imag)
+    return RR(str(x.ring(x.data.imag)))
