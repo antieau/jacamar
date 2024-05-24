@@ -1,13 +1,13 @@
 """
 TEST_SERIES
 
-Tests for the _Series, Series, and PowerSeriesRing classes.
+Tests for the SeriesData, Series, and PowerSeriesRing classes.
 """
 
 import pytest
 import flint
 from nuthatch.rings.series import (
-    _Series,
+    SeriesData,
     Series,
     PowerSeriesRing,
 )

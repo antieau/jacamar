@@ -25,14 +25,14 @@ from nuthatch.rings.integers import ZZ
 from nuthatch.rings.rings import AbstractRing
 from nuthatch.rings.polynomials import (
     PolynomialRing,
-    _Polynomial,
+    PolynomialData,
     Polynomial,
-    _Monomial,
+    MonomialData,
 )
 from nuthatch.rings.morphisms import AbstractRingMorphism
 
 
-class _Series:
+class SeriesData:
     """
     Data class for elements of weighted power series ring.
     """
@@ -173,7 +173,7 @@ class _Series:
                     (
                         0,
                         _Polynomial(
-                            self.base_ring, {_Monomial(tuple()): self.base_ring.one.data}
+                            self.base_ring, {MonomialData(tuple()): self.base_ring.one.data}
                         ),
                     ),
                 ],
@@ -321,7 +321,7 @@ class _Series:
 
 
 class Series(AbstractRingElement):
-    data_class = _Series
+    data_class = SeriesData
 
     def __init__(self, ring, data):
         self.base_ring = ring.base_ring
@@ -334,7 +334,7 @@ class Series(AbstractRingElement):
     def term_data(self, a = None, b = None):
         """
         An iterator returning the terms of the series, packaged as tuples (m,c)
-        where m is a _Monomial and c is an element of the base_ring.
+        where m is a MonomialData and c is an element of the base_ring.
         
         If a and b are provided, return only those terms of total degree
         between a and b.
@@ -432,17 +432,17 @@ class PowerSeriesRing(AbstractRing):
     def __call__(self, data):
         if isinstance(data, int):
             if data == 0:
-                return Series(self, _Series(self.base_ring, [], self.precision_cap))
+                return Series(self, SeriesData(self.base_ring, [], self.precision_cap))
             else:
                 return Series(
                     self,
-                    _Series(
+                    SeriesData(
                         self.base_ring,
                         [
                             (
                                 0,
                                 self._polynomial_ring.element_class.data_class(
-                                    self.base_ring, {_Monomial(tuple()): self.base_ring(data).data}
+                                    self.base_ring, {MonomialData(tuple()): self.base_ring(data).data}
                                 ),
                             ),
                         ],
@@ -453,13 +453,13 @@ class PowerSeriesRing(AbstractRing):
         if isinstance(data, self.base_ring.element_class):
             return Series(
                 self,
-                _Series(
+                SeriesData(
                     self.base_ring,
                     [
                         (
                             0,
                             self._polynomial_ring.element_class.data_class(
-                                self.base_ring, {_Monomial(tuple()): data.data}
+                                self.base_ring, {MonomialData(tuple()): data.data}
                             ),
                         ),
                     ],
@@ -470,13 +470,13 @@ class PowerSeriesRing(AbstractRing):
         if isinstance(data, self.base_ring.element_class.data_class):
             return Series(
                 self,
-                _Series(
+                SeriesData(
                     self.base_ring,
                     [
                         (
                             0,
                             self._polynomial_ring.element_class.data_class(
-                                self.base_ring, {_Monomial(tuple()): data}
+                                self.base_ring, {MonomialData(tuple()): data}
                             ),
                         ),
                     ],
@@ -500,7 +500,7 @@ class PowerSeriesRing(AbstractRing):
 
     def _unflatten_data(self, flat_polynomial_data):
         """
-        Takes a _Polynomial and returns a _Series.
+        Takes a _Polynomial and returns a SeriesData.
         """
         out_degrees = {}
         for m, c in flat_polynomial_data.monomial_dictionary.items():
@@ -591,7 +591,7 @@ class PowerSeriesRingMorphism(AbstractRingMorphism):
         # TODO: this assumes that the input and output of
         # self.coefficient_morphism consist of elements of the data classes of
         # the base_rings.
-        if isinstance(f,_Monomial):
+        if isinstance(f,MonomialData):
             return self._call_on_monomial(f)
 
         x = self.codomain.zero
