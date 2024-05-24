@@ -40,7 +40,7 @@ class SeriesData:
     def __init__(self, base_ring, term_list, precision):
         """
         The argument term_list is a list [(N,coefficient)] representing g*T^N
-        where N is a Python integer and g is a _Polynomial of degree N.
+        where N is a Python integer and g is a PolynomialData of degree N.
         """
         self.base_ring = base_ring
         self.term_list = term_list
@@ -172,7 +172,7 @@ class SeriesData:
                 [
                     (
                         0,
-                        _Polynomial(
+                        PolynomialData(
                             self.base_ring, {MonomialData(tuple()): self.base_ring.one.data}
                         ),
                     ),
@@ -500,7 +500,7 @@ class PowerSeriesRing(AbstractRing):
 
     def _unflatten_data(self, flat_polynomial_data):
         """
-        Takes a _Polynomial and returns a SeriesData.
+        Takes a PolynomialData and returns a SeriesData.
         """
         out_degrees = {}
         for m, c in flat_polynomial_data.monomial_dictionary.items():
@@ -584,7 +584,7 @@ class PowerSeriesRingMorphism(AbstractRingMorphism):
     def _call_on_monomial(self, t):
         new_term = self.codomain.one
         for j in range(len(t.exponent)//2):
-            new_term *= self._call_on_generator_power(t[2*j], t[2*j+1])
+            new_term *= self._call_on_generator_power(t.exponent[2*j], t.exponent[2*j+1])
         return new_term
 
     def __call__(self, f):
