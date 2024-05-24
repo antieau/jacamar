@@ -17,7 +17,7 @@ class RealNumber(AbstractRingElement):
     data_class = flint.arb  # type: ignore
 
     def __init__(self, ring, x=0):
-        AbstractRingElement.__init__(self, ring, self.data_class(x))
+        AbstractRingElement.__init__(self, ring, x)
 
     def __truediv__(self, other):
         """Returns self / other with type that of self."""
@@ -33,6 +33,12 @@ class RealNumber(AbstractRingElement):
 
     def __repr__(self):
         return self.__str__()
+    
+    def __eq__(self, other):
+        if self.ring(self.data.abs_lower()) >= other.ring(other.data.abs_lower()):
+            return self.ring(self.data.abs_lower()) <= other.ring(other.data.abs_upper())
+        else:
+            return self.ring(self.data.abs_upper()) >= other.ring(other.data.abs_lower())
 
 
 class RealNumberPython(AbstractRingElement):

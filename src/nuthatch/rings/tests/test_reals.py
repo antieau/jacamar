@@ -27,6 +27,10 @@ class TestRealNumber:
         """Tests RR()."""
         assert RR() == RR(0)
 
+    def test_two_args(self):
+        """Tests RR(c, r)"""
+        assert RR("10.5+/-0.5") == RR("10.4 +/-0.5")
+
     def test_truediv(self):
         """Tests that x / y."""
         x = RR(1)

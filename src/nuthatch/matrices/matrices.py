@@ -13,6 +13,7 @@ AUTHORS:
 
 import flint
 from nuthatch.rings.integers import ZZ
+from nuthatch.rings.reals import RR
 from nuthatch.rings.rationals import QQ
 
 
@@ -41,6 +42,7 @@ class _MatrixGenericData:
         if self.nrows == 1:
             return self.entries[0][0]
         # TODO: implement cofactor definition of determinant for starters.
+
         return NotImplemented
 
     def __add__(self, other):
@@ -311,3 +313,98 @@ class Matrix:
 
     def __eq__(self, other):
         return self.data == other.data
+
+    def __getitem__(self, args):
+        if len(args) == 2:
+            r, c = args
+
+            entries = self.data.entries
+
+            new_entries = entries[r]
+            nrows = len(new_entries)
+            new_data = []
+            if isinstance(new_entries[0], object):
+                new_data = new_entries[c]
+                
+            else:
+                for i in new_entries:
+                    if isinstance(i[c], object):
+                        new_data.append([i[c]])
+                    else:
+                        new_data.append(i[c])
+            
+            ncols = len(new_data)
+            return self.__class__(
+            base_ring=self.base_ring,
+            nrows=nrows,
+            ncols=ncols,
+            entries=new_data,
+            data=_MatrixGenericData(
+                base_ring=self.base_ring,
+                nrows=ncols,
+                ncols=ncols,
+                entries=new_data,
+                )
+            )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        # new_data = self.data.entries[r]
+        # if isinstance(r, int):
+        #     nrows = 1
+        # else:
+        #     nrows = len(new_data)
+
+        # if isinstance(c, int):
+        #     new_data = new_data[c]
+
+        #     return self.__class__(
+        #     base_ring=self.base_ring,
+        #     nrows=nrows,
+        #     ncols=1,
+        #     entries=new_data,
+        #     data=_MatrixGenericData(
+        #         base_ring=self.base_ring,
+        #         nrows=nrows,
+        #         ncols=1,
+        #         entries=new_data,
+        #         )
+        #     )
+
+        # else:
+        #     data = []
+        #     for i in new_data:
+        #         data.append(i[c])
+
+        # return self.__class__(
+        #     base_ring=self.base_ring,
+        #     nrows=nrows,
+        #     ncols=len(data[0]),
+        #     entries=data,
+        #     data=_MatrixGenericData(
+        #             base_ring=self.base_ring,
+        #             nrows=nrows,
+        #             ncols=len(data[0]),
+        #             entries=data,
+        #         )
+        #     )

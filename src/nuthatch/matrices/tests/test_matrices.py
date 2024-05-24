@@ -8,6 +8,8 @@ classes.
 import pytest
 from nuthatch.rings.integers import ZZ, ZZ_py
 from nuthatch.rings.rationals import QQ
+from nuthatch.rings.reals import RR
+
 from nuthatch.matrices.matrices import Matrix
 
 
@@ -140,7 +142,14 @@ class TestMatrix:
         assert a * a == b
         assert a + a == c
 
+    def test_slice(self):
+        a = Matrix(base_ring=RR, entries=[[1, 2], [3, 4]])
 
+    def test_index(self):
+        a = Matrix(base_ring=RR, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        b = Matrix(base_ring=RR, entries=[[1, 2, 3], [4, 5, 6]])
+        print(a[0:2, 1])
+        assert a[1, 1] == a
 class TestGenericMatrices:
     """Tests for generic matrices."""
 
