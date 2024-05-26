@@ -273,7 +273,11 @@ class Matrix:
         if self.nrows != self.ncols:
             raise ValueError("matrix must be square")
         return self.base_ring(self.data.det())
-
+    
+    def size(self):
+        """Returns size of a matrix as a tuple (rows, cols)."""
+        return (self.nrows, self.ncols)
+    
     def __add__(self, other):
         """Returns self + other with base ring that of other."""
         return other.__class__(
@@ -319,21 +323,22 @@ class Matrix:
             r, c = args
 
             entries = self.data.entries
-
             new_entries = entries[r]
-            nrows = len(new_entries)
             new_data = []
-            if isinstance(new_entries[0], object):
-                new_data = new_entries[c]
-                
+            if not isinstance(new_entries[0], list):
+                new_data = [new_entries[c]]
+
+                if not isinstance(new_data[0], list):
+                    new_data = [new_data]
             else:
                 for i in new_entries:
-                    if isinstance(i[c], object):
+                    if not isinstance(i[c], list):
                         new_data.append([i[c]])
                     else:
                         new_data.append(i[c])
-            
-            ncols = len(new_data)
+            ncols = len(new_data[0])
+            nrows = len(new_data)
+
             return self.__class__(
             base_ring=self.base_ring,
             nrows=nrows,
@@ -341,70 +346,18 @@ class Matrix:
             entries=new_data,
             data=_MatrixGenericData(
                 base_ring=self.base_ring,
-                nrows=ncols,
+                nrows=nrows,
                 ncols=ncols,
                 entries=new_data,
                 )
             )
+        
+    def concat(self, other, axis):
+        """Concatinates matrices along an axis."""
+        self = self.data.entries
+        other = other.data.entries
+        return NotImplemented
 
+        
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        # new_data = self.data.entries[r]
-        # if isinstance(r, int):
-        #     nrows = 1
-        # else:
-        #     nrows = len(new_data)
-
-        # if isinstance(c, int):
-        #     new_data = new_data[c]
-
-        #     return self.__class__(
-        #     base_ring=self.base_ring,
-        #     nrows=nrows,
-        #     ncols=1,
-        #     entries=new_data,
-        #     data=_MatrixGenericData(
-        #         base_ring=self.base_ring,
-        #         nrows=nrows,
-        #         ncols=1,
-        #         entries=new_data,
-        #         )
-        #     )
-
-        # else:
-        #     data = []
-        #     for i in new_data:
-        #         data.append(i[c])
-
-        # return self.__class__(
-        #     base_ring=self.base_ring,
-        #     nrows=nrows,
-        #     ncols=len(data[0]),
-        #     entries=data,
-        #     data=_MatrixGenericData(
-        #             base_ring=self.base_ring,
-        #             nrows=nrows,
-        #             ncols=len(data[0]),
-        #             entries=data,
-        #         )
-        #     )
+"""Functions for matricies."""

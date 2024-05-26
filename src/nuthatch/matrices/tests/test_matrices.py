@@ -9,6 +9,7 @@ import pytest
 from nuthatch.rings.integers import ZZ, ZZ_py
 from nuthatch.rings.rationals import QQ
 from nuthatch.rings.reals import RR
+from nuthatch.rings.complexes import CC
 
 from nuthatch.matrices.matrices import Matrix
 
@@ -147,9 +148,21 @@ class TestMatrix:
 
     def test_index(self):
         a = Matrix(base_ring=RR, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-        b = Matrix(base_ring=RR, entries=[[1, 2, 3], [4, 5, 6]])
-        print(a[0:2, 1])
-        assert a[1, 1] == a
+        b = Matrix(base_ring=RR, entries=[[5]])
+        c = Matrix(base_ring=RR, entries=[[3], [6], [9]])
+        d = Matrix(base_ring=RR, entries=[[4, 5]])
+        assert a[:, :] == a
+        assert a[1, 1] == b
+        assert a[:, 2] == c
+        assert a[1, 0:2] == d
+
+    def test_size(self):
+        a = Matrix(base_ring=RR, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        assert a.size() == (3, 3)
+
+    def test_concat(self):
+        pass        
+
 class TestGenericMatrices:
     """Tests for generic matrices."""
 
