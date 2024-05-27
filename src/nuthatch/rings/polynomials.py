@@ -21,45 +21,133 @@ from nuthatch.rings.rings import AbstractRing
 from nuthatch.rings.integers import ZZ, ZZ_py
 from nuthatch.rings.morphisms import AbstractRingMorphism
 
+# The following constant controls the maximum allowed weight of a power x^n in a
+# monomial.
+PACKING_BOUND = 2**16
+
 
 class MonomialData:
+    def __init__(self):
+        pass
+
+    @classmethod
+    def from_packed_int(cls, n):
+        return NotImplemented
+
+    @classmethod
+    def from_sparse_tuple(cls, t):
+        return NotImplemented
+
+    @classmethod
+    def from_tuple(cls, t):
+        return NotImplemented
+
+
+
+class PackedMonomialData(MonomialData):
+    """
+    A class for packing monomial data into a single integer.
+    """
+    def __init__(self, n):
+        self.weight = n
+        MonomialData.__init__(self)
+
+    @classmethod
+    def from_packed_integer(cls, n):
+        return cls(n)
+
+    @classmethod
+    def from_sparse_tuple(cls, t):
+        x = 0
+        for i in range(len(t)//2):
+            x+=t[2*i+1]*(PACKING_BOUND**t[2*i])
+        return cls(x)
+
+    @classmethod
+    def from_tuple(cls, t):
+        x = 0
+        for i,pwr in enumerate(t):
+            x += pwr * (PACKING_BOUND**i)
+        return cls(x)
+
+    @functools.cached_property
+    def degrees(self):
+        """Returns the sparse representation of self."""
+        count = 0
+        x = []
+        n = self.weight
+        while n > 0:
+            q, r = n.__divmod__(PACKING_BOUND)
+            if r > 0:
+                x.extend((count,r))
+            n = q
+        return x
+
+    def __hash__(self):
+        return self.weight.__hash__()
+
+    def __eq__(self, other):
+        return self.weight == other.weight
+
+    def __mul__(self, other):
+        """
+        Multiplication of monomials.
+
+        WARNING: this could result in nonsense if there is an overflow
+        encountered. Ensure that no variable is powered to more than the
+        module-level constant PACKING_BOUND.
+        """
+        return other.__class__(self.weight+other.weight)
+
+    def __str__(self):
+        return str(self.weight)
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class SparseMonomialData(MonomialData):
     """
     The class of a monomial in a PolynomialData.
 
     INPUT:
     - `t`     -- a tuple of Python integers
-
-    TODO:
-    - make this into C or Rust code
     """
 
     def __init__(self, *t):
         if len(t) == 1 & isinstance(t,tuple):
-            self.exponent = t[0]
+            self.degrees = t[0]
         else:
-            self.exponent = tuple(t)
+            self.degrees = tuple(t)
 
-    def degree(self):
-        """Sum over the odd entries in the exponent tuple."""
-        return sum(self.exponent[1::2])
+    @classmethod
+    def from_packed_integer(cls, n):
+        count = 0
+        x = []
+        while n > 0:
+            q, r = n.__divmod__(PACKING_BOUND)
+            if r > 0:
+                x.extend((count,r))
+            n = q
+        return cls(x)
 
-    def in_ith_variable(self, i):
-        j = 0
-        while j < len(self.exponent):
-            if self.exponent[j] < i:
-                j += 2
-                continue
-            elif self.exponent[j] == i:
-                return self.exponent[j + 1]
-            else:  # t[j] > i
-                return 0
-        return 0
+    @classmethod
+    def from_sparse_tuple(cls, t):
+        return cls(t)
+
+    @classmethod
+    def from_tuple(cls, t):
+        x = []
+        for i,pwr in enumerate(t):
+            if pwr != 0:
+                x.extend((i,pwr))
+        return cls(tuple(x))
 
     def __hash__(self):
-        return hash(self.exponent)
+        return hash(self.degrees)
 
     def __str__(self):
-        return str(self.exponent)
+        return str(self.degrees)
 
     def __repr__(self):
         return str(self)
@@ -68,37 +156,37 @@ class MonomialData:
         new_list = []
         self_index = 0
         other_index = 0
-        self_len = len(self.exponent)
-        other_len = len(other.exponent)
+        self_len = len(self.degrees)
+        other_len = len(other.degrees)
         while self_index < self_len and other_index < other_len:
-            if self.exponent[self_index] < other.exponent[other_index]:
-                new_list.extend(self.exponent[self_index : self_index + 2])
+            if self.degrees[self_index] < other.degrees[other_index]:
+                new_list.extend(self.degrees[self_index : self_index + 2])
                 self_index += 2
-            elif self.exponent[self_index] == other.exponent[other_index]:
-                x = self.exponent[self_index + 1] + other.exponent[other_index + 1]
+            elif self.degrees[self_index] == other.degrees[other_index]:
+                x = self.degrees[self_index + 1] + other.degrees[other_index + 1]
                 if x != 0:
-                    new_list.append(self.exponent[self_index])
+                    new_list.append(self.degrees[self_index])
                     new_list.append(x)
                 self_index += 2
                 other_index += 2
             else:
-                new_list.extend(other.exponent[other_index : other_index + 2])
+                new_list.extend(other.degrees[other_index : other_index + 2])
                 other_index += 2
 
         # Now that we've reached the end of at least one list, we add
         # everything from the other list.
         while self_index < self_len:
-            new_list.extend(self.exponent[self_index : self_index + 2])
+            new_list.extend(self.degrees[self_index : self_index + 2])
             self_index += 2
 
         while other_index < other_len:
-            new_list.extend(other.exponent[other_index : other_index + 2])
+            new_list.extend(other.degrees[other_index : other_index + 2])
             other_index += 2
 
         return other.__class__(tuple(new_list))
 
     def __eq__(self, other):
-        return self.exponent == other.exponent
+        return self.degrees == other.degrees
         
 
 
@@ -107,11 +195,20 @@ class PolynomialData:
     The underlying data class of polynomials.
     The `data` input should be a dictionary `{m:c}` where `m` is a `MonomialData`
     and `c` is an element of the data_class of the element_class of the `base_ring`.
+    Each operation returns a PolynomialData class with no terms with
+    coefficient equal to zero if the inputs have this property.
+
+    In practice, the methods in this class work only under the assumption that
+    the keys are of a fixed type of MonomialData. It is not designed so that
+    the types can be mixed.
     """
 
     def __init__(self, base_ring, monomial_dictionary):
         self.base_ring = base_ring
-        self.monomial_dictionary = monomial_dictionary
+        self.monomial_dictionary = {}
+        for m,c in monomial_dictionary.items():
+            if c != self.base_ring.zero.data:
+                self.monomial_dictionary[m] = c
 
     def is_zero(self):
         if len(self.monomial_dictionary) == 0:
@@ -122,6 +219,7 @@ class PolynomialData:
         return True
 
     def term_data(self):
+        """Returns the iterator over the items {m:c} in self.monomial_dictionary."""
         return self.monomial_dictionary.items()
 
     def __str__(self):
@@ -142,8 +240,6 @@ class PolynomialData:
         for m, c in other_dict.items():
             try:
                 new_dict[m] += c
-                if new_dict[m] == other.base_ring.zero.data:
-                    del new_dict[m]
             except KeyError:
                 new_dict[m] = c
         return other.__class__(other.base_ring, new_dict)
@@ -167,11 +263,7 @@ class PolynomialData:
                     new_dict[k] += e
                 except KeyError:
                     new_dict[k] = e
-        final_dict = {}
-        for m, c in new_dict.items():
-            if c != other.base_ring.zero.data:
-                final_dict[m] = c
-        return other.__class__(other.base_ring, final_dict)
+        return other.__class__(other.base_ring, new_dict)
 
     def __rmul__(self, other):
         """
@@ -216,18 +308,19 @@ class PolynomialData:
             raise TypeError(f"Cannot power polynomial by {n}.")
 
     def __call__(self, arg):
-            try:
-                return self.monomial_dictionary[arg]
-            except KeyError:
-                return self.base_ring.zero.data
+        """The PolynomialData class can be called on a monomial."""
+        try:
+            return self.monomial_dictionary[arg]
+        except KeyError:
+            return self.base_ring.zero.data
 
     def evaluate(self, args):
         """Returns f(a_1,...,a_n) where arguments=[a_1,...,a_n]."""
         x = self.base_ring.zero.data
         for key, value in self.monomial_dictionary.items():
             monomial_part = self.base_ring.one.data
-            for i in range(len(key.exponent) // 2):
-                monomial_part *= args[key.exponent[2*i]]**key.exponent[2*i+1]
+            for i in range(len(key.degrees) // 2):
+                monomial_part *= args[key.degrees[2*i]]**key.degrees[2*i+1]
             x += value * monomial_part
         return x
 
@@ -262,7 +355,13 @@ class Polynomial(AbstractRingElement):
             except AttributeError:
                 pass
 
-        return self.base_ring(self.data(MonomialData(tuple(args))))
+            try:
+                m = self.ring._monomial_class.from_tuple(tuple(args))
+                return self.base_ring(self.data(m))
+            except ValueError:
+                pass
+
+        return NotImplemented
 
     def __str__(self):
         if len(self.data.monomial_dictionary) == 0:
@@ -280,11 +379,11 @@ class Polynomial(AbstractRingElement):
             term = f"- {-self.data.monomial_dictionary[keys[0]]}"
         else:
             term = f"{self.data.monomial_dictionary[keys[0]]}"
-            for j in range(len(key.exponent) // 2):
+            for j in range(len(key.degrees) // 2):
                 term += "*"
                 term += self.ring._prefix
-                term += str(key.exponent[2 * j])
-                term += f"^{key.exponent[2*j+1]}"
+                term += str(key.degrees[2 * j])
+                term += f"^{key.degrees[2*j+1]}"
         return_string = term
 
         # Parse the latter keys
@@ -300,11 +399,11 @@ class Polynomial(AbstractRingElement):
                 term = f" - {-value}"
             else:
                 term = f" + {value}"
-            for j in range(len(key.exponent) // 2):
+            for j in range(len(key.degrees) // 2):
                 term += "*"
                 term += self.ring._prefix
-                term += str(key.exponent[2 * j])
-                term += f"^{key.exponent[2*j+1]}"
+                term += str(key.degrees[2 * j])
+                term += f"^{key.degrees[2*j+1]}"
             return_string += term
         return return_string
 
@@ -332,9 +431,15 @@ class PolynomialRing(AbstractRing):
         ngens,
         prefix,
         weights=None,
+        packed=True,
     ):
         self.base_ring = base_ring
         self.ngens = ngens
+        if packed:
+            self._monomial_class = PackedMonomialData
+        else:
+            self._monomial_class = SparseMonomialData
+        self.packed = packed
         self._prefix = prefix
         self._names = [prefix + str(i) for i in range(ngens)]
         if weights is None:
@@ -352,16 +457,17 @@ class PolynomialRing(AbstractRing):
                 Polynomial(
                     self,
                     PolynomialData(
-                        self.base_ring, {MonomialData((i, 1)): self.base_ring.one.data}
+                        self.base_ring, {self._monomial_class.from_sparse_tuple((i, 1)): self.base_ring.one.data}
                     ),
                 )
             )
+
+        AbstractRing.__init__(self, Polynomial, exact=base_ring.exact)
 
         # Initialize one and zero since these are used so often.
         self.one = self(1)
         self.zero = self(0)
 
-        AbstractRing.__init__(self, Polynomial, exact=base_ring.exact)
 
     def __str__(self):
         return f"Ring of polynomials in {self.ngens} variables {self._names} with weights {self.weights} over {self.base_ring}"
@@ -378,14 +484,15 @@ class PolynomialRing(AbstractRing):
                     self,
                     PolynomialData(
                         self.base_ring,
-                        {MonomialData(()): self.base_ring.element_class.data_class(data)},
+                        {self._monomial_class.from_sparse_tuple(()): self.base_ring.element_class.data_class(data)},
                     ),
                 )
         if isinstance(data, dict):
             new_dict = {}
             for key, value in data.items():
-                new_dict[MonomialData(key)] = value.data
+                new_dict[self._monomial_class.from_sparse_tuple(key)] = value.data
             return Polynomial(self, PolynomialData(self.base_ring, new_dict))
+
         raise TypeError("No known constructor for input data.")
 
 
@@ -432,7 +539,7 @@ class PolynomialRingMorphism(AbstractRingMorphism):
     @functools.cache
     def _call_on_monomial(self, t):
         new_term = self.codomain.one
-        for j in range(len(t.exponent)//2):
+        for j in range(len(t.degrees)//2):
             new_term *= self._call_on_generator_power(t[2*j], t[2*j+1])
         return new_term
 

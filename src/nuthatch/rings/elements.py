@@ -58,6 +58,8 @@ class AbstractRingElement:
 
     def __pow__(self, n):
         """Returns self ** n with type that of self."""
+        if n == n.ring.zero:
+            return self.ring.one
         return self.__class__(self.ring, self.data**n.data)
 
     # Comparison functions.
