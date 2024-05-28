@@ -1,14 +1,19 @@
 """
 POLYNOMIALS
 
-Classes for generic polynomial rings. The exponents are designed based on the
-`ETuple` class from `SAGE`. In particular, they are sparse. In a polynomial
-ring on x0, x1, x2, x3, a monomial x0*x2^3*x3^7 would be encoded as
-(0,1,2,3,3,7), where the even indices indicate the present variables and the
-odd indices indicate their powers. The empty tuple () represents the monomial
-of 1.
+Classes for generic polynomial rings.
 
-We attempt to trim away zero terms whenever possible.
+Currently, there are two supported exponent types: PackedMonomialData and
+SparseMonomialData.
+
+The former are packed into a Python `int`. The largest power supported is given
+by the module-level constant PACKING_BOUND.
+
+The latter are designed based on the `ETuple` class from `SAGE`. In particular,
+they are sparse. In a polynomial ring on x0, x1, x2, x3, a monomial
+x0*x2^3*x3^7 would be encoded as (0,1,2,3,3,7), where the even indices indicate
+the present variables and the odd indices indicate their powers. The empty
+tuple () represents the monomial of 1.
 
 AUTHORS:
 - Benjamin Antieau (2024): initial version.
@@ -31,7 +36,7 @@ class MonomialData:
         pass
 
     @classmethod
-    def from_packed_int(cls, n):
+    def from_packed_integer(cls, n):
         return NotImplemented
 
     @classmethod
@@ -72,7 +77,7 @@ class PackedMonomialData(MonomialData):
 
     @functools.cached_property
     def degrees(self):
-        """Returns the sparse representation of self."""
+        """Returns the sparse tuple representation of self."""
         count = 0
         x = []
         n = self.weight
@@ -81,7 +86,8 @@ class PackedMonomialData(MonomialData):
             if r > 0:
                 x.extend((count,r))
             n = q
-        return x
+            count += 1
+        return tuple(x)
 
     def __hash__(self):
         return self.weight.__hash__()
@@ -129,7 +135,8 @@ class SparseMonomialData(MonomialData):
             if r > 0:
                 x.extend((count,r))
             n = q
-        return cls(x)
+            count += 1
+        return cls(tuple(x))
 
     @classmethod
     def from_sparse_tuple(cls, t):
@@ -254,6 +261,8 @@ class PolynomialData:
         return self.__class__(self.base_ring, new_dict)
 
     def __mul__(self, other):
+        if self.base_ring != other.base_ring:
+            return NotImplemented
         new_dict = {}
         for m, c in self.monomial_dictionary.items():
             for n, d in other.monomial_dictionary.items():
@@ -376,14 +385,25 @@ class Polynomial(AbstractRingElement):
         except TypeError:
             bl = bool(0)
         if bl:
-            term = f"- {-self.data.monomial_dictionary[keys[0]]}"
+            token = str(-self.base_ring(value))
         else:
-            term = f"{self.data.monomial_dictionary[keys[0]]}"
-            for j in range(len(key.degrees) // 2):
-                term += "*"
-                term += self.ring._prefix
-                term += str(key.degrees[2 * j])
-                term += f"^{key.degrees[2*j+1]}"
+            token = str(self.base_ring(value))
+        if token.count(" ") > 0:
+            if bl:
+                term = "- (" + token + ")"
+            else:
+                term = "(" + token + ")"
+        else:
+            if bl:
+                term = "- " + token
+            else:
+                term = token
+        
+        for j in range(len(key.degrees) // 2):
+            term += "*"
+            term += self.ring._prefix
+            term += str(key.degrees[2 * j])
+            term += f"^{key.degrees[2*j+1]}"
         return_string = term
 
         # Parse the latter keys
@@ -396,9 +416,19 @@ class Polynomial(AbstractRingElement):
             except TypeError:
                 bl = bool(0)
             if bl:
-                term = f" - {-value}"
+                token = str(-self.base_ring(value))
             else:
-                term = f" + {value}"
+                token = str(self.base_ring(value))
+            if token.count(" ") > 0:
+                if bl:
+                    term = " - (" + token + ")"
+                else:
+                    term = " + (" + token + ")"
+            else:
+                if bl:
+                    term = " - " + token
+                else:
+                    term = " + " + token
             for j in range(len(key.degrees) // 2):
                 term += "*"
                 term += self.ring._prefix
@@ -476,24 +506,36 @@ class PolynomialRing(AbstractRing):
         return self.__str__()
 
     def __call__(self, data):
-        if isinstance(data, int):
-            if data == 0:
-                return Polynomial(self, PolynomialData(self.base_ring, {}))
-            else:
-                return Polynomial(
-                    self,
-                    PolynomialData(
-                        self.base_ring,
-                        {self._monomial_class.from_sparse_tuple(()): self.base_ring.element_class.data_class(data)},
-                    ),
-                )
+        if isinstance(data,int):
+            return Polynomial(
+                self,
+                PolynomialData(
+                    self.base_ring,
+                    {self._monomial_class.from_sparse_tuple(()): self.base_ring(data).data},
+                ),
+            )
         if isinstance(data, dict):
             new_dict = {}
             for key, value in data.items():
                 new_dict[self._monomial_class.from_sparse_tuple(key)] = value.data
             return Polynomial(self, PolynomialData(self.base_ring, new_dict))
-
-        raise TypeError("No known constructor for input data.")
+        if isinstance(data, self.element_class):
+            if data.ring == self:
+            # Create a new element with the same data.
+                return self.element_class(self, data.data)
+        if isinstance(data, self.element_class.data_class):
+            if data.base_ring == self.base_ring:
+                return self.element_class(self,data)
+        if isinstance(data, self.base_ring.element_class):
+            if data.ring == self.base_ring:
+                return Polynomial(
+                    self,
+                    PolynomialData(
+                        self.base_ring,
+                        {self._monomial_class.from_sparse_tuple(()): self.base_ring(data).data},
+                    ),
+                )
+        raise TypeError(f"No known constructor for input data of type {type(data)}.")
 
 
 class PolynomialRingMorphism(AbstractRingMorphism):

@@ -7,6 +7,7 @@ Tests for the MonomialData, PolynomialData, Polynomial, and PolynomialRing class
 import pytest
 import flint
 from nuthatch.rings.polynomials import (
+    MonomialData,
     PackedMonomialData,
     SparseMonomialData,
     PolynomialData,
@@ -16,8 +17,26 @@ from nuthatch.rings.polynomials import (
 from nuthatch.rings.integers import ZZ
 
 
-class TestMonomial:
+
+class TestMonomialData:
     """Tests for the MonomialData class."""
+
+    def test_from_packed_integer(self):
+        """Tests that from_packed_int is not implemented."""
+        assert MonomialData.from_packed_integer(5) == NotImplemented
+
+    def test_from_sparse_tuple(self):
+        """Tests that from_sparse_tuple is not implemented."""
+        assert MonomialData.from_sparse_tuple((1, 2, 4, 7)) == NotImplemented
+
+    def test_from_tuple(self):
+        """Tests that from_tuple is not implemented."""
+        assert MonomialData.from_tuple((0, 2, 0, 0, 7)) == NotImplemented
+
+
+
+class TestSparseMonomial:
+    """Tests for the SparseMonomialData class."""
 
     def test_empty(self):
         """Edge tests for the empty monomial."""
@@ -48,6 +67,53 @@ class TestMonomial:
         assert str(m) == str((1, 2, 4, 7))
         assert repr(m) == str(m)
 
+    def test_class_methods(self):
+        """Tests the class method constructors."""
+        assert SparseMonomialData((1, 2, 4, 7)) == SparseMonomialData.from_sparse_tuple((1, 2, 4, 7))
+        assert SparseMonomialData((1, 2, 4, 7)) == SparseMonomialData.from_tuple((0, 2, 0, 0, 7))
+        assert SparseMonomialData((1, 2, 4, 7)) == SparseMonomialData.from_packed_integer(129127208515966992384)
+
+
+class TestPackedMonomial:
+    """Tests for the PackedMonomialData class."""
+
+    def test_empty(self):
+        """Edge tests for the empty monomial."""
+        assert PackedMonomialData(0) == PackedMonomialData(0)
+        m = PackedMonomialData.from_sparse_tuple((1, 2, 4, 7))
+        assert m * PackedMonomialData(0) == m
+
+    def test_eq(self):
+        """Tests the __eq__ method."""
+        assert PackedMonomialData.from_sparse_tuple((1, 2, 4, 7)) == PackedMonomialData.from_sparse_tuple((1, 2, 4, 7))
+        assert PackedMonomialData.from_sparse_tuple((1, 2, 4, 7)) != PackedMonomialData.from_sparse_tuple((1, 2, 4, 8))
+
+    def test_mul(self):
+        """Tests the __mul__ method."""
+        m = PackedMonomialData.from_sparse_tuple((1, 2, 4, 7))
+        n = PackedMonomialData.from_sparse_tuple((0, 3, 3, 3, 4, 1))
+        assert m * n == PackedMonomialData.from_sparse_tuple((0, 3, 1, 2, 3, 3, 4, 8))
+
+    def test_hash(self):
+        """Tests the __hash__ method."""
+        m = PackedMonomialData.from_sparse_tuple((1, 2, 4, 7))
+        # This could fail if the constant PACKING_BOUND from
+        # nuthatch.rings.polynomials is changed.
+        assert hash(m) == hash(129127208515966992384)
+
+    def test_str_and_repr(self):
+        """Tests the __str__ method."""
+        m = PackedMonomialData.from_sparse_tuple((1, 2, 4, 7))
+        # This could fail if the constant PACKING_BOUND from
+        # nuthatch.rings.polynomials is changed.
+        assert str(m) == "129127208515966992384"
+        assert repr(m) == str(m)
+
+    def test_class_methods(self):
+        """Tests the class method constructors."""
+        assert PackedMonomialData(129127208515966992384) == PackedMonomialData.from_sparse_tuple((1, 2, 4, 7))
+        assert PackedMonomialData(129127208515966992384) == PackedMonomialData.from_tuple((0, 2, 0, 0, 7))
+        assert PackedMonomialData(129127208515966992384) == PackedMonomialData.from_packed_integer(129127208515966992384)
 
 
 class TestPolynomialDataClass:
@@ -82,6 +148,7 @@ class TestPolynomialRing:
     x0 = r.gens[0]
     x1 = r.gens[1]
     x2 = r.gens[2]
+    a = r(-5) + x0 + x1 + x2
 
     def test_gens_data(self):
         """Tests the correct creation of the generators."""
@@ -95,10 +162,53 @@ class TestPolynomialRing:
             self.x0 ** ZZ(2) + ZZ(2) * self.x0 * self.x1 + self.x1 ** ZZ(2)
         )
 
-    def test_constructor(self):
+    def test_constructor_from_int(self):
+        """Tests r(5)."""
+        assert str(self.r(5)) == "5"
+
+    def test_constructor_from_base_ring(self):
+        """Tests r(ZZ(5))."""
+        assert str(self.r(ZZ(5))) == "5"
+
+    def test_constructor_from_element(self):
+        assert self.r(self.a) == self.a
+
+    def test_constructor_from_element_data(self):
+        assert self.r(self.a.data) == self.a
+
+    def test_constructor_from_dict(self):
         """Tests dictionary constructor."""
         f = self.r({(1,1,2,1):ZZ(2),(0,4):ZZ(9)})
         assert f == ZZ(2) * self.x1 * self.x2 + ZZ(9) * self.x0**ZZ(4)
+
+    def test_packed_sparse_str(self):
+        """Tests that sparse and packed versions print the same."""
+        m = str(self.a*self.a)
+        s = PolynomialRing(base_ring=ZZ, ngens=3, prefix="x", packed=True)
+        x0, x1, x2 = s.gens
+        b = s(-5) + x0 + x1 + x2
+        m == str(b*b)
+
+
+class TestLayers:
+    """Tests polynomial rings over polynomial rings."""
+    r = PolynomialRing(base_ring=ZZ,ngens=2,prefix='x', packed=True)
+    s = PolynomialRing(base_ring=r,ngens=2,prefix='y', packed=True)
+    x0,x1 = r.gens
+    y0,y1 = s.gens
+    a = r(1) + x0 + x1
+    b = s(1) + y0 + y1
+
+    def test_evaluation(self):
+        """Tests evaluation."""
+        print(self.a)
+        print(self.s(self.a)(0, 0))
+        assert self.s(self.a)(0, 0) == self.a
+
+    def test_multiplication(self):
+        with pytest.raises(AttributeError):
+            self.b * self.a
+        assert self.a*self.b == self.s(self.a) + self.a*self.y0 + self.a*self.y1
 
 
 class TestCalls:
@@ -122,3 +232,28 @@ class TestCalls:
         SparseMonomialData instance.
         """
         assert self.f(1,1,2,1) == ZZ(0)
+
+
+class TestPrinting:
+    """Test printing in various situations."""
+    r = PolynomialRing(base_ring=ZZ, ngens=2, prefix='x')
+    x0,x1=r.gens
+    f = r(5)*x0 + ZZ(9)*x0**ZZ(5)*x1**ZZ(2)
+
+    s = PolynomialRing(base_ring=r, ngens=2, prefix='y')
+    y0,y1=s.gens
+    g = s(x0+x1)*(y0+y1)
+
+    h = s(x0) * (y0+y1)
+
+    def test_integer_coefficients(self):
+        """Tests printing with integer coefficients."""
+        assert str(self.f) == "5*x0^1 + 9*x0^5*x1^2"
+
+    def test_polynomial_coefficients(self):
+        """Tests printing with polynomial coefficients."""
+        assert str(self.g) == "(1*x0^1 + 1*x1^1)*y0^1 + (1*x0^1 + 1*x1^1)*y1^1"
+
+    def test_simple_polynomial_coefficients(self):
+        """Tests printing with simple polynomial coefficients."""
+        assert str(self.h) == "1*x0^1*y0^1 + 1*x0^1*y1^1"
