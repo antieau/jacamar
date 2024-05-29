@@ -23,7 +23,7 @@ import functools
 import flint
 from nuthatch.rings.elements import AbstractRingElement
 from nuthatch.rings.rings import AbstractRing
-from nuthatch.rings.integers import ZZ, ZZ_py
+from nuthatch.rings.integers import ZZ
 from nuthatch.rings.morphisms import AbstractRingMorphism
 
 # The following constant controls the maximum allowed weight of a power x^n in a
@@ -32,27 +32,32 @@ PACKING_BOUND = 2**16
 
 
 class MonomialData:
+    """Abstract class for monomials."""
+
     def __init__(self):
         pass
 
     @classmethod
-    def from_packed_integer(cls, n):
+    def from_packed_integer(cls, _):
+        """Construct from an integer."""
         return NotImplemented
 
     @classmethod
-    def from_sparse_tuple(cls, t):
+    def from_sparse_tuple(cls, _):
+        """Construct from a sparse tuple."""
         return NotImplemented
 
     @classmethod
-    def from_tuple(cls, t):
+    def from_tuple(cls, _):
+        """Construct from a tuple."""
         return NotImplemented
-
 
 
 class PackedMonomialData(MonomialData):
     """
     A class for packing monomial data into a single integer.
     """
+
     def __init__(self, n):
         self.weight = n
         MonomialData.__init__(self)
@@ -64,14 +69,14 @@ class PackedMonomialData(MonomialData):
     @classmethod
     def from_sparse_tuple(cls, t):
         x = 0
-        for i in range(len(t)//2):
-            x+=t[2*i+1]*(PACKING_BOUND**t[2*i])
+        for i in range(len(t) // 2):
+            x += t[2 * i + 1] * (PACKING_BOUND ** t[2 * i])
         return cls(x)
 
     @classmethod
     def from_tuple(cls, t):
         x = 0
-        for i,pwr in enumerate(t):
+        for i, pwr in enumerate(t):
             x += pwr * (PACKING_BOUND**i)
         return cls(x)
 
@@ -82,9 +87,9 @@ class PackedMonomialData(MonomialData):
         x = []
         n = self.weight
         while n > 0:
-            q, r = n.__divmod__(PACKING_BOUND)
+            q, r = divmod(n, PACKING_BOUND)
             if r > 0:
-                x.extend((count,r))
+                x.extend((count, r))
             n = q
             count += 1
         return tuple(x)
@@ -103,7 +108,7 @@ class PackedMonomialData(MonomialData):
         encountered. Ensure that no variable is powered to more than the
         module-level constant PACKING_BOUND.
         """
-        return other.__class__(self.weight+other.weight)
+        return other.__class__(self.weight + other.weight)
 
     def __str__(self):
         return str(self.weight)
@@ -121,7 +126,7 @@ class SparseMonomialData(MonomialData):
     """
 
     def __init__(self, *t):
-        if len(t) == 1 & isinstance(t,tuple):
+        if len(t) == 1 & isinstance(t, tuple):
             self.degrees = t[0]
         else:
             self.degrees = tuple(t)
@@ -131,9 +136,9 @@ class SparseMonomialData(MonomialData):
         count = 0
         x = []
         while n > 0:
-            q, r = n.__divmod__(PACKING_BOUND)
+            q, r = divmod(n, PACKING_BOUND)
             if r > 0:
-                x.extend((count,r))
+                x.extend((count, r))
             n = q
             count += 1
         return cls(tuple(x))
@@ -145,9 +150,9 @@ class SparseMonomialData(MonomialData):
     @classmethod
     def from_tuple(cls, t):
         x = []
-        for i,pwr in enumerate(t):
+        for i, pwr in enumerate(t):
             if pwr != 0:
-                x.extend((i,pwr))
+                x.extend((i, pwr))
         return cls(tuple(x))
 
     def __hash__(self):
@@ -194,7 +199,6 @@ class SparseMonomialData(MonomialData):
 
     def __eq__(self, other):
         return self.degrees == other.degrees
-        
 
 
 class PolynomialData:
@@ -213,11 +217,12 @@ class PolynomialData:
     def __init__(self, base_ring, monomial_dictionary):
         self.base_ring = base_ring
         self.monomial_dictionary = {}
-        for m,c in monomial_dictionary.items():
+        for m, c in monomial_dictionary.items():
             if c != self.base_ring.zero.data:
                 self.monomial_dictionary[m] = c
 
     def is_zero(self):
+        """Tests if self is zero."""
         if len(self.monomial_dictionary) == 0:
             return True
         return False
@@ -291,7 +296,7 @@ class PolynomialData:
                 raise TypeError("Cannot power a polynomial by a negative integer.")
 
             apow = self
-            while not (n & 1):
+            while not n & 1:
                 # While even
                 apow *= apow
                 # Bitshift
@@ -306,8 +311,8 @@ class PolynomialData:
                     res = apow * res
                 n >>= 1
             return res
-        else:
-            raise TypeError(f"Cannot power polynomial by {n}.")
+
+        raise TypeError(f"Cannot power polynomial by {n}.")
 
     def __call__(self, arg):
         """The PolynomialData class can be called on a monomial."""
@@ -322,7 +327,7 @@ class PolynomialData:
         for key, value in self.monomial_dictionary.items():
             monomial_part = self.base_ring.one.data
             for i in range(len(key.degrees) // 2):
-                monomial_part *= args[key.degrees[2*i]]**key.degrees[2*i+1]
+                monomial_part *= args[key.degrees[2 * i]] ** key.degrees[2 * i + 1]
             x += value * monomial_part
         return x
 
@@ -344,6 +349,7 @@ class Polynomial(AbstractRingElement):
         )
 
     def term_data(self):
+        """Returns the items of the underlying monomial dictionary."""
         return self.data.term_data()
 
     def __mul__(self, other):
@@ -375,6 +381,7 @@ class Polynomial(AbstractRingElement):
         return NotImplemented
 
     def __str__(self):
+        """String representation."""
         if len(self.data.monomial_dictionary) == 0:
             return "0"
         keys = list(self.data.monomial_dictionary.keys())
@@ -397,7 +404,7 @@ class Polynomial(AbstractRingElement):
                 term = "- " + token
             else:
                 term = token
-        
+
         for j in range(len(key.degrees) // 2):
             term += "*"
             term += self.ring._prefix
@@ -434,6 +441,7 @@ class Polynomial(AbstractRingElement):
         return return_string
 
     def __repr__(self):
+        """String representation."""
         return str(self)
 
 
@@ -483,7 +491,12 @@ class PolynomialRing(AbstractRing):
                 Polynomial(
                     self,
                     PolynomialData(
-                        self.base_ring, {self._monomial_class.from_sparse_tuple((i, 1)): self.base_ring.one.data}
+                        self.base_ring,
+                        {
+                            self._monomial_class.from_sparse_tuple(
+                                (i, 1)
+                            ): self.base_ring.one.data
+                        },
                     ),
                 )
             )
@@ -494,20 +507,26 @@ class PolynomialRing(AbstractRing):
         self.one = self(1)
         self.zero = self(0)
 
-
     def __str__(self):
+        """String representation."""
         return f"Ring of polynomials in {self.ngens} variables {self._names} with weights {self.weights} over {self.base_ring}"
 
     def __repr__(self):
+        """String representation."""
         return self.__str__()
 
     def __call__(self, data):
-        if isinstance(data,int):
+        """Create a new polynomial from data, if possible."""
+        if isinstance(data, int):
             return Polynomial(
                 self,
                 PolynomialData(
                     self.base_ring,
-                    {self._monomial_class.from_sparse_tuple(()): self.base_ring(data).data},
+                    {
+                        self._monomial_class.from_sparse_tuple(()): self.base_ring(
+                            data
+                        ).data
+                    },
                 ),
             )
         if isinstance(data, dict):
@@ -517,18 +536,22 @@ class PolynomialRing(AbstractRing):
             return Polynomial(self, PolynomialData(self.base_ring, new_dict))
         if isinstance(data, self.element_class):
             if data.ring == self:
-            # Create a new element with the same data.
+                # Create a new element with the same data.
                 return self.element_class(self, data.data)
         if isinstance(data, self.element_class.data_class):
             if data.base_ring == self.base_ring:
-                return self.element_class(self,data)
+                return self.element_class(self, data)
         if isinstance(data, self.base_ring.element_class):
             if data.ring == self.base_ring:
                 return Polynomial(
                     self,
                     PolynomialData(
                         self.base_ring,
-                        {self._monomial_class.from_sparse_tuple(()): self.base_ring(data).data},
+                        {
+                            self._monomial_class.from_sparse_tuple(()): self.base_ring(
+                                data
+                            ).data
+                        },
                     ),
                 )
         raise TypeError(f"No known constructor for input data of type {type(data)}.")
@@ -539,9 +562,7 @@ class PolynomialRingMorphism(AbstractRingMorphism):
     Homomorphisms of polynomial rings.
     """
 
-    def __init__(
-        self, *, domain, codomain, coefficient_morphism, action_on_generators
-    ):
+    def __init__(self, *, domain, codomain, coefficient_morphism, action_on_generators):
         if (
             domain.base_ring != coefficient_morphism.domain
             or codomain.base_ring != coefficient_morphism.codomain
@@ -551,30 +572,31 @@ class PolynomialRingMorphism(AbstractRingMorphism):
             )
         if len(action_on_generators) != domain.ngens:
             raise TypeError(
-                "Cannot interpret {} as a homomorphism from {} to {}".format(
-                    action_on_generators, domain, codomain
-                )
+                f"Cannot interpret {action_on_generators} as a homomorphism from {domain} to {codomain}"
             )
-        for i in range(len(action_on_generators)):
-            if action_on_generators[i].ring != codomain:
+        for gen in action_on_generators:
+            if gen.ring != codomain:
                 raise TypeError(
                     "The elements of 'action_on_generators' are not members of the codomain."
                 )
 
         self.coefficient_morphism = coefficient_morphism
-        self.domain = domain
-        self.codomain = codomain
         self.action_on_generators = action_on_generators
+        AbstractRingMorphism.__init__(self, domain, codomain)
 
-    @functools.cache
+    @functools.lru_cache
     def _call_on_generator_power(self, idx, e):
-        return self.action_on_generators[idx]**ZZ(e)
+        """Cache the calls to powers of generators."""
+        return self.action_on_generators[idx] ** ZZ(e)
 
-    @functools.cache
+    @functools.lru_cache
     def _call_on_monomial(self, t):
+        """Cache calls on monomials."""
         new_term = self.codomain.one
-        for j in range(len(t.degrees)//2):
-            new_term *= self._call_on_generator_power(t.degrees[2*j], t.degrees[2*j+1])
+        for j in range(len(t.degrees) // 2):
+            new_term *= self._call_on_generator_power(
+                t.degrees[2 * j], t.degrees[2 * j + 1]
+            )
         return new_term
 
     def __call__(self, f):
@@ -585,12 +607,16 @@ class PolynomialRingMorphism(AbstractRingMorphism):
             return self._call_on_monomial(f)
 
         x = self.codomain.zero
-        for m,c in f.term_data():
-            x += self.coefficient_morphism(self.domain.base_ring(c)) * self._call_on_monomial(m)
+        for m, c in f.term_data():
+            x += self.coefficient_morphism(
+                self.domain.base_ring(c)
+            ) * self._call_on_monomial(m)
         return x
 
     def __str__(self):
+        """String representation."""
         return f"Homomorphism from {self.domain} to {self.codomain} defined by {self.action_on_generators} on generators."
 
     def __repr__(self):
+        """String representation."""
         return self.__str__()

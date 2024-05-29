@@ -15,9 +15,9 @@ from nuthatch.rings.polynomials import (
     PolynomialRing,
     PolynomialRingMorphism,
 )
-from nuthatch.rings.integers import ZZ
+from nuthatch.rings.integers import ZZ, ZZ_py
+from nuthatch.rings.morphisms import AbstractRingMorphism
 from nuthatch.rings.rationals import QQ
-
 
 
 class TestMonomialData:
@@ -34,7 +34,6 @@ class TestMonomialData:
     def test_from_tuple(self):
         """Tests that from_tuple is not implemented."""
         assert MonomialData.from_tuple((0, 2, 0, 0, 7)) == NotImplemented
-
 
 
 class TestSparseMonomial:
@@ -71,9 +70,15 @@ class TestSparseMonomial:
 
     def test_class_methods(self):
         """Tests the class method constructors."""
-        assert SparseMonomialData((1, 2, 4, 7)) == SparseMonomialData.from_sparse_tuple((1, 2, 4, 7))
-        assert SparseMonomialData((1, 2, 4, 7)) == SparseMonomialData.from_tuple((0, 2, 0, 0, 7))
-        assert SparseMonomialData((1, 2, 4, 7)) == SparseMonomialData.from_packed_integer(129127208515966992384)
+        assert SparseMonomialData((1, 2, 4, 7)) == SparseMonomialData.from_sparse_tuple(
+            (1, 2, 4, 7)
+        )
+        assert SparseMonomialData((1, 2, 4, 7)) == SparseMonomialData.from_tuple(
+            (0, 2, 0, 0, 7)
+        )
+        assert SparseMonomialData(
+            (1, 2, 4, 7)
+        ) == SparseMonomialData.from_packed_integer(129127208515966992384)
 
 
 class TestPackedMonomial:
@@ -87,8 +92,12 @@ class TestPackedMonomial:
 
     def test_eq(self):
         """Tests the __eq__ method."""
-        assert PackedMonomialData.from_sparse_tuple((1, 2, 4, 7)) == PackedMonomialData.from_sparse_tuple((1, 2, 4, 7))
-        assert PackedMonomialData.from_sparse_tuple((1, 2, 4, 7)) != PackedMonomialData.from_sparse_tuple((1, 2, 4, 8))
+        assert PackedMonomialData.from_sparse_tuple(
+            (1, 2, 4, 7)
+        ) == PackedMonomialData.from_sparse_tuple((1, 2, 4, 7))
+        assert PackedMonomialData.from_sparse_tuple(
+            (1, 2, 4, 7)
+        ) != PackedMonomialData.from_sparse_tuple((1, 2, 4, 8))
 
     def test_mul(self):
         """Tests the __mul__ method."""
@@ -113,15 +122,24 @@ class TestPackedMonomial:
 
     def test_class_methods(self):
         """Tests the class method constructors."""
-        assert PackedMonomialData(129127208515966992384) == PackedMonomialData.from_sparse_tuple((1, 2, 4, 7))
-        assert PackedMonomialData(129127208515966992384) == PackedMonomialData.from_tuple((0, 2, 0, 0, 7))
-        assert PackedMonomialData(129127208515966992384) == PackedMonomialData.from_packed_integer(129127208515966992384)
+        assert PackedMonomialData(
+            129127208515966992384
+        ) == PackedMonomialData.from_sparse_tuple((1, 2, 4, 7))
+        assert PackedMonomialData(
+            129127208515966992384
+        ) == PackedMonomialData.from_tuple((0, 2, 0, 0, 7))
+        assert PackedMonomialData(
+            129127208515966992384
+        ) == PackedMonomialData.from_packed_integer(129127208515966992384)
 
 
 class TestPolynomialDataClass:
     """Tests for the PolynomialData class."""
 
-    d = {SparseMonomialData((0, 1)): flint.fmpz(1), SparseMonomialData((1, 1)): flint.fmpz(1)}
+    d = {
+        SparseMonomialData((0, 1)): flint.fmpz(1),
+        SparseMonomialData((1, 1)): flint.fmpz(1),
+    }
     p = PolynomialData(ZZ, d)
 
     def test_mul(self):
@@ -139,9 +157,15 @@ class TestPolynomialDataClass:
     def test_is_zero(self):
         """Tests the is_zero method."""
         assert not self.p.is_zero()
-        assert PolynomialData(ZZ,{}).is_zero()
-        assert PolynomialData(ZZ,{SparseMonomialData(0,1): ZZ.zero.data}).is_zero()
-        q = PolynomialData(ZZ, {PackedMonomialData(23512): flint.fmpz(0), PackedMonomialData(515167141362451626134541345): flint.fmpz(0)})
+        assert PolynomialData(ZZ, {}).is_zero()
+        assert PolynomialData(ZZ, {SparseMonomialData(0, 1): ZZ.zero.data}).is_zero()
+        q = PolynomialData(
+            ZZ,
+            {
+                PackedMonomialData(23512): flint.fmpz(0),
+                PackedMonomialData(515167141362451626134541345): flint.fmpz(0),
+            },
+        )
         assert q.is_zero()
         assert not PolynomialData(ZZ, {PackedMonomialData(5): flint.fmpz(5)}).is_zero()
 
@@ -192,16 +216,16 @@ class TestPolynomialRing:
 
     def test_constructor_from_dict(self):
         """Tests dictionary constructor."""
-        f = self.r({(1,1,2,1):ZZ(2),(0,4):ZZ(9)})
-        assert f == ZZ(2) * self.x1 * self.x2 + ZZ(9) * self.x0**ZZ(4)
+        f = self.r({(1, 1, 2, 1): ZZ(2), (0, 4): ZZ(9)})
+        assert f == ZZ(2) * self.x1 * self.x2 + ZZ(9) * self.x0 ** ZZ(4)
 
     def test_packed_sparse_str(self):
         """Tests that sparse and packed versions print the same."""
-        m = str(self.a*self.a)
+        m = str(self.a * self.a)
         s = PolynomialRing(base_ring=ZZ, ngens=3, prefix="x", packed=True)
         x0, x1, x2 = s.gens
         b = s(-5) + x0 + x1 + x2
-        m == str(b*b)
+        m == str(b * b)
 
     def test_sub(self):
         """Tests the sub method."""
@@ -210,26 +234,27 @@ class TestPolynomialRing:
     def test_negative_power(self):
         """Tests that powering fails with negative input."""
         with pytest.raises(TypeError):
-            self.a**ZZ(-5)
+            self.a ** ZZ(-5)
 
     def test_zero_power(self):
         """Tests that powering by zero returns one."""
-        assert self.a**ZZ(0) == self.r.one
+        assert self.a ** ZZ(0) == self.r.one
 
     def test_power_failure(self):
         """Tests that powering by rational or polynomial fails."""
         with pytest.raises(TypeError):
-            self.a**QQ(1,2)
+            self.a ** QQ(1, 2)
         with pytest.raises(TypeError):
             self.a**self.a
 
 
 class TestLayers:
     """Tests polynomial rings over polynomial rings."""
-    r = PolynomialRing(base_ring=ZZ,ngens=2,prefix='x', packed=True)
-    s = PolynomialRing(base_ring=r,ngens=2,prefix='y', packed=True)
-    x0,x1 = r.gens
-    y0,y1 = s.gens
+
+    r = PolynomialRing(base_ring=ZZ, ngens=2, prefix="x", packed=True)
+    s = PolynomialRing(base_ring=r, ngens=2, prefix="y", packed=True)
+    x0, x1 = r.gens
+    y0, y1 = s.gens
     a = r(1) + x0 + x1
     b = s(1) + y0 + y1
 
@@ -242,15 +267,16 @@ class TestLayers:
     def test_multiplication(self):
         with pytest.raises(TypeError):
             self.b * self.a
-        assert self.a*self.b == self.s(self.a) + self.a*self.y0 + self.a*self.y1
-        assert self.s(self.a) * self.b == self.a*self.b
+        assert self.a * self.b == self.s(self.a) + self.a * self.y0 + self.a * self.y1
+        assert self.s(self.a) * self.b == self.a * self.b
 
 
 class TestCalls:
     """Test evaluation of polynomials."""
-    s=PolynomialRing(base_ring=ZZ,ngens=4,prefix='x', packed=False)
-    x0,x1,x2,x3 = s.gens
-    f = x0+ZZ(2)*x1*x2+x3
+
+    s = PolynomialRing(base_ring=ZZ, ngens=4, prefix="x", packed=False)
+    x0, x1, x2, x3 = s.gens
+    f = x0 + ZZ(2) * x1 * x2 + x3
 
     def test_evaluation_at_coorindates(self):
         """Tests evaluation at tuples of base_ring elements."""
@@ -266,27 +292,28 @@ class TestCalls:
         Tests evaluation at something that can be coerced into a
         SparseMonomialData instance.
         """
-        assert self.f(1,1,2,1) == ZZ(0)
+        assert self.f(1, 1, 2, 1) == ZZ(0)
 
     def test_evaluation_at_other(self):
         """
         Tests that evaluating at something else is NotImplemented.
         """
-        assert self.f(QQ(1,2)) == NotImplemented
-        assert self.f(1,1,2,1,1,2) == NotImplemented
+        assert self.f(QQ(1, 2)) == NotImplemented
+        assert self.f(1, 1, 2, 1, 1, 2) == NotImplemented
 
 
 class TestPrinting:
     """Test printing in various situations."""
-    r = PolynomialRing(base_ring=ZZ, ngens=2, prefix='x')
-    x0,x1=r.gens
-    f = r(-5)*x0 - ZZ(9)*x0**ZZ(5)*x1**ZZ(2)
 
-    s = PolynomialRing(base_ring=r, ngens=2, prefix='y')
-    y0,y1=s.gens
-    g = s(x0+x1)*(y0+y1)
+    r = PolynomialRing(base_ring=ZZ, ngens=2, prefix="x")
+    x0, x1 = r.gens
+    f = r(-5) * x0 - ZZ(9) * x0 ** ZZ(5) * x1 ** ZZ(2)
 
-    h = s(x0) * (y0+y1)
+    s = PolynomialRing(base_ring=r, ngens=2, prefix="y")
+    y0, y1 = s.gens
+    g = s(x0 + x1) * (y0 + y1)
+
+    h = s(x0) * (y0 + y1)
 
     def test_integer_coefficients(self):
         """Tests printing with integer coefficients."""
@@ -303,8 +330,14 @@ class TestPrinting:
 
     def test_printing_ring(self):
         """Tests the printing of polynomial rings."""
-        assert str(self.r) == "Ring of polynomials in 2 variables ['x0', 'x1'] with weights [1, 1] over The ring of Integers (via flint.fmpz)."
-        assert str(self.s) == "Ring of polynomials in 2 variables ['y0', 'y1'] with weights [1, 1] over Ring of polynomials in 2 variables ['x0', 'x1'] with weights [1, 1] over The ring of Integers (via flint.fmpz)."
+        assert (
+            str(self.r)
+            == "Ring of polynomials in 2 variables ['x0', 'x1'] with weights [1, 1] over The ring of Integers (via flint.fmpz)."
+        )
+        assert (
+            str(self.s)
+            == "Ring of polynomials in 2 variables ['y0', 'y1'] with weights [1, 1] over Ring of polynomials in 2 variables ['x0', 'x1'] with weights [1, 1] over The ring of Integers (via flint.fmpz)."
+        )
         assert repr(self.r) == str(self.r)
 
     def test_printing_zero(self):
@@ -314,57 +347,122 @@ class TestPrinting:
 
 class TestWeights:
     """Tests weights."""
-    r = PolynomialRing(base_ring=ZZ, ngens=2, prefix='x', weights=[2,3])
+
+    r = PolynomialRing(base_ring=ZZ, ngens=2, prefix="x", weights=[2, 3])
 
     def test_weights(self):
         """Tests that weights are correctly initialized."""
-        assert self.r.weights == [2,3]
+        assert self.r.weights == [2, 3]
 
     def test_bad_weights(self):
         """
         Tests that a ValueError is raised if the number of weights is not ngens.
         """
         with pytest.raises(ValueError):
-            s = PolynomialRing(base_ring=ZZ, ngens=2, prefix='x', weights=[1,2,3,4])
+            s = PolynomialRing(base_ring=ZZ, ngens=2, prefix="x", weights=[1, 2, 3, 4])
 
 
 class TestMorphism:
     """Tests PolynomialRingMorphisms."""
-    r = PolynomialRing(base_ring=ZZ, ngens=2, prefix='x')
-    x0,x1=r.gens
 
-    s = PolynomialRing(base_ring=ZZ, ngens=2, prefix='y')
-    y0,y1=s.gens
+    r = PolynomialRing(base_ring=ZZ, ngens=2, prefix="x")
+    x0, x1 = r.gens
 
-    f0 = ZZ(2)*y0**ZZ(3) + y0*y1
-    f1 = y0+y1
+    s = PolynomialRing(base_ring=ZZ, ngens=2, prefix="y")
+    y0, y1 = s.gens
 
-    f = PolynomialRingMorphism(domain = r, codomain = s, coefficient_morphism = ZZ.identity_morphism(), action_on_generators = [f0,f1])
+    f0 = ZZ(2) * y0 ** ZZ(3) + y0 * y1
+    f1 = y0 + y1
+
+    f = PolynomialRingMorphism(
+        domain=r,
+        codomain=s,
+        coefficient_morphism=ZZ.identity_morphism(),
+        action_on_generators=[f0, f1],
+    )
 
     def test_morphism(self):
         """Tests evaluation of morphisms."""
         assert self.f(self.x0) == self.f0
         assert self.f(self.x1) == self.f1
-        assert self.f(PackedMonomialData.from_sparse_tuple((0,1,1,1))) == self.f0*self.f1
+        assert (
+            self.f(PackedMonomialData.from_sparse_tuple((0, 1, 1, 1)))
+            == self.f0 * self.f1
+        )
 
     def test_base_ring_check(self):
         """Tests the detection of incompatible base ring morphism."""
-        t = PolynomialRing(base_ring=QQ, ngens=2, prefix='z')
-        z0,z1=t.gens
+        t = PolynomialRing(base_ring=QQ, ngens=2, prefix="z")
+        z0, z1 = t.gens
         with pytest.raises(TypeError):
-            PolynomialRingMorphism(domain=self.r, codomain=t, coefficient_morphism=ZZ.identity_morphism(), action_on_generators=[z0,z1])
+            PolynomialRingMorphism(
+                domain=self.r,
+                codomain=t,
+                coefficient_morphism=ZZ.identity_morphism(),
+                action_on_generators=[z0, z1],
+            )
 
     def test_bad_ngens(self):
         """Tests the detection of the wrong number of generators."""
         with pytest.raises(TypeError):
-            PolynomialRingMorphism(domain=self.r, codomain=self.s, coefficient_morphism=ZZ.identity_morphism(), action_on_generators=[self.y0,self.y1,self.f0])
+            PolynomialRingMorphism(
+                domain=self.r,
+                codomain=self.s,
+                coefficient_morphism=ZZ.identity_morphism(),
+                action_on_generators=[self.y0, self.y1, self.f0],
+            )
 
     def test_bad_action(self):
         """Tests ring detection."""
         with pytest.raises(TypeError):
-            PolynomialRingMorphism(domain = self.r, codomain = self.s, coefficient_morphism = ZZ.identity_morphism(), action_on_generators = [self.x0,self.x1])
+            PolynomialRingMorphism(
+                domain=self.r,
+                codomain=self.s,
+                coefficient_morphism=ZZ.identity_morphism(),
+                action_on_generators=[self.x0, self.x1],
+            )
 
     def test_printing(self):
         """Tests printing."""
         assert repr(self.f) == str(self.f)
-        assert str(self.f) == "Homomorphism from Ring of polynomials in 2 variables ['x0', 'x1'] with weights [1, 1] over The ring of Integers (via flint.fmpz). to Ring of polynomials in 2 variables ['y0', 'y1'] with weights [1, 1] over The ring of Integers (via flint.fmpz). defined by [2*y0^3 + 1*y0^1*y1^1, 1*y0^1 + 1*y1^1] on generators."
+        assert (
+            str(self.f)
+            == "Homomorphism from Ring of polynomials in 2 variables ['x0', 'x1'] with weights [1, 1] over The ring of Integers (via flint.fmpz). to Ring of polynomials in 2 variables ['y0', 'y1'] with weights [1, 1] over The ring of Integers (via flint.fmpz). defined by [2*y0^3 + 1*y0^1*y1^1, 1*y0^1 + 1*y1^1] on generators."
+        )
+
+
+class TestCoercion:
+    """Tests a map which goes from ZZ_py to QQ on coefficients."""
+
+    r = PolynomialRing(
+        base_ring=ZZ_py,
+        ngens=1,
+        prefix="x",
+    )
+    x = r.gens[0]
+    s = PolynomialRing(
+        base_ring=QQ,
+        ngens=1,
+        prefix="y",
+    )
+    y = s.gens[0]
+
+    class ZZpyQQMorphism(AbstractRingMorphism):
+        def __init__(self):
+            AbstractRingMorphism.__init__(self, ZZ_py, QQ)
+
+        def __call__(self, x):
+            return self.codomain(x.data)
+
+    fc = ZZpyQQMorphism()
+    f0 = QQ(1, 3) * y ** ZZ(4) + QQ(2, 11) * y ** ZZ(9)
+
+    f = PolynomialRingMorphism(
+        domain=r,
+        codomain=s,
+        coefficient_morphism=fc,
+        action_on_generators=[f0],
+    )
+
+    def test_call(self):
+        assert self.f(self.x) == self.f0
