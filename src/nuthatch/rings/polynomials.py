@@ -289,8 +289,6 @@ class PolynomialData:
         )
 
     def __pow__(self, n):
-        # TODO: this low level power function should not really be checking for
-        # types.
         if isinstance(n, (flint.fmpz, int)):
             if n < 0:
                 raise TypeError("Cannot power a polynomial by a negative integer.")
