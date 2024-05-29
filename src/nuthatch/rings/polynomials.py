@@ -220,10 +220,7 @@ class PolynomialData:
     def is_zero(self):
         if len(self.monomial_dictionary) == 0:
             return True
-        for _, c in self.monomial_dictionary.items():
-            if c != self.base_ring.zero.data:
-                return False
-        return True
+        return False
 
     def term_data(self):
         """Returns the iterator over the items {m:c} in self.monomial_dictionary."""
@@ -261,8 +258,6 @@ class PolynomialData:
         return self.__class__(self.base_ring, new_dict)
 
     def __mul__(self, other):
-        if self.base_ring != other.base_ring:
-            return NotImplemented
         new_dict = {}
         for m, c in self.monomial_dictionary.items():
             for n, d in other.monomial_dictionary.items():
@@ -294,8 +289,6 @@ class PolynomialData:
         if isinstance(n, (flint.fmpz, int)):
             if n < 0:
                 raise TypeError("Cannot power a polynomial by a negative integer.")
-            elif n == 0:
-                return self.ring.one.data
 
             apow = self
             while not (n & 1):
@@ -350,13 +343,23 @@ class Polynomial(AbstractRingElement):
             data,
         )
 
+    def term_data(self):
+        return self.data.term_data()
+
+    def __mul__(self, other):
+        if self.ring == other.ring:
+            return other.__class__(other.ring, self.data * other.data)
+        # Else, coerce self into the other's ring and multiply.
+        return other.ring(self) * other
+
     def __call__(self, *args):
         """
         Evaluate self at x. If x is an instance of MonomialData, returns the
         coefficient. If x is a tuple of elements, then evaluate on these.
         """
-        if isinstance(args[0], MonomialData):
-            return self.base_ring(self.data(args[0]))
+        if len(args) == 1:
+            if isinstance(args[0], MonomialData):
+                return self.base_ring(self.data(args[0]))
 
         if len(args) == self.ring.ngens:
             try:
@@ -364,11 +367,10 @@ class Polynomial(AbstractRingElement):
             except AttributeError:
                 pass
 
-            try:
-                m = self.ring._monomial_class.from_tuple(tuple(args))
-                return self.base_ring(self.data(m))
-            except ValueError:
-                pass
+            # Fall back on making it into a monomial and accessing its
+            # coefficient.
+            m = self.ring._monomial_class.from_tuple(tuple(args))
+            return self.base_ring(self.data(m))
 
         return NotImplemented
 
@@ -389,10 +391,7 @@ class Polynomial(AbstractRingElement):
         else:
             token = str(self.base_ring(value))
         if token.count(" ") > 0:
-            if bl:
-                term = "- (" + token + ")"
-            else:
-                term = "(" + token + ")"
+            term = "(" + token + ")"
         else:
             if bl:
                 term = "- " + token
@@ -420,10 +419,7 @@ class Polynomial(AbstractRingElement):
             else:
                 token = str(self.base_ring(value))
             if token.count(" ") > 0:
-                if bl:
-                    term = " - (" + token + ")"
-                else:
-                    term = " + (" + token + ")"
+                term = " + (" + token + ")"
             else:
                 if bl:
                     term = " - " + token
@@ -559,10 +555,6 @@ class PolynomialRingMorphism(AbstractRingMorphism):
                     action_on_generators, domain, codomain
                 )
             )
-        if codomain.precision_cap > domain.precision_cap:
-            raise ValueError(
-                "Codomain precision cap is larger than domain precision cap."
-            )
         for i in range(len(action_on_generators)):
             if action_on_generators[i].ring != codomain:
                 raise TypeError(
@@ -582,19 +574,19 @@ class PolynomialRingMorphism(AbstractRingMorphism):
     def _call_on_monomial(self, t):
         new_term = self.codomain.one
         for j in range(len(t.degrees)//2):
-            new_term *= self._call_on_generator_power(t[2*j], t[2*j+1])
+            new_term *= self._call_on_generator_power(t.degrees[2*j], t.degrees[2*j+1])
         return new_term
 
     def __call__(self, f):
         # TODO: this assumes that the input and output of
         # self.coefficient_morphism consist of elements of the data classes of
         # the base_rings.
-        if isinstance(f,MonomialData):
+        if isinstance(f, MonomialData):
             return self._call_on_monomial(f)
 
         x = self.codomain.zero
         for m,c in f.term_data():
-            x += self.coefficient_morphism(self.domain(c)) * self._call_on_monomial(m)
+            x += self.coefficient_morphism(self.domain.base_ring(c)) * self._call_on_monomial(m)
         return x
 
     def __str__(self):
