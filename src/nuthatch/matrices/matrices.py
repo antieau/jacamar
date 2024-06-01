@@ -12,6 +12,7 @@ AUTHORS:
 """
 
 import flint
+import numpy as np
 from nuthatch.rings.integers import ZZ
 from nuthatch.rings.reals import RR
 from nuthatch.rings.rationals import QQ
@@ -84,7 +85,12 @@ class _MatrixGenericData:
                 ncols=other.ncols,
                 entries=[],
             )
+        # KAUERS - MOOSBAUER (5 x 5)
+        if self.nrows == 5 and other.nrows == 5 and self.ncols ==5 and other.nrows == 5:
 
+            new_entries = []
+
+        # standard matrix multiplication
         new_entries = []
         for i in range(self.nrows):
             new_entries.append([])
@@ -100,6 +106,9 @@ class _MatrixGenericData:
             ncols=other.ncols,
             entries=new_entries,
         )
+
+        
+
 
     def __sub__(self, other):
         if self.nrows != other.nrows or self.ncols != other.ncols:
@@ -141,7 +150,17 @@ class _MatrixGenericData:
             return self.base_ring == other.base_ring
         return self.entries == other.entries
 
+    def __getitem__(self, args):
+        r, c = args
+        return self.__class__(
+            base_ring=self.base_ring,
+            nrows=self.nrows,
+            ncols=self.ncols,
+            entries=self.entries[r][c],
+        )
 
+
+        
 class Matrix:
     def __init__(
         self,
@@ -319,6 +338,9 @@ class Matrix:
         return self.data == other.data
 
     def __getitem__(self, args):
+        if not self._is_generic:
+            r, c = args
+            return self[r][c]
         if len(args) == 2:
             r, c = args
 
@@ -352,11 +374,51 @@ class Matrix:
                 )
             )
         
-    def concat(self, other, axis):
+    def concat(self, other, axis=0):
         """Concatinates matrices along an axis."""
-        self = self.data.entries
-        other = other.data.entries
-        return NotImplemented
+        if axis != 0 and axis != 1:
+            return ValueError (
+                f'Axis must be 0 (vertical), or 1 (horizontal), a value of {axis} was given.'
+            )
+        
+        if axis == 0 and self.data.ncols != other.data.ncols:
+            return ValueError (
+                'For vertical concatination, the number of columns on both matrices must match.'
+            )
+        
+        if axis == 1 and self.data.nrows != other.data.nrows:
+            return ValueError (
+                'For horizontal concatination, the number of rows on both matrices must match.'
+            )
+
+        s = self.data.entries
+        o = other.data.entries
+        if axis == 0:
+            for row in range(len(o)):
+                s.append(o[row])
+
+        else:
+            len_s = len(s)
+            len_o = len(o[0])
+            for i in range(len_s):
+                for j in range(len_o):
+                    s[i].append(o[i][j])
+                    
+        nrows = len(s)
+        ncols = len(s[0])
+
+        return self.__class__(
+            base_ring=self.base_ring,
+            nrows=nrows,
+            ncols=ncols,
+            entries=s,
+            data=_MatrixGenericData(
+                base_ring=self.base_ring,
+                nrows=nrows,
+                ncols=ncols,
+                entries=s,
+                )
+            )
 
         
 
