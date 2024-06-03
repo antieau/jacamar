@@ -57,6 +57,8 @@ class ComplexRing(AbstractRing):
 
     def __init__(self):
         AbstractRing.__init__(self, ComplexNumber, exact=True)
+        self.zero = self(0)
+        self.one = self(1)
 
     def __call__(self, *args):
         return ComplexNumber(self, *args)

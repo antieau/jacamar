@@ -14,8 +14,8 @@ from nuthatch.rings.complexes import (
 from nuthatch.rings.reals import RR, RR_py
 from nuthatch.rings.integers import ZZ, ZZ_py
 from nuthatch.rings.polynomials import (
-    _Monomial,
-    _Polynomial,
+    SparseMonomialData,
+    PolynomialData,
     Polynomial,
     PolynomialRing,
 )
@@ -65,8 +65,8 @@ class TestComplexNumber:
 
     def test_mult_with_polynomial(self):
         """Tests __mult__ with a polynomial."""
-        poly = _Polynomial(
-            CC, {_Monomial((0, 1)): flint.fmpz(1), _Monomial((1, 1)): flint.fmpz(1)}
+        poly = PolynomialData(
+            CC, {SparseMonomialData((0, 1)): flint.fmpz(1), SparseMonomialData((1, 1)): flint.fmpz(1)}
         )
 
     def test_add_with_integer(self):

@@ -13,8 +13,8 @@ from nuthatch.rings.reals import (
 )
 from nuthatch.rings.integers import ZZ, ZZ_py
 from nuthatch.rings.polynomials import (
-    _Monomial,
-    _Polynomial,
+    SparseMonomialData,
+    PolynomialData,
     PolynomialRing,
 )
 from nuthatch.matrices.matrices import Matrix
