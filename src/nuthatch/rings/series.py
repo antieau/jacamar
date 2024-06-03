@@ -19,7 +19,7 @@ AUTHORS:
 """
 
 import functools
-import itertools 
+import itertools
 from nuthatch.rings.elements import AbstractRingElement
 from nuthatch.rings.integers import ZZ
 from nuthatch.rings.rings import AbstractRing
@@ -83,9 +83,7 @@ class SeriesData:
         )
 
     def __eq__(self, other):
-        return (self.term_list == other.term_list) & (
-            self.precision == other.precision
-        )
+        return (self.term_list == other.term_list) & (self.precision == other.precision)
 
     def __ne__(self, other):
         return not self == other
@@ -166,40 +164,26 @@ class SeriesData:
         return self.__class__(self.base_ring, newterm_list, other.precision)
 
     def __pow__(self, n):
-        if n == 0:
-            return self.__class__(
-                self.base_ring,
-                [
-                    (
-                        0,
-                        PolynomialData(
-                            self.base_ring, {MonomialData(tuple()): self.base_ring.one.data}
-                        ),
-                    ),
-                ],
-                self.precision,
-            )
-        else:
-            # This is probably not very pythonic. But, it is the only
-            # way I can figure out how to get self**n to work. The only other option
-            # would be to implement __rpow__(self,n) and apply it n**self,
-            # which would make for garbage code.
-            # From sage/arith/power.pyx
-            apow = self
-            while not n & 1:  # While even...
-                apow *= apow
-                # Bitshift
-                n >>= 1
-
-            # Now multiply together the correct factors a^(2^i)
-            res = apow
+        # This is probably not very pythonic. But, it is the only
+        # way I can figure out how to get self**n to work. The only other option
+        # would be to implement __rpow__(self,n) and apply it n**self,
+        # which would make for garbage code.
+        # From sage/arith/power.pyx
+        apow = self
+        while not n & 1:  # While even...
+            apow *= apow
+            # Bitshift
             n >>= 1
-            while n:
-                apow *= apow
-                if n & 1:
-                    res = apow * res
-                n >>= 1
-            return res
+
+        # Now multiply together the correct factors a^(2^i)
+        res = apow
+        n >>= 1
+        while n:
+            apow *= apow
+            if n & 1:
+                res = apow * res
+            n >>= 1
+        return res
 
     def _naive_power(self, n):
         pass
@@ -331,11 +315,11 @@ class Series(AbstractRingElement):
             data,
         )
 
-    def term_data(self, a = None, b = None):
+    def term_data(self, a=None, b=None):
         """
         An iterator returning the terms of the series, packaged as tuples (m,c)
         where m is a MonomialData and c is an element of the base_ring.
-        
+
         If a and b are provided, return only those terms of total degree
         between a and b.
         """
@@ -364,7 +348,6 @@ class Series(AbstractRingElement):
 
     def __repr__(self):
         return self.__str__()
-
 
 
 class PowerSeriesRing(AbstractRing):
@@ -419,6 +402,7 @@ class PowerSeriesRing(AbstractRing):
             base_ring=self.base_ring,
             ngens=self.ngens,
             prefix=self._prefix,
+            packed=False,
         )
 
         self.one = self(1)
@@ -442,14 +426,21 @@ class PowerSeriesRing(AbstractRing):
                             (
                                 0,
                                 self._polynomial_ring.element_class.data_class(
-                                    self.base_ring, {MonomialData(tuple()): self.base_ring(data).data}
+                                    self.base_ring,
+                                    {
+                                        self._polynomial_ring._monomial_class.from_sparse_tuple(
+                                            tuple()
+                                        ): self.base_ring(
+                                            data
+                                        ).data
+                                    },
                                 ),
                             ),
                         ],
                         self.precision_cap,
                     ),
                 )
-        
+
         if isinstance(data, self.base_ring.element_class):
             return Series(
                 self,
@@ -459,7 +450,12 @@ class PowerSeriesRing(AbstractRing):
                         (
                             0,
                             self._polynomial_ring.element_class.data_class(
-                                self.base_ring, {MonomialData(tuple()): data.data}
+                                self.base_ring,
+                                {
+                                    self._polynomial_ring._monomial_class.from_sparse_tuple(
+                                        tuple()
+                                    ): data.data
+                                },
                             ),
                         ),
                     ],
@@ -476,7 +472,12 @@ class PowerSeriesRing(AbstractRing):
                         (
                             0,
                             self._polynomial_ring.element_class.data_class(
-                                self.base_ring, {MonomialData(tuple()): data}
+                                self.base_ring,
+                                {
+                                    self._polynomial_ring._monomial_class.from_sparse_tuple(
+                                        tuple()
+                                    ): data
+                                },
                             ),
                         ),
                     ],
@@ -484,14 +485,13 @@ class PowerSeriesRing(AbstractRing):
                 ),
             )
 
-
         return Series(self, data)
 
     def _flatten(self, element):
         """
         Returns the element as an element in the underlying polynomial ring.
         """
-        if element.parent() != self:
+        if element.ring != self:
             raise TypeError("Input must be a member of self.")
         out = self._polynomial_ring.zero
         for _, coeff in element.term_list:
@@ -500,11 +500,13 @@ class PowerSeriesRing(AbstractRing):
 
     def _unflatten_data(self, flat_polynomial_data):
         """
-        Takes a PolynomialData and returns a SeriesData.
+        Takes a PolynomialData instance and returns a SeriesData instance.
         """
         out_degrees = {}
         for m, c in flat_polynomial_data.monomial_dictionary.items():
-            deg = m.degree()
+            deg = 0
+            for i in range(len(m.degrees) // 2):
+                deg += self.weights[2 * i] * m.degrees[2 * i + 1]
             if deg < self.precision_cap:
                 if deg in out_degrees:
                     out_degrees[deg] += self._polynomial_ring.element_class.data_class(
@@ -545,9 +547,7 @@ class PowerSeriesRingMorphism(AbstractRingMorphism):
     Homomorphisms of weighted power series ring.
     """
 
-    def __init__(
-        self, *, domain, codomain, coefficient_morphism, action_on_generators
-    ):
+    def __init__(self, *, domain, codomain, coefficient_morphism, action_on_generators):
         if (
             domain.base_ring != coefficient_morphism.domain
             or codomain.base_ring != coefficient_morphism.codomain
@@ -578,24 +578,26 @@ class PowerSeriesRingMorphism(AbstractRingMorphism):
 
     @functools.cache
     def _call_on_generator_power(self, idx, e):
-        return self.action_on_generators[idx]**ZZ(e)
+        return self.action_on_generators[idx] ** ZZ(e)
 
     @functools.cache
     def _call_on_monomial(self, t):
         new_term = self.codomain.one
-        for j in range(len(t.exponent)//2):
-            new_term *= self._call_on_generator_power(t.exponent[2*j], t.exponent[2*j+1])
+        for j in range(len(t.degrees) // 2):
+            new_term *= self._call_on_generator_power(
+                t.degrees[2 * j], t.degrees[2 * j + 1]
+            )
         return new_term
 
     def __call__(self, f):
         # TODO: this assumes that the input and output of
         # self.coefficient_morphism consist of elements of the data classes of
         # the base_rings.
-        if isinstance(f,MonomialData):
+        if isinstance(f, MonomialData):
             return self._call_on_monomial(f)
 
         x = self.codomain.zero
-        for m,c in f.term_data():
+        for m, c in f.term_data():
             x += self.coefficient_morphism(self.domain(c)) * self._call_on_monomial(m)
         return x
 

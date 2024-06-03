@@ -5,7 +5,9 @@ Tests for the IdentityRingMorphism class.
 """
 
 from nuthatch.rings.integers import ZZ, ZZ_py
+from nuthatch.rings.morphisms import AbstractRingMorphism
 from nuthatch.rings.rationals import QQ
+
 
 class TestIdentity:
     """Tests for the Integer class."""
@@ -21,4 +23,12 @@ class TestIdentity:
     def test_identity_qq(self):
         i = QQ.identity_morphism()
         assert i(QQ(5)) == QQ(5)
-        assert i(QQ(3,5)) == QQ(12,20)
+        assert i(QQ(3, 5)) == QQ(12, 20)
+
+
+class TestGeneric:
+    """Tests for the AbstractRingMorphism class."""
+
+    def test_not_implemented(self):
+        """Tests that __call__ is not implemented."""
+        assert AbstractRingMorphism(ZZ, ZZ)(ZZ(4)) == NotImplemented

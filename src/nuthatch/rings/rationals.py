@@ -64,6 +64,8 @@ class Rational(AbstractRingElement):
 class RationalRing(AbstractRing):
     def __init__(self):
         AbstractRing.__init__(self, Rational, exact=True)
+        self.zero = self(0)
+        self.one = self(1)
 
     def __call__(self, *args):
         return Rational(self, *args)
