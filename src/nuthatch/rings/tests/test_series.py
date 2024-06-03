@@ -6,12 +6,59 @@ Tests for the SeriesData, Series, and PowerSeriesRing classes.
 
 import pytest
 import flint
+from nuthatch.rings.polynomials import (
+    PackedMonomialData, 
+    SparseMonomialData,
+    PolynomialData,
+    Polynomial,
+    PolynomialRing,
+)
 from nuthatch.rings.series import (
     SeriesData,
     Series,
     PowerSeriesRing,
 )
 from nuthatch.rings.integers import ZZ
+
+
+class TestSeriesData:
+    """Tests for the SeriesData class."""
+    a = PolynomialData(
+        ZZ, 
+        {
+            SparseMonomialData((1,1,3,4)): ZZ(5).data,
+            SparseMonomialData((0,2,5,3)): ZZ(99).data,
+        },
+    )
+    b = PolynomialData(
+        ZZ, 
+        {
+            SparseMonomialData((1,4,3,4)): ZZ(5).data,
+            SparseMonomialData((0,3,5,5)): ZZ(99).data,
+        },
+    )
+    f = SeriesData(ZZ, [(5,a)], 20)
+    g = SeriesData(ZZ, [(8,b)], 20)
+    h = SeriesData(ZZ, [(5,a), (8,b)], 20)
+
+    def test_printing(self):
+        """Tests printing."""
+        assert str(self.f) == str([(5,self.a)])
+        assert repr(self.f) == str(self.f)
+
+    def test_add(self):
+        """Tests __add__."""
+        assert self.f+self.g == self.h
+
+    def test_sub(self):
+        """Tests __sub__."""
+        assert self.f - self.g == SeriesData(ZZ, [(5,self.a), (8,-self.b)], 20)
+
+    def test_ne(self):
+        """Tests __ne__."""
+        assert not self.f + self.g != self.h
+        assert self.f != self.h
+
 
 
 class TestSeries:
