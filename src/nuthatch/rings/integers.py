@@ -78,3 +78,34 @@ class IntegerRingPython(AbstractRing):
 # Create global version of the integer rings.
 ZZ = IntegerRing()
 ZZ_py = IntegerRingPython()
+
+
+
+"""
+Select functions of ZZ's based on flint.fmpz attributes. (https://fredrikj.net/python-flint/fmpz.html)
+"""
+
+
+def factorial(x):
+    """
+    Integer factorial of x.
+    """
+    return x.ring(x.data_class.fac_ui(x.data))
+
+
+def gcd(x, y):
+    """
+    Greatest common factor of x and y.
+    """
+    return x.ring(x.data.gcd(y.data))
+
+
+def factor(x):
+    """
+    Factors of x in polynomial form.
+    """
+    ret = []
+    factors = x.data.factor()
+    for f in factors:
+        ret.append((x.ring(f[0]),x.ring(f[1])))
+    return ret

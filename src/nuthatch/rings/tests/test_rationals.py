@@ -6,7 +6,7 @@ Tests for the Rational and RationalRing classes.
 
 import pytest
 from nuthatch.rings.integers import ZZ
-from nuthatch.rings.rationals import QQ
+from nuthatch.rings.rationals import QQ, p, q
 
 
 class TestRational:
@@ -50,3 +50,14 @@ class TestRational:
         assert ZZ(1) + QQ(1, 2) == QQ(3, 2)
         with pytest.raises(TypeError):
             QQ(1, 2) + ZZ(1)
+
+
+class TestRationalFunction:
+    """Tests for functions in the Rational class."""
+    def test_p(self):
+        """Tests the p global function."""
+        assert p(QQ(7, 3)) == ZZ(7)
+
+    def test_q(self):
+        """Tests the q global function."""
+        assert q(QQ(7, 3)) == ZZ(3)

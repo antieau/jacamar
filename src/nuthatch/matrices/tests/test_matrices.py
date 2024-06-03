@@ -8,6 +8,9 @@ classes.
 import pytest
 from nuthatch.rings.integers import ZZ, ZZ_py
 from nuthatch.rings.rationals import QQ
+from nuthatch.rings.reals import RR
+from nuthatch.rings.complexes import CC
+
 from nuthatch.matrices.matrices import Matrix
 
 
@@ -139,6 +142,35 @@ class TestMatrix:
         c = Matrix(base_ring=QQ, entries=[[QQ(1), QQ(6, 5)], [QQ(92, 3), QQ(23)]])
         assert a * a == b
         assert a + a == c
+
+    def test_slice(self):
+        a = Matrix(base_ring=RR, entries=[[1, 2], [3, 4]])
+
+    def test_index(self):
+        a = Matrix(base_ring=ZZ, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        b = Matrix(base_ring=ZZ, entries=[[5]])
+        c = Matrix(base_ring=ZZ, entries=[[3], [6], [9]])
+        d = Matrix(base_ring=ZZ, entries=[[4, 5]])
+        assert a[:, :] == a
+        assert a[1, 1] == b
+        assert a[:, 2] == c
+        assert a[1, 0:2] == d
+
+    def test_size(self):
+        a = Matrix(base_ring=RR, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        assert a.size() == (3, 3)
+
+    def test_concat(self):
+        a = Matrix(base_ring=RR, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        b = Matrix(base_ring=RR, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9], [1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        c = Matrix(base_ring=RR, entries=[[1, 2, 3, 1, 2, 3], [4, 5, 6, 4, 5, 6], [7, 8, 9, 7, 8, 9]])
+
+        a0 = a.concat(a, 0)
+        assert a0 == b
+        a1 = Matrix(base_ring=RR, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        
+        a1 = a1.concat(a1, 1)
+        assert a1 == c
 
 
 class TestGenericMatrices:

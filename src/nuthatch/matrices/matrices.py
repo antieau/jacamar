@@ -12,7 +12,9 @@ AUTHORS:
 """
 
 import flint
+import numpy as np
 from nuthatch.rings.integers import ZZ
+from nuthatch.rings.reals import RR
 from nuthatch.rings.rationals import QQ
 
 
@@ -48,6 +50,7 @@ class _MatrixGenericData:
         if self.nrows == 1:
             return self.entries[0][0]
         # TODO: implement cofactor definition of determinant for starters.
+
         return NotImplemented
 
     def __add__(self, other):
@@ -89,7 +92,12 @@ class _MatrixGenericData:
                 ncols=other.ncols,
                 entries=[],
             )
+        # KAUERS - MOOSBAUER (5 x 5)
+        if self.nrows == 5 and other.nrows == 5 and self.ncols ==5 and other.nrows == 5:
 
+            new_entries = []
+
+        # standard matrix multiplication
         new_entries = []
         for i in range(self.nrows):
             new_entries.append([])
@@ -105,6 +113,9 @@ class _MatrixGenericData:
             ncols=other.ncols,
             entries=new_entries,
         )
+
+        
+
 
     def __sub__(self, other):
         if self.nrows != other.nrows or self.ncols != other.ncols:
@@ -146,7 +157,17 @@ class _MatrixGenericData:
             return self.base_ring == other.base_ring
         return self.entries == other.entries
 
+    def __getitem__(self, args):
+        r, c = args
+        return self.__class__(
+            base_ring=self.base_ring,
+            nrows=self.nrows,
+            ncols=self.ncols,
+            entries=self.entries[r][c],
+        )
 
+
+        
 class Matrix:
     def __init__(
         self,
@@ -278,7 +299,11 @@ class Matrix:
         if self.nrows != self.ncols:
             raise ValueError("matrix must be square")
         return self.base_ring(self.data.det())
-
+    
+    def size(self):
+        """Returns size of a matrix as a tuple (rows, cols)."""
+        return (self.nrows, self.ncols)
+    
     def __add__(self, other):
         """Returns self + other with base ring that of other."""
         return other.__class__(
@@ -319,8 +344,85 @@ class Matrix:
     def __eq__(self, other):
         return self.data == other.data
 
-    def __getitem__(self, x):
-        return self.base_ring(self.data[x])
+    def __getitem__(self, args):
+        if not self._is_generic:
+            r, c = args
+            return self[r][c]
+        if len(args) == 2:
+            r, c = args
 
-    def __setitem__(self, x, value):
-        self.data.__setitem__(x, value)
+            entries = self.data.entries
+            new_entries = entries[r]
+            new_data = []
+            if not isinstance(new_entries[0], list):
+                new_data = [new_entries[c]]
+
+                if not isinstance(new_data[0], list):
+                    new_data = [new_data]
+            else:
+                for i in new_entries:
+                    if not isinstance(i[c], list):
+                        new_data.append([i[c]])
+                    else:
+                        new_data.append(i[c])
+            ncols = len(new_data[0])
+            nrows = len(new_data)
+
+            return self.__class__(
+            base_ring=self.base_ring,
+            nrows=nrows,
+            ncols=ncols,
+            entries=new_data,
+            data=_MatrixGenericData(
+                base_ring=self.base_ring,
+                nrows=nrows,
+                ncols=ncols,
+                entries=new_data,
+                )
+            )
+        
+    def concat(self, other, axis=0):
+        """Concatinates matrices along an axis."""
+        if axis != 0 and axis != 1:
+            return ValueError (
+                f'Axis must be 0 (vertical), or 1 (horizontal), a value of {axis} was given.'
+            )
+        
+        if axis == 0 and self.data.ncols != other.data.ncols:
+            return ValueError (
+                'For vertical concatination, the number of columns on both matrices must match.'
+            )
+        
+        if axis == 1 and self.data.nrows != other.data.nrows:
+            return ValueError (
+                'For horizontal concatination, the number of rows on both matrices must match.'
+            )
+
+        s = self.data.entries
+        o = other.data.entries
+        if axis == 0:
+            for row in range(len(o)):
+                s.append(o[row])
+
+        else:
+            len_s = len(s)
+            len_o = len(o[0])
+            for i in range(len_s):
+                for j in range(len_o):
+                    s[i].append(o[i][j])
+                    
+        nrows = len(s)
+        ncols = len(s[0])
+
+        return self.__class__(
+            base_ring=self.base_ring,
+            nrows=nrows,
+            ncols=ncols,
+            entries=s,
+            data=_MatrixGenericData(
+                base_ring=self.base_ring,
+                nrows=nrows,
+                ncols=ncols,
+                entries=s,
+            )
+        )
