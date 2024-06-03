@@ -31,6 +31,13 @@ class _MatrixGenericData:
         self.ncols = ncols
         self.entries = entries
 
+    def __getitem__(self, x):
+        """Assumes that x is a tuple (i,j)."""
+        return self.entries[x[0]][x[1]]
+
+    def __setitem__(self, x, value):
+        self.entries[x[0]][x[1]] = value
+
     def det(self):
         """Alias for `determinant` method."""
         return self.determinant()
@@ -417,9 +424,5 @@ class Matrix:
                 nrows=nrows,
                 ncols=ncols,
                 entries=s,
-                )
             )
-
-        
-
-"""Functions for matricies."""
+        )

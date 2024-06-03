@@ -14,15 +14,17 @@ AUTHORS:
 - Benjamin Antieau (2024): initial version.
 """
 
+import functools
 import flint
 from nuthatch.rings.elements import AbstractRingElement
 from nuthatch.rings.rings import AbstractRing
 from nuthatch.rings.integers import ZZ, ZZ_py
+from nuthatch.rings.morphisms import AbstractRingMorphism
 
 
-class _Monomial:
+class MonomialData:
     """
-    The class of a monomial in a _Polynomial.
+    The class of a monomial in a PolynomialData.
 
     INPUT:
     - `t`     -- a tuple of Python integers
@@ -31,8 +33,11 @@ class _Monomial:
     - make this into C or Rust code
     """
 
-    def __init__(self, t):
-        self.exponent = t
+    def __init__(self, *t):
+        if len(t) == 1 & isinstance(t,tuple):
+            self.exponent = t[0]
+        else:
+            self.exponent = tuple(t)
 
     def degree(self):
         """Sum over the odd entries in the exponent tuple."""
@@ -94,12 +99,13 @@ class _Monomial:
 
     def __eq__(self, other):
         return self.exponent == other.exponent
+        
 
 
-class _Polynomial:
+class PolynomialData:
     """
     The underlying data class of polynomials.
-    The `data` input should be a dictionary `{m:c}` where `m` is a `_Monomial`
+    The `data` input should be a dictionary `{m:c}` where `m` is a `MonomialData`
     and `c` is an element of the data_class of the element_class of the `base_ring`.
     """
 
@@ -114,6 +120,9 @@ class _Polynomial:
             if c != self.base_ring.zero.data:
                 return False
         return True
+
+    def term_data(self):
+        return self.monomial_dictionary.items()
 
     def __str__(self):
         return str(self.monomial_dictionary)
@@ -206,6 +215,22 @@ class _Polynomial:
         else:
             raise TypeError(f"Cannot power polynomial by {n}.")
 
+    def __call__(self, arg):
+            try:
+                return self.monomial_dictionary[arg]
+            except KeyError:
+                return self.base_ring.zero.data
+
+    def evaluate(self, args):
+        """Returns f(a_1,...,a_n) where arguments=[a_1,...,a_n]."""
+        x = self.base_ring.zero.data
+        for key, value in self.monomial_dictionary.items():
+            monomial_part = self.base_ring.one.data
+            for i in range(len(key.exponent) // 2):
+                monomial_part *= args[key.exponent[2*i]]**key.exponent[2*i+1]
+            x += value * monomial_part
+        return x
+
 
 class Polynomial(AbstractRingElement):
     """
@@ -213,7 +238,7 @@ class Polynomial(AbstractRingElement):
     ring is `self.ring`.
     """
 
-    data_class = _Polynomial
+    data_class = PolynomialData
 
     def __init__(self, ring, data):
         self.base_ring = ring.base_ring
@@ -222,6 +247,22 @@ class Polynomial(AbstractRingElement):
             ring,
             data,
         )
+
+    def __call__(self, *args):
+        """
+        Evaluate self at x. If x is an instance of MonomialData, returns the
+        coefficient. If x is a tuple of elements, then evaluate on these.
+        """
+        if isinstance(args[0], MonomialData):
+            return self.base_ring(self.data(args[0]))
+
+        if len(args) == self.ring.ngens:
+            try:
+                return self.base_ring(self.data.evaluate([x.data for x in args]))
+            except AttributeError:
+                pass
+
+        return self.base_ring(self.data(MonomialData(tuple(args))))
 
     def __str__(self):
         if len(self.data.monomial_dictionary) == 0:
@@ -310,8 +351,8 @@ class PolynomialRing(AbstractRing):
             self.gens.append(
                 Polynomial(
                     self,
-                    _Polynomial(
-                        self.base_ring, {_Monomial((i, 1)): self.base_ring.one.data}
+                    PolynomialData(
+                        self.base_ring, {MonomialData((i, 1)): self.base_ring.one.data}
                     ),
                 )
             )
@@ -331,13 +372,84 @@ class PolynomialRing(AbstractRing):
     def __call__(self, data):
         if isinstance(data, int):
             if data == 0:
-                return Polynomial(self, _Polynomial(self.base_ring, {}))
+                return Polynomial(self, PolynomialData(self.base_ring, {}))
             else:
                 return Polynomial(
                     self,
-                    _Polynomial(
+                    PolynomialData(
                         self.base_ring,
-                        {_Monomial(()): self.base_ring.element_class.data_class(data)},
+                        {MonomialData(()): self.base_ring.element_class.data_class(data)},
                     ),
                 )
-        return Polynomial(self, data)
+        if isinstance(data, dict):
+            new_dict = {}
+            for key, value in data.items():
+                new_dict[MonomialData(key)] = value.data
+            return Polynomial(self, PolynomialData(self.base_ring, new_dict))
+        raise TypeError("No known constructor for input data.")
+
+
+class PolynomialRingMorphism(AbstractRingMorphism):
+    """
+    Homomorphisms of polynomial rings.
+    """
+
+    def __init__(
+        self, *, domain, codomain, coefficient_morphism, action_on_generators
+    ):
+        if (
+            domain.base_ring != coefficient_morphism.domain
+            or codomain.base_ring != coefficient_morphism.codomain
+        ):
+            raise TypeError(
+                "The coefficient homomorphism is not compatible with the given domain and codomain."
+            )
+        if len(action_on_generators) != domain.ngens:
+            raise TypeError(
+                "Cannot interpret {} as a homomorphism from {} to {}".format(
+                    action_on_generators, domain, codomain
+                )
+            )
+        if codomain.precision_cap > domain.precision_cap:
+            raise ValueError(
+                "Codomain precision cap is larger than domain precision cap."
+            )
+        for i in range(len(action_on_generators)):
+            if action_on_generators[i].ring != codomain:
+                raise TypeError(
+                    "The elements of 'action_on_generators' are not members of the codomain."
+                )
+
+        self.coefficient_morphism = coefficient_morphism
+        self.domain = domain
+        self.codomain = codomain
+        self.action_on_generators = action_on_generators
+
+    @functools.cache
+    def _call_on_generator_power(self, idx, e):
+        return self.action_on_generators[idx]**ZZ(e)
+
+    @functools.cache
+    def _call_on_monomial(self, t):
+        new_term = self.codomain.one
+        for j in range(len(t.exponent)//2):
+            new_term *= self._call_on_generator_power(t[2*j], t[2*j+1])
+        return new_term
+
+    def __call__(self, f):
+        # TODO: this assumes that the input and output of
+        # self.coefficient_morphism consist of elements of the data classes of
+        # the base_rings.
+        if isinstance(f,MonomialData):
+            return self._call_on_monomial(f)
+
+        x = self.codomain.zero
+        for m,c in f.term_data():
+            x += self.coefficient_morphism(self.domain(c)) * self._call_on_monomial(m)
+        return x
+
+    def __str__(self):
+        return f"Homomorphism from {self.domain} to {self.codomain} defined by {self.action_on_generators} on generators."
+
+    def __repr__(self):
+        return self.__str__()

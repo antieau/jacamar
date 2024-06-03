@@ -39,7 +39,7 @@ class IntegerPython(AbstractRingElement):
         AbstractRingElement.__init__(
             self,
             ring,
-            self.data_class(n),
+            n,
         )
 
     def __str__(self):
