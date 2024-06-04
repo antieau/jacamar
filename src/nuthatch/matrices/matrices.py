@@ -15,6 +15,8 @@ import flint
 import numpy as np
 from nuthatch.rings.integers import ZZ
 from nuthatch.rings.reals import RR
+from nuthatch.rings.complexes import CC
+
 from nuthatch.rings.rationals import QQ
 
 
@@ -72,7 +74,8 @@ class _MatrixGenericData:
             entries=new_entries,
         )
 
-    def __mul__(self, other, type=0):
+    def __mul__(self, other):
+        print('ki')
         if self.ncols != other.nrows:
             raise ValueError(
                 f"Cannot multiply matrix of size {self.nrows}x{self.ncols} with matrix of size {other.nrows}x{other.ncols}."
@@ -87,58 +90,60 @@ class _MatrixGenericData:
             )
         # KAUERS - MOOSBAUER
         if self.ncols % 5 == 0 and self.nrows % 5 == 0:
+            print('kmb')
             def kauers_moosbauer(a, b):
-                a11 = a[0][0]
-                b11 = b[0][0]
-                a12 = a[0][1]
-                b12 = b[0][1]
-                a13 = a[0][2]
-                b13 = b[0][2]
-                a14 = a[0][3]
-                b14 = b[0][3]
-                a15 = a[0][4]
-                b15 = b[0][4]
-                a21 = a[1][0]
-                b21 = b[1][0]
-                a22 = a[1][1]
-                b22 = b[1][1]
-                a23 = a[1][2]
-                b23 = b[1][2]
-                a24 = a[1][3]
-                b24 = b[1][3]
-                a25 = a[1][4]
-                b25 = b[1][4]
-                a31 = a[2][0]
-                b31 = b[2][0]
-                a32 = a[2][1]
-                b32 = b[2][1]
-                a33 = a[2][2]
-                b33 = b[2][2]
-                a34 = a[2][3]
-                b34 = b[2][3]
-                a35 = a[2][4]
-                b35 = b[2][4]
-                a41 = a[3][0]
-                b41 = b[3][0]
-                a42 = a[3][1]
-                b42 = b[3][1]
-                a43 = a[3][2]
-                b43 = b[3][2]
-                a44 = a[3][3]
-                b44 = b[3][3]
-                a45 = a[3][4]
-                b45 = b[3][4]
-                a51 = a[4][0]
-                b51 = b[4][0]
-                a52 = a[4][1]
-                b52 = b[4][1]
-                a53 = a[4][2]
-                b53 = b[4][2]
-                a54 = a[4][3]
-                b54 = b[4][3]
-                a55 = a[4][4]
-                b55 = b[4][4]
-    
+                la = len(a)
+                lb = len(b)
+                a11 = a[0*la/5:1*la/5][0*la/5:1*la/5]
+                b11 = b[0*lb/5:1*lb/5][0*lb/5:1*lb/5]
+                a12 = a[0*la/5:1*la/5][1*la/5:2*la/5]
+                b12 = b[0*lb/5:1*lb/5][1*lb/5:2*lb/5]
+                a13 = a[0*la/5:1*la/5][2*la/5:3*la/5]
+                b13 = b[0*lb/5:1*lb/5][2*lb/5:3*lb/5]
+                a14 = a[0*la/5:1*la/5][3*la/5:4*la/5]
+                b14 = b[0*lb/5:1*lb/5][3*lb/5:4*lb/5]
+                a15 = a[0*la/5:1*la/5][4*la/5:5*la/5]
+                b15 = b[0*lb/5:1*lb/5][4*lb/5:5*lb/5]
+                a21 = a[1*la/5:2*la/5][0*la/5:1*la/5]
+                b21 = b[1*lb/5:2*lb/5][0*lb/5:1*lb/5]
+                a22 = a[1*la/5:2*la/5][1*la/5:2*la/5]
+                b22 = b[1*lb/5:2*lb/5][1*lb/5:2*lb/5]
+                a23 = a[1*la/5:2*la/5][2*la/5:3*la/5]
+                b23 = b[1*lb/5:2*lb/5][2*lb/5:3*lb/5]
+                a24 = a[1*la/5:2*la/5][3*la/5:4*la/5]
+                b24 = b[1*lb/5:2*lb/5][3*lb/5:4*lb/5]
+                a25 = a[1*la/5:2*la/5][4*la/5:5*la/5]
+                b25 = b[1*lb/5:2*lb/5][4*lb/5:5*lb/5]
+                a31 = a[2*la/5:3*la/5][0*la/5:1*la/5]
+                b31 = b[2*lb/5:3*lb/5][0*lb/5:1*lb/5]
+                a32 = a[2*la/5:3*la/5][1*la/5:2*la/5]
+                b32 = b[2*lb/5:3*lb/5][1*lb/5:2*lb/5]
+                a33 = a[2*la/5:3*la/5][2*la/5:3*la/5]
+                b33 = b[2*lb/5:3*lb/5][2*lb/5:3*lb/5]
+                a34 = a[2*la/5:3*la/5][3*la/5:4*la/5]
+                b34 = b[2*lb/5:3*lb/5][3*lb/5:4*lb/5]
+                a35 = a[2*la/5:3*la/5][4*la/5:5*la/5]
+                b35 = b[2*lb/5:3*lb/5][4*lb/5:5*lb/5]
+                a41 = a[3*la/5:4*la/5][0*la/5:1*la/5]
+                b41 = b[3*lb/5:4*lb/5][0*lb/5:1*lb/5]
+                a42 = a[3*la/5:4*la/5][1*la/5:2*la/5]
+                b42 = b[3*lb/5:4*lb/5][1*lb/5:2*lb/5]
+                a43 = a[3*la/5:4*la/5][2*la/5:3*la/5]
+                b43 = b[3*lb/5:4*lb/5][2*lb/5:3*lb/5]
+                a44 = a[3*la/5:4*la/5][3*la/5:4*la/5]
+                b44 = b[3*lb/5:4*lb/5][3*lb/5:4*lb/5]
+                a45 = a[3*la/5:4*la/5][4*la/5:5*la/5]
+                b45 = b[3*lb/5:4*lb/5][4*lb/5:5*lb/5]
+                a51 = a[4*la/5:5*la/5][0*la/5:1*la/5]
+                b51 = b[4*lb/5:5*lb/5][0*lb/5:1*lb/5]
+                a52 = a[4*la/5:5*la/5][1*la/5:2*la/5]
+                b52 = b[4*lb/5:5*lb/5][1*lb/5:2*lb/5]
+                a53 = a[4*la/5:5*la/5][2*la/5:3*la/5]
+                b53 = b[4*lb/5:5*lb/5][2*lb/5:3*lb/5]
+                a54 = a[4*la/5:5*la/5][3*la/5:4*la/5]
+                b54 = b[4*lb/5:5*lb/5][3*lb/5:4*lb/5]
+                a55 = a[4*la/5:5*la/5][4*la/5:5*la/5]
+                b55 = b[4*lb/5:5*lb/5][4*lb/5:5*lb/5]    
                 k1 =(-a51+2*a52+2*a54-2*a55)*(3*b11+b21+b41)
                 k2 =(-a53)*(2*b12-2*b14+4*b15-b32+b34-2*b35-b52+b54-2*b55)
                 k3 =(a51-2*a52-a54+2*a55)*(2*b11+b41)
@@ -264,10 +269,11 @@ class _MatrixGenericData:
                 c54=k6+k7+k10+k11+k20+k21+k28+k29+k30+k31+k33+k36+k37+k39+k50+k51+k67+k69+k70+k72+k82+k85+k87+k88+k89+k90
                 c55=k2 +k3 +k7+k8+k9+k39+k74+k75+k82+k83+k85+k86+k87+k95
                 c = [[c11, c12, c13, c14, c15], [c21, c22, c23, c24, c25], [c31, c32, c33, c34, c35], [c41, c42, c43, c44, c45], [c51, c52, c53, c54, c55]]
+                
                 return c
             
             new_entries = kauers_moosbauer(self, other)
-            
+
         # STRASSEN
         elif self.ncols % 2 == 0 and self.nrows % 2 == 0:
             def strassen(A, B):
@@ -309,7 +315,6 @@ class _MatrixGenericData:
             print(new_entries)
         # standard matrix multiplication
         else:
-            print(1)
             new_entries = []
             for i in range(self.nrows):
                 new_entries.append([])
@@ -392,7 +397,7 @@ class Matrix:
         data=None,
     ):
         self.base_ring = base_ring
-        if self.base_ring in {ZZ, QQ}:
+        if self.base_ring in {ZZ, QQ, RR, CC}:
             self._is_generic = False
         else:
             self._is_generic = True
@@ -418,6 +423,12 @@ class Matrix:
                 self.data = flint.fmpz_mat(self.nrows, self.ncols)
             elif self.base_ring == QQ:
                 self.data = flint.fmpq_mat(self.nrows, self.ncols)
+            elif self.base_ring == RR:
+                self.data = flint.arb_mat(self.nrows, self.ncols)
+            elif self.base_ring == CC:
+                self.data = flint.acb_mat(self.nrows, self.ncols)
+
+
             else:
                 self.data = _MatrixGenericData(
                     base_ring=self.base_ring,
@@ -483,6 +494,11 @@ class Matrix:
                 self.data = flint.fmpz_mat(new_entries)
             elif self.base_ring == QQ:
                 self.data = flint.fmpq_mat(new_entries)
+            elif self.base_ring == RR:
+                self.data = flint.arb_mat(new_entries)
+            elif self.base_ring == CC:
+                self.data = flint.acb_mat(new_entries)
+
             else:
                 self.data = _MatrixGenericData(
                     base_ring=self.base_ring,

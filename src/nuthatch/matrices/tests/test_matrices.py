@@ -11,7 +11,7 @@ from nuthatch.rings.rationals import QQ
 from nuthatch.rings.reals import RR
 from nuthatch.rings.complexes import CC
 import numpy as np
-from nuthatch.matrices.matrices import Matrix
+from nuthatch.matrices.matrices import Matrix, random
 import time
 
 class TestMatrix:
@@ -81,22 +81,26 @@ class TestMatrix:
         # x_py = self.m_py * self.n_py
         # assert x == Matrix(base_ring=ZZ, entries=[[9, 12, 15], [19, 26, 33]])
         # assert x_py == Matrix(base_ring=ZZ_py, entries=[[9, 12, 15], [19, 26, 33]])
-        s1 = 512
-        s2 = 511
-        s3 = 5
-        a = Matrix(base_ring=ZZ, entries=np.ones((s1, s1),dtype=int).tolist())
-        b = Matrix(base_ring=ZZ, entries=np.ones((s2, s2),dtype=int).tolist())
-        c = Matrix(base_ring=ZZ, entries=np.ones((s3, s3),dtype=int).tolist())
+        s1 = 128
+        s2 = 128
+        s3 = 130
+        a = Matrix(base_ring=RR, entries=np.ones((s1, s1),dtype=int).tolist())
+        b = Matrix(base_ring=RR, entries=np.ones((s2, s2),dtype=int).tolist())
+        c = Matrix(base_ring=RR, entries=np.ones((s3, s3),dtype=int).tolist())
 
         t1 = time.time()
-        assert a*a == Matrix(base_ring=ZZ, entries=(s1*np.ones((s1, s1),dtype=int)).tolist())
+        assert a*b == Matrix(base_ring=RR, entries=(s1*np.ones((s1, s1),dtype=int)).tolist())
         print(f'Test 1 (Strassen): {round(time.time()-t1, 2)}')
         
-        t2 = time.time()
-        assert b*b == Matrix(base_ring=ZZ, entries=(s2*np.ones((s2, s2),dtype=int)).tolist())
-        print(f'Test 1 (Generic): {round(time.time()-t2, 2)}')
-        assert c*c == Matrix(base_ring=ZZ, entries=(s3*np.ones((s3, s3),dtype=int)).tolist())
+        t1 = time.time()
+        assert b*b == Matrix(base_ring=RR, entries=(s2*np.ones((s2, s2),dtype=int)).tolist())
+        print(f'Test 1 (Generic): {round(time.time()-t1, 2)}')
+        t1 = time.time()
 
+        assert c*c == Matrix(base_ring=RR, entries=(s3*np.ones((s3, s3),dtype=int)).tolist())
+        print(f'Test 1 (K-MB): {round(time.time()-t1, 2)}')
+
+        # assert 0 == 1
 
 
     def test_empty_mul(self):
