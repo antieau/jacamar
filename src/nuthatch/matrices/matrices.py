@@ -14,7 +14,7 @@ AUTHORS:
 import flint
 import numpy as np
 from nuthatch.rings.integers import ZZ
-from nuthatch.rings.reals import RR
+from nuthatch.rings.reals import RR, RR_py
 from nuthatch.rings.complexes import CC
 
 from nuthatch.rings.rationals import QQ
@@ -75,7 +75,6 @@ class _MatrixGenericData:
         )
 
     def __mul__(self, other):
-        print('ki')
         if self.ncols != other.nrows:
             raise ValueError(
                 f"Cannot multiply matrix of size {self.nrows}x{self.ncols} with matrix of size {other.nrows}x{other.ncols}."
@@ -92,80 +91,81 @@ class _MatrixGenericData:
         if self.ncols % 5 == 0 and self.nrows % 5 == 0:
             print('kmb')
             def kauers_moosbauer(a, b):
-                la = len(a)
-                lb = len(b)
-                a11 = a[0*la/5:1*la/5][0*la/5:1*la/5]
-                b11 = b[0*lb/5:1*lb/5][0*lb/5:1*lb/5]
-                a12 = a[0*la/5:1*la/5][1*la/5:2*la/5]
-                b12 = b[0*lb/5:1*lb/5][1*lb/5:2*lb/5]
-                a13 = a[0*la/5:1*la/5][2*la/5:3*la/5]
-                b13 = b[0*lb/5:1*lb/5][2*lb/5:3*lb/5]
-                a14 = a[0*la/5:1*la/5][3*la/5:4*la/5]
-                b14 = b[0*lb/5:1*lb/5][3*lb/5:4*lb/5]
-                a15 = a[0*la/5:1*la/5][4*la/5:5*la/5]
-                b15 = b[0*lb/5:1*lb/5][4*lb/5:5*lb/5]
-                a21 = a[1*la/5:2*la/5][0*la/5:1*la/5]
-                b21 = b[1*lb/5:2*lb/5][0*lb/5:1*lb/5]
-                a22 = a[1*la/5:2*la/5][1*la/5:2*la/5]
-                b22 = b[1*lb/5:2*lb/5][1*lb/5:2*lb/5]
-                a23 = a[1*la/5:2*la/5][2*la/5:3*la/5]
-                b23 = b[1*lb/5:2*lb/5][2*lb/5:3*lb/5]
-                a24 = a[1*la/5:2*la/5][3*la/5:4*la/5]
-                b24 = b[1*lb/5:2*lb/5][3*lb/5:4*lb/5]
-                a25 = a[1*la/5:2*la/5][4*la/5:5*la/5]
-                b25 = b[1*lb/5:2*lb/5][4*lb/5:5*lb/5]
-                a31 = a[2*la/5:3*la/5][0*la/5:1*la/5]
-                b31 = b[2*lb/5:3*lb/5][0*lb/5:1*lb/5]
-                a32 = a[2*la/5:3*la/5][1*la/5:2*la/5]
-                b32 = b[2*lb/5:3*lb/5][1*lb/5:2*lb/5]
-                a33 = a[2*la/5:3*la/5][2*la/5:3*la/5]
-                b33 = b[2*lb/5:3*lb/5][2*lb/5:3*lb/5]
-                a34 = a[2*la/5:3*la/5][3*la/5:4*la/5]
-                b34 = b[2*lb/5:3*lb/5][3*lb/5:4*lb/5]
-                a35 = a[2*la/5:3*la/5][4*la/5:5*la/5]
-                b35 = b[2*lb/5:3*lb/5][4*lb/5:5*lb/5]
-                a41 = a[3*la/5:4*la/5][0*la/5:1*la/5]
-                b41 = b[3*lb/5:4*lb/5][0*lb/5:1*lb/5]
-                a42 = a[3*la/5:4*la/5][1*la/5:2*la/5]
-                b42 = b[3*lb/5:4*lb/5][1*lb/5:2*lb/5]
-                a43 = a[3*la/5:4*la/5][2*la/5:3*la/5]
-                b43 = b[3*lb/5:4*lb/5][2*lb/5:3*lb/5]
-                a44 = a[3*la/5:4*la/5][3*la/5:4*la/5]
-                b44 = b[3*lb/5:4*lb/5][3*lb/5:4*lb/5]
-                a45 = a[3*la/5:4*la/5][4*la/5:5*la/5]
-                b45 = b[3*lb/5:4*lb/5][4*lb/5:5*lb/5]
-                a51 = a[4*la/5:5*la/5][0*la/5:1*la/5]
-                b51 = b[4*lb/5:5*lb/5][0*lb/5:1*lb/5]
-                a52 = a[4*la/5:5*la/5][1*la/5:2*la/5]
-                b52 = b[4*lb/5:5*lb/5][1*lb/5:2*lb/5]
-                a53 = a[4*la/5:5*la/5][2*la/5:3*la/5]
-                b53 = b[4*lb/5:5*lb/5][2*lb/5:3*lb/5]
-                a54 = a[4*la/5:5*la/5][3*la/5:4*la/5]
-                b54 = b[4*lb/5:5*lb/5][3*lb/5:4*lb/5]
-                a55 = a[4*la/5:5*la/5][4*la/5:5*la/5]
-                b55 = b[4*lb/5:5*lb/5][4*lb/5:5*lb/5]    
+                la = a.nrows
+                lb = b.ncols
+                a11 = a[int(0*la/5):int(1*la/5), int(0*la/5):int(1*la/5)]
+                b11 = b[int(0*lb/5):int(1*lb/5), int(0*lb/5):int(1*lb/5)]
+                a12 = a[int(0*la/5):int(1*la/5), int(1*la/5):int(2*la/5)]
+                b12 = b[int(0*lb/5):int(1*lb/5), int(1*lb/5):int(2*lb/5)]
+                a13 = a[int(0*la/5):int(1*la/5), int(2*la/5):int(3*la/5)]
+                b13 = b[int(0*lb/5):int(1*lb/5), int(2*lb/5):int(3*lb/5)]
+                a14 = a[int(0*la/5):int(1*la/5), int(3*la/5):int(4*la/5)]
+                b14 = b[int(0*lb/5):int(1*lb/5), int(3*lb/5):int(4*lb/5)]
+                a15 = a[int(0*la/5):int(1*la/5), int(4*la/5):int(5*la/5)]
+                b15 = b[int(0*lb/5):int(1*lb/5), int(4*lb/5):int(5*lb/5)]
+                a21 = a[int(1*la/5):int(2*la/5), int(0*la/5):int(1*la/5)]
+                b21 = b[int(1*lb/5):int(2*lb/5), int(0*lb/5):int(1*lb/5)]
+                a22 = a[int(1*la/5):int(2*la/5), int(1*la/5):int(2*la/5)]
+                b22 = b[int(1*lb/5):int(2*lb/5), int(1*lb/5):int(2*lb/5)]
+                a23 = a[int(1*la/5):int(2*la/5), int(2*la/5):int(3*la/5)]
+                b23 = b[int(1*lb/5):int(2*lb/5), int(2*lb/5):int(3*lb/5)]
+                a24 = a[int(1*la/5):int(2*la/5), int(3*la/5):int(4*la/5)]
+                b24 = b[int(1*lb/5):int(2*lb/5), int(3*lb/5):int(4*lb/5)]
+                a25 = a[int(1*la/5):int(2*la/5), int(4*la/5):int(5*la/5)]
+                b25 = b[int(1*lb/5):int(2*lb/5), int(4*lb/5):int(5*lb/5)]
+                a31 = a[int(2*la/5):int(3*la/5), int(0*la/5):int(1*la/5)]
+                b31 = b[int(2*lb/5):int(3*lb/5), int(0*lb/5):int(1*lb/5)]
+                a32 = a[int(2*la/5):int(3*la/5), int(1*la/5):int(2*la/5)]
+                b32 = b[int(2*lb/5):int(3*lb/5), int(1*lb/5):int(2*lb/5)]
+                a33 = a[int(2*la/5):int(3*la/5), int(2*la/5):int(3*la/5)]
+                b33 = b[int(2*lb/5):int(3*lb/5), int(2*lb/5):int(3*lb/5)]
+                a34 = a[int(2*la/5):int(3*la/5), int(3*la/5):int(4*la/5)]
+                b34 = b[int(2*lb/5):int(3*lb/5), int(3*lb/5):int(4*lb/5)]
+                a35 = a[int(2*la/5):int(3*la/5), int(4*la/5):int(5*la/5)]
+                b35 = b[int(2*lb/5):int(3*lb/5), int(4*lb/5):int(5*lb/5)]
+                a41 = a[int(3*la/5):int(4*la/5), int(0*la/5):int(1*la/5)]
+                b41 = b[int(3*lb/5):int(4*lb/5), int(0*lb/5):int(1*lb/5)]
+                a42 = a[int(3*la/5):int(4*la/5), int(1*la/5):int(2*la/5)]
+                b42 = b[int(3*lb/5):int(4*lb/5), int(1*lb/5):int(2*lb/5)]
+                a43 = a[int(3*la/5):int(4*la/5), int(2*la/5):int(3*la/5)]
+                b43 = b[int(3*lb/5):int(4*lb/5), int(2*lb/5):int(3*lb/5)]
+                a44 = a[int(3*la/5):int(4*la/5), int(3*la/5):int(4*la/5)]
+                b44 = b[int(3*lb/5):int(4*lb/5), int(3*lb/5):int(4*lb/5)]
+                a45 = a[int(3*la/5):int(4*la/5), int(4*la/5):int(5*la/5)]
+                b45 = b[int(3*lb/5):int(4*lb/5), int(4*lb/5):int(5*lb/5)]
+                a51 = a[int(4*la/5):int(5*la/5), int(0*la/5):int(1*la/5)]
+                b51 = b[int(4*lb/5):int(5*lb/5), int(0*lb/5):int(1*lb/5)]
+                a52 = a[int(4*la/5):int(5*la/5), int(1*la/5):int(2*la/5)]
+                b52 = b[int(4*lb/5):int(5*lb/5), int(1*lb/5):int(2*lb/5)]
+                a53 = a[int(4*la/5):int(5*la/5), int(2*la/5):int(3*la/5)]
+                b53 = b[int(4*lb/5):int(5*lb/5), int(2*lb/5):int(3*lb/5)]
+                a54 = a[int(4*la/5):int(5*la/5), int(3*la/5):int(4*la/5)]
+                b54 = b[int(4*lb/5):int(5*lb/5), int(3*lb/5):int(4*lb/5)]
+                a55 = a[int(4*la/5):int(5*la/5), int(4*la/5):int(5*la/5)]
+                b55 = b[int(4*lb/5):int(5*lb/5), int(4*lb/5):int(5*lb/5)]
+
                 k1 =(-a51+2*a52+2*a54-2*a55)*(3*b11+b21+b41)
-                k2 =(-a53)*(2*b12-2*b14+4*b15-b32+b34-2*b35-b52+b54-2*b55)
+                k2 =(-1*a53)*(2*b12-2*b14+4*b15-b32+b34-2*b35-b52+b54-2*b55)
                 k3 =(a51-2*a52-a54+2*a55)*(2*b11+b41)
-                k4 =(-a53+a55)*(b21+b51)
+                k4 =(-1*a53+a55)*(b21+b51)
                 k6=(a41-a42-2*a44+2*a45)*(-2*b11+2*b12-b21+b22)
                 k7=a44*(3*b12+b22+b42)
-                k8=(-a44-a51+2*a52+2*a54-2*a55)*(2*b11+b12+b22+b41)
-                k9=(-a44+a54)*(-2*b11+2*b12-b41+b42)
-                k10=(-a41+2*a42+a44-2*a45)*(b12+b22)
-                k11=(-a45)*(2*b11-2*b12-b31+b32-b51+b52)
-                k12=(-a43+a45)*(-b11+b12-b21+b22-b31+b32)
-                k13=(a41-2*a42+a43-2*a44+a45-a51+2*a52+2*a54-2*a55)*(-b11+b12-b21+b22)
-                k14=(-a31+2*a32+2*a34-2*a35)*(3*b14-6*b15+b24-2*b25+b44-2*b45)
-                k15=(a31-2*a32-2*a34+2*a35-a41+2*a42+2*a44-2*a45)*(-b11+b14-2*b15-b21+b24-2*b25-b31+b32+b34-2*b35)
-                k16=(-a31+2*a32+2*a34-2*a35-a44)*(b12+2*b14-4*b15+b22+b44-2*b45)
-                k17=(-a31+2*a32+2*a34-2*a35+a41-2*a42+a43-2*a44+a45)*(-b11+b12-b21+b22-b31+b32+b34-2*b35)
-                k18=(-a31+a32+2*a34-2*a35+a51-a52-2*a54+2*a55)*(b22+b52)
-                k19=(-a31+a32+2*a34-2*a35+a41-a42-2*a44+2*a45)*(b21-b22+b24-2*b25+b31-b32+b34-2*b35+b51-b52+b54-2*b55)
+                k8=(-1*a44-a51+2*a52+2*a54-2*a55)*(2*b11+b12+b22+b41)
+                k9=(-1*a44+a54)*(-2*b11+2*b12-b41+b42)
+                k10=(-1*a41+2*a42+a44-2*a45)*(b12+b22)
+                k11=(-1*a45)*(2*b11-2*b12-b31+b32-b51+b52)
+                k12=(-1*a43+a45)*(-1*b11+b12-b21+b22-b31+b32)
+                k13=(a41-2*a42+a43-2*a44+a45-a51+2*a52+2*a54-2*a55)*(-1*b11+b12-b21+b22)
+                k14=(-1*a31+2*a32+2*a34-2*a35)*(3*b14-6*b15+b24-2*b25+b44-2*b45)
+                k15=(a31-2*a32-2*a34+2*a35-a41+2*a42+2*a44-2*a45)*(-1*b11+b14-2*b15-b21+b24-2*b25-b31+b32+b34-2*b35)
+                k16=(-1*a31+2*a32+2*a34-2*a35-a44)*(b12+2*b14-4*b15+b22+b44-2*b45)
+                k17=(-1*a31+2*a32+2*a34-2*a35+a41-2*a42+a43-2*a44+a45)*(-1*b11+b12-b21+b22-b31+b32+b34-2*b35)
+                k18=(-1*a31+a32+2*a34-2*a35+a51-a52-2*a54+2*a55)*(b22+b52)
+                k19=(-1*a31+a32+2*a34-2*a35+a41-a42-2*a44+2*a45)*(b21-b22+b24-2*b25+b31-b32+b34-2*b35+b51-b52+b54-2*b55)
                 k20=(a33-a53)*(-2*b12+b32+b52)
-                k21=(-a33+a43+a53)*b32
-                k22=(-a34+a54)*(b12-b14+b15-b42+b44-b45+b52-b54+b55)
-                k23=(-a34+a44)*(-2*b11+2*b12-b41+b42)
+                k21=(-1*a33+a43+a53)*b32
+                k22=(-1*a34+a54)*(b12-b14+b15-b42+b44-b45+b52-b54+b55)
+                k23=(-1*a34+a44)*(-2*b11+2*b12-b41+b42)
                 k24=(-a34+a44)*(-2*b12+2*b14-4*b15-b42+b44-2*b45)
                 k25=(a31-2*a32-a34+2*a35)*(2*b14-4*b15+b44-2*b45)
                 k26=a35*(b24-2*b25+b34-2*b35+b54-2*b55)
@@ -279,8 +279,33 @@ class _MatrixGenericData:
             def strassen(A, B):
                 n = len(A.entries)
                 if n <= 2:  # Base case
-                    return np.dot(A, B)
+                    mid = n // 2
 
+                    A11 = A[:mid, :mid]
+                    A12 = A[:mid, mid:]
+                    A21 = A[mid:, :mid]
+                    A22 = A[mid:, mid:]
+                    B11 = B[:mid, :mid]
+                    B12 = B[:mid, mid:]
+                    B21 = B[mid:, :mid]
+                    B22 = B[mid:, mid:]
+                    
+                    P1 = A11 * (B12 - B22)
+                    P2 = (A11 + A12) * (B22)
+                    P3 = (A21 + A22) * B11
+                    P4 = A22 * (B21 - B11)
+                    P5 = (A11 + A22) * (B11 + B22)
+                    P6 = (A12 - A22) * ( B21 + B22)
+                    P7 = (A11 - A21) * (B11 + B12)
+
+                    C11 = P5 + P4 - P2 + P6
+                    C12 = P1 + P2
+                    C21 = P3 + P4
+                    C22 = P5 + P1 - P3 - P7
+                    
+                    C = [[C11, C12], [C21, C22]]
+                    print(C)
+                    return C
                 # Partitions
                 mid = n // 2
                 A11 = A[:mid, :mid]
@@ -548,6 +573,14 @@ class Matrix:
         )
 
     def __mul__(self, other):
+        if True:
+            return self.__class__(
+                base_ring=self.base_ring,
+                nrows=self.nrows, 
+                ncols=self.ncols,
+                data=self.data * flint.arb()
+            )
+        
         if self.ncols != other.nrows:
             raise ValueError(
                 f"Cannot multiply matrix of size {self.nrows}x{self.ncols} with matrix of size {other.nrows}x{other.ncols}."
@@ -574,18 +607,18 @@ class Matrix:
         return self.data == other.data
 
     def __getitem__(self, args):
-        if not self._is_generic:
-            r, c = args
-            return self[r][c]
         if len(args) == 2:
             r, c = args
-
-            entries = self.data.entries
+            if not self._is_generic:
+                r, c = args
+                entries = self.data.tolist()
+            else:
+                entries = self.data.entries
             new_entries = entries[r]
             new_data = []
+
             if not isinstance(new_entries[0], list):
                 new_data = [new_entries[c]]
-
                 if not isinstance(new_data[0], list):
                     new_data = [new_data]
             else:
@@ -594,67 +627,79 @@ class Matrix:
                         new_data.append([i[c]])
                     else:
                         new_data.append(i[c])
+
             ncols = len(new_data[0])
             nrows = len(new_data)
 
-            return self.__class__(
-            base_ring=self.base_ring,
-            nrows=nrows,
-            ncols=ncols,
-            entries=new_data,
-            data=_MatrixGenericData(
+            if not self._is_generic:
+                r, c = args
+                entries = self.data.tolist()
+                return self.__class__(
                 base_ring=self.base_ring,
                 nrows=nrows,
                 ncols=ncols,
                 entries=new_data,
                 )
-            )
-        
-    def concat(self, other, axis=0):
-        """Concatinates matrices along an axis."""
-        if axis != 0 and axis != 1:
-            return ValueError (
-                f'Axis must be 0 (vertical), or 1 (horizontal), a value of {axis} was given.'
-            )
-        
-        if axis == 0 and self.data.ncols != other.data.ncols:
-            return ValueError (
-                'For vertical concatination, the number of columns on both matrices must match.'
-            )
-        
-        if axis == 1 and self.data.nrows != other.data.nrows:
-            return ValueError (
-                'For horizontal concatination, the number of rows on both matrices must match.'
-            )
-
-        s = self.data.entries
-        o = other.data.entries
-        if axis == 0:
-            for row in range(len(o)):
-                s.append(o[row])
-
-        else:
-            len_s = len(s)
-            len_o = len(o[0])
-            for i in range(len_s):
-                for j in range(len_o):
-                    s[i].append(o[i][j])
-                    
-        nrows = len(s)
-        ncols = len(s[0])
-
-        return self.__class__(
-            base_ring=self.base_ring,
-            nrows=nrows,
-            ncols=ncols,
-            entries=s,
-            data=_MatrixGenericData(
+            
+            return self.__class__(
                 base_ring=self.base_ring,
                 nrows=nrows,
                 ncols=ncols,
-                entries=s,
+                entries=new_data,
+                data=_MatrixGenericData(
+                    base_ring=self.base_ring,
+                    nrows=nrows,
+                    ncols=ncols,
+                    entries=new_data,
+                    )
                 )
-            )
+
+
+    # def concat(self, other, axis=0):
+    #     """Concatinates matrices along an axis."""
+    #     if axis != 0 and axis != 1:
+    #         return ValueError (
+    #             f'Axis must be 0 (vertical), or 1 (horizontal), a value of {axis} was given.'
+    #         )
+        
+    #     if axis == 0 and self.data.ncols != other.data.ncols:
+    #         return ValueError (
+    #             'For vertical concatination, the number of columns on both matrices must match.'
+    #         )
+        
+    #     if axis == 1 and self.data.nrows != other.data.nrows:
+    #         return ValueError (
+    #             'For horizontal concatination, the number of rows on both matrices must match.'
+    #         )
+
+    #     s = self.data.entries
+    #     o = other.data.entries
+    #     if axis == 0:
+    #         for row in range(ncols(s)):
+    #             s.append(o[row])
+
+    #     else:
+    #         len_s = s.nrows
+    #         len_o = o.ncols
+    #         for i in range(len_s):
+    #             for j in range(len_o):
+    #                 s[i].append(o[i][j])
+                    
+    #     nrows = s.nrows
+    #     ncols = s.ncols
+
+    #     return self.__class__(
+    #         base_ring=self.base_ring,
+    #         nrows=nrows,
+    #         ncols=ncols,
+    #         entries=s,
+    #         data=_MatrixGenericData(
+    #             base_ring=self.base_ring,
+    #             nrows=nrows,
+    #             ncols=ncols,
+    #             entries=s,
+    #             )
+    #         )
 
         
 
