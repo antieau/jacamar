@@ -12,7 +12,7 @@ from nuthatch.rings.reals import RR
 from nuthatch.rings.complexes import CC
 from nuthatch.rings.polynomials import PolynomialRing
 import numpy as np
-from nuthatch.matrices.matrices import Matrix, _MatrixGenericData
+from nuthatch.matrices.matrices import Matrix, _MatrixGenericData, generate
 import time
 
 class TestMatrix:
@@ -183,6 +183,9 @@ class TestMatrix:
         a = Matrix(base_ring=RR, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
         assert a.size() == (3, 3)
 
+    def test_det(self):
+        a = Matrix(base_ring=RR, entries=[[1, 2], [2, 1]])
+        assert a.det() == RR(-3)
     # def test_concat(self):
     #     a = Matrix(base_ring=RR, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     #     b = Matrix(base_ring=RR, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9], [1, 2, 3], [4, 5, 6], [7, 8, 9]])
@@ -233,8 +236,11 @@ class TestGenericMatrices:
 
     def test_straussen_mult(self):
         f = self.z({(1, 1, 2, 1): ZZ(2), (0, 4): ZZ(9)})
-        a = Matrix(base_ring=PolynomialRing, ncols=2, nrows=2, entries=[[f, f], [f, f]], data=_MatrixGenericData(base_ring=PolynomialRing, ncols=2, nrows=2, entries=[[f, f], [f, f]]))
-        assert a * a == Matrix(base_ring=PolynomialRing, ncols=2, nrows=2, entries=[[ZZ(2)*f*f, ZZ(2)*f*f], [ZZ(2)*f*f, ZZ(2)*f*f]], data=_MatrixGenericData(base_ring=PolynomialRing, ncols=2, nrows=2, entries=[[ZZ(2)*f*f, ZZ(2)*f*f], [ZZ(2)*f*f, ZZ(2)*f*f]]))
+        s = 64
+        a = generate(f, s, s)
+        b = generate(ZZ(s)*f*f, s, s)
+        t1 = time.time()
+        assert a * a == b
 
     def test_kmb_mult(self):
         f = self.z({(1, 1, 2, 1): ZZ(2), (0, 4): ZZ(9)})
@@ -267,3 +273,8 @@ class TestGenericMatrices:
         f = self.r({(1, 1, 2, 1): RR(2), (0, 4): RR(9)})
         a = Matrix(base_ring=PolynomialRing, ncols=2, nrows=2, entries=[[f, f], [f, f]], data=_MatrixGenericData(base_ring=PolynomialRing, ncols=2, nrows=2, entries=[[f, f], [f, f]]))
         assert a * a == Matrix(base_ring=PolynomialRing, ncols=2, nrows=2, entries=[[RR(2)*f*f, RR(2)*f*f], [RR(2)*f*f, RR(2)*f*f]], data=_MatrixGenericData(base_ring=PolynomialRing, ncols=2, nrows=2, entries=[[RR(2)*f*f, RR(2)*f*f], [RR(2)*f*f, RR(2)*f*f]]))
+
+    def test_generate(self):
+        f = self.r({(1, 1, 2, 1): RR(2), (0, 4): RR(9)})
+
+        print(generate(f, 8, 8).base_ring)

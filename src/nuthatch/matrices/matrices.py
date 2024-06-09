@@ -16,8 +16,8 @@ import numpy as np
 from nuthatch.rings.integers import ZZ
 from nuthatch.rings.reals import RR, RR_py
 from nuthatch.rings.complexes import CC
-
 from nuthatch.rings.rationals import QQ
+import time
 
 
 class _MatrixGenericData:
@@ -291,7 +291,7 @@ class _MatrixGenericData:
             new_entries = kauers_moosbauer(self, other)
 
         # STRASSEN
-        elif self.ncols % 2 == 1 and self.nrows % 2 == 0:
+        elif self.ncols % 2 == 0 and self.nrows % 2 == 0:
             def strassen(A, B):
                 n = len(A.entries)
                 if n <= 2:  # Base case
@@ -305,7 +305,7 @@ class _MatrixGenericData:
                     B12 = B[:mid, mid:]
                     B21 = B[mid:, :mid]
                     B22 = B[mid:, mid:]
-                    
+                    t1 = time.time()
                     P1 = A11 * (B12 - B22)
                     P2 = (A11 + A12) * (B22)
                     P3 = (A21 + A22) * B11
@@ -319,10 +319,16 @@ class _MatrixGenericData:
                     C21 = P3 + P4
                     C22 = P5 + P1 - P3 - P7
                     
-                    C = [[C11, C12], [C21, C22]]
-                    print(C)
-                    return C
+                    C = [[C11.entries[0][0], C12.entries[0][0]], [C21.entries[0][0], C22.entries[0][0]]]
+                    return B.__class__(
+                        base_ring=B.base_ring,
+                        nrows=A.nrows,
+                        ncols=A.ncols,
+                        entries=C,
+                    )
+
                 # Partitions
+                # t1 = time.time()
                 mid = n // 2
                 A11 = A[:mid, :mid]
                 A12 = A[:mid, mid:]
@@ -332,8 +338,9 @@ class _MatrixGenericData:
                 B12 = B[:mid, mid:]
                 B21 = B[mid:, :mid]
                 B22 = B[mid:, mid:]
-
+                # print(f'Partition: {time.time() - t1}')
                 # Recursions
+                t1 = time.time()
                 P1 = strassen(A11, B12 - B22)
                 P2 = strassen(A11 + A12, B22)
                 P3 = strassen(A21 + A22, B11)
@@ -341,19 +348,43 @@ class _MatrixGenericData:
                 P5 = strassen(A11 + A22, B11 + B22)
                 P6 = strassen(A12 - A22, B21 + B22)
                 P7 = strassen(A11 - A21, B11 + B12)
-
+                print(f'Recursion: {time.time() - t1}')
 
                 # Combine results to form C
-                C11 = P5 + P4 - P2 + P6
-                C12 = P1 + P2
-                C21 = P3 + P4
-                C22 = P5 + P1 - P3 - P7
+                # t1 = time.time()
+                C11 = (P5 + P4 - P2 + P6).entries
+                C12 = (P1 + P2).entries
+                C21 = (P3 + P4).entries
+                C22 = (P5 + P1 - P3 - P7).entries
+                # print(f'Combination: {time.time() - t1}')
+
+                C = []
+                lc = len(C11)
+                lc0 = len(C11[0])
+                for i in range(lc):
+                    C.append([])
+                    for j in range(lc0):
+                        C[-1].append(C11[i][j])
+                    for j in range(lc0):
+                        C[-1].append(C12[i][j])
+                for i in range(lc):
+                    C.append([])
+                    for j in range(lc0):
+                        C[-1].append(C21[i][j])
+                    for j in range(lc0):
+                        C[-1].append(C22[i][j])
 
                 # Combine quadrants to form C
-                C = np.vstack((np.hstack((C11, C12)), np.hstack((C21, C22))))
+                C = _MatrixGenericData(
+                    base_ring=A.base_ring,
+                    nrows=len(C),
+                    ncols=len(C[0]),
+                    entries=C
+                )
                 return C
             new_entries = strassen(self, other)
-            print(new_entries)
+            return new_entries
+
         # standard matrix multiplication
         else:
             new_entries = []
@@ -695,7 +726,13 @@ class Matrix:
                     )
                 )
 
+    def generate(self, value, rows, cols):
+        """
+        Generates a repeating matrix of size (rows, cols). Can be generic or not.
+        TODO: Implement random function
+        """
 
+        return 
     # def concat(self, other, axis=0):
     #     """Concatinates matrices along an axis."""
     #     if axis != 0 and axis != 1:
@@ -745,3 +782,25 @@ class Matrix:
         
 
 """Functions for matricies."""
+def generate(value, nrows, ncols):
+    """
+    Generates a repeating matrix of size (rows, cols). Can be generic or not.
+    TODO: Implement random function
+    """
+    entries = []
+    for i in range(nrows):
+        entries.append([])
+        for j in range(ncols):
+            entries[-1].append(value)
+    return Matrix(
+                base_ring=value.ring,
+                nrows=nrows,
+                ncols=ncols,
+                entries=entries,
+                data=_MatrixGenericData(
+                    base_ring=value.ring,
+                    nrows=nrows,
+                    ncols=ncols,
+                    entries=entries,
+                    )
+                )
