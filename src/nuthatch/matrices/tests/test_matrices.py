@@ -147,10 +147,10 @@ class TestMatrix:
         a = Matrix(base_ring=RR, entries=[[1, 2], [3, 4]])
 
     def test_index(self):
-        a = Matrix(base_ring=ZZ, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-        b = Matrix(base_ring=ZZ, entries=[[5]])
-        c = Matrix(base_ring=ZZ, entries=[[3], [6], [9]])
-        d = Matrix(base_ring=ZZ, entries=[[4, 5]])
+        a = Matrix(base_ring=RR, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        b = Matrix(base_ring=RR, entries=[[5]])
+        c = Matrix(base_ring=RR, entries=[[3], [6], [9]])
+        d = Matrix(base_ring=RR, entries=[[4, 5]])
         assert a[:, :] == a
         assert a[1, 1] == b
         assert a[:, 2] == c
