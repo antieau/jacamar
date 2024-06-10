@@ -12,7 +12,7 @@ from nuthatch.rings.reals import RR
 from nuthatch.rings.complexes import CC
 from nuthatch.rings.polynomials import PolynomialRing
 import numpy as np
-from nuthatch.matrices.matrices import Matrix, _MatrixGenericData, generate
+from nuthatch.matrices.matrices import Matrix, _MatrixGenericData, generate, random
 import time
 
 class TestMatrix:
@@ -36,6 +36,7 @@ class TestMatrix:
         assert self.m == Matrix(base_ring=ZZ, entries=[[ZZ(1), ZZ(2)], [ZZ(3), ZZ(4)]])
 
     def test_classes(self):
+        """Tests classes."""
         assert isinstance(self.m, Matrix)
 
     def test_equality_among_the_classes(self):
@@ -282,3 +283,8 @@ class TestGenericMatrices:
     def test_generate(self):
         """Tests generate fuinction, which creates a matrix of size (r, c) with a specific entry."""
         f = self.r({(1, 1, 2, 1): RR(2), (0, 4): RR(9)})
+    
+    def test_random(self):
+        """Tests random matrix generation function."""
+        f = random(RR, 10, 5, 5, 1, 3)
+        print(f*f)

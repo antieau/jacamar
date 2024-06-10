@@ -18,6 +18,7 @@ from nuthatch.rings.integers import ZZ
 from nuthatch.rings.reals import RR, RR_py
 from nuthatch.rings.complexes import CC
 from nuthatch.rings.rationals import QQ
+from nuthatch.rings.polynomials import PolynomialRing
 import time
 
 
@@ -957,3 +958,49 @@ def generate(value, nrows, ncols):
                     entries=entries,
                     )
                 )
+
+def random(base_ring, max_val, nrows, ncols, poly=0, ngens=1):
+    """
+    Generates a random matrix of size nrows x ncols using np.random.
+    Values go from [0, max_val]. 
+    Polynomials are of form n0*x0**r0 + n1*x1**r1 ....
+    """
+    entries = []
+
+    if poly:
+        p = PolynomialRing(base_ring=base_ring, ngens=ngens, prefix="x", packed=False)
+        for i in range(nrows):
+            entries.append([])
+            for j in range(ncols):
+                val = p(0)
+                for k in range(ngens):
+                    val = val + base_ring(np.random.random() * max_val) * p.gens[k] ** ZZ(int(np.random.random() * max_val))
+                entries[-1].append(val)
+                
+
+        return Matrix(
+                base_ring=PolynomialRing,
+                nrows=nrows,
+                ncols=ncols,
+                entries=entries,
+                data=_MatrixGenericData(
+                    base_ring=PolynomialRing,
+                    nrows=nrows,
+                    ncols=ncols,
+                    entries=entries,
+                    )
+                )
+    
+    vals = np.random.random(nrows * ncols) * max_val
+    for i in range(nrows):
+        entries.append([])
+        for j in range(ncols):
+            entries[-1].append(base_ring(vals[(i + 1) * (j)]))
+    
+    return Matrix(
+                base_ring=base_ring,
+                nrows=nrows,
+                ncols=ncols,
+                entries=entries,
+                )
+    
