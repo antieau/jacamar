@@ -72,16 +72,16 @@ class TestRealNumber:
         with pytest.raises(TypeError):
             RR(6.765) + ZZ(1)
 
+    def test_eq(self):
+        """Tests __eq__ with RR and ZZ."""
+        assert RR("0 +/- 0.5") == RR(0.4)
+        assert RR(0) == ZZ(0)
+        
     def test_mult_with_integer(self):
         """Tests ___mul__ with an integer."""
         assert ZZ(1) * RR(6.765) == RR(6.765)
         with pytest.raises(TypeError):
             RR(6.765) * ZZ(1)
-
-    # def test_mult_with_matrix(self):
-    #     """Tests ___mul__ with a matrix."""
-    #     mat = Matrix(base_ring=ZZ, entries=[[ZZ(1), ZZ(2)], [ZZ(3), ZZ(4)]])
-    #     assert RR(2.0) * mat == Matrix(base_ring=ZZ, entries=[[ZZ(2), ZZ(4)], [ZZ(6), ZZ(8)]])
 
     def test_polynomial(self):
         """Tests creation of real polynomials."""

@@ -279,12 +279,18 @@ class TestGenericMatrices:
         f = self.r({(1, 1, 2, 1): RR(2), (0, 4): RR(9)})
         a = Matrix(base_ring=PolynomialRing, ncols=2, nrows=2, entries=[[f, f], [f, f]], data=_MatrixGenericData(base_ring=PolynomialRing, ncols=2, nrows=2, entries=[[f, f], [f, f]]))
         assert a * a == Matrix(base_ring=PolynomialRing, ncols=2, nrows=2, entries=[[RR(2)*f*f, RR(2)*f*f], [RR(2)*f*f, RR(2)*f*f]], data=_MatrixGenericData(base_ring=PolynomialRing, ncols=2, nrows=2, entries=[[RR(2)*f*f, RR(2)*f*f], [RR(2)*f*f, RR(2)*f*f]]))
-
+    
+    def test_generic_det(self):
+        """Tests generic implemnetation of the deternimant method for polynomials."""
+        f = self.r({(1, 1, 2, 1): RR(2), (0, 4): RR(9)})
+        a = generate(f, 2, 2)
+        assert a.det() == f * (f**ZZ(2) - f**ZZ(2)) - f * (f**ZZ(2) - f**ZZ(2)) + f * (f**ZZ(2) - f**ZZ(2))
+ 
     def test_generate(self):
         """Tests generate fuinction, which creates a matrix of size (r, c) with a specific entry."""
         f = self.r({(1, 1, 2, 1): RR(2), (0, 4): RR(9)})
+
     
     def test_random(self):
         """Tests random matrix generation function."""
         f = random(RR, 10, 5, 5, 1, 3)
-        print(f*f)

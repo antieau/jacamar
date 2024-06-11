@@ -46,10 +46,24 @@ class _MatrixGenericData:
             return self.base_ring(0)
         if self.nrows == 1:
             return self.entries[0][0]
-        # TODO: implement cofactor definition of determinant for starters.
+        entries = self.entries
+        def minor(array,i,j):
+            c = array
+            c = c[:i] + c[i+1:]
+            for k in range(0,len(c)):
+                c[k] = c[k][:j]+c[k][j+1:]
+            return c
+        def det(array,n):
+            if n == 1 :return array[0][0]
+            if n == 2 :return array[0][0]*array[1][1] - array[0][1]*array[1][0]
+            sum = PolynomialRing(base_ring=RR, ngens=3, prefix="x", packed=False)
+            sum = sum.zero
+            for i in range(0,n):
+                m = minor(array,0,i)
+                sum = sum + RR((-1)**i) * array[0][i] * det(m,n-1)
+            return sum
+        return det(entries, self.nrows)
 
-        return NotImplemented
-    
     def size(self):
         """Returns size of a matrix as a tuple (rows, cols)."""
         return (self.nrows, self.ncols)
@@ -107,7 +121,7 @@ class _MatrixGenericData:
                 entries=[],
             )
         # KAUERS - MOOSBAUER
-        if self.ncols % 5 == 0 and self.nrows % 5 == 0:
+        if self.ncols % 5 == 0 and self.nrows % 5 == 0 and other.ncols % 5 == 0 and other.nrows % 5 == 0:
             print('kmb')
             def kauers_moosbauer(a, b):
                 la = a.nrows
@@ -452,7 +466,7 @@ class _MatrixGenericData:
         
 
         # STRASSEN
-        elif self.ncols % 2 == 0 and self.nrows % 2 == 0:
+        elif self.ncols % 2 == 0 and self.nrows % 2 == 0 and other.ncols % 2 == 0 and other.nrows % 2 == 0:
             def strassen(A, B):
                 n = len(A.entries)
                 if n <= 2:  # Base case
@@ -776,14 +790,17 @@ class Matrix:
         return self.determinant()
 
     def determinant(self):
+        """Determinant method. Uses flint if generic, if not, see _GenericMatrixData.determinant()"""
         if self.nrows != self.ncols:
-            raise ValueError("matrix must be square")
-        return self.base_ring(self.data.det())
-    
+            raise ValueError("Matrix must be square.")
+        if not self._is_generic:
+            return self.base_ring(self.data.det())
+        return self.data.det()
+
     def size(self):
         """Returns size of a matrix as a tuple (rows, cols)."""
         return (self.nrows, self.ncols)
-    
+
     def __add__(self, other):
         """Returns self + other with base ring that of other."""
         return other.__class__(
@@ -803,7 +820,7 @@ class Matrix:
             if str(self.base_ring) == "<class 'nuthatch.rings.polynomials.PolynomialRing'>":
                 return self.__class__(
                     base_ring=self.base_ring,
-                    nrows=self.nrows, 
+                    nrows=self.nrows,
                     ncols=self.ncols,
                     data=self.data * other
                 )
@@ -814,7 +831,7 @@ class Matrix:
                 ncols=self.ncols,
                 data=self.data * other.data
             )
-        
+
         if self.ncols != other.nrows:
             raise ValueError(
                 f"Cannot multiply matrix of size {self.nrows}x{self.ncols} with matrix of size {other.nrows}x{other.ncols}."
@@ -873,7 +890,7 @@ class Matrix:
                 ncols=ncols,
                 entries=new_data,
                 )
-            
+
             return self.__class__(
                 base_ring=self.base_ring,
                 nrows=nrows,
@@ -885,57 +902,11 @@ class Matrix:
                     ncols=ncols,
                     entries=new_data,
                     )
-                )
+                )        
 
-    # def concat(self, other, axis=0):
-    #     """Concatinates matrices along an axis."""
-    #     if axis != 0 and axis != 1:
-    #         return ValueError (
-    #             f'Axis must be 0 (vertical), or 1 (horizontal), a value of {axis} was given.'
-    #         )
-        
-    #     if axis == 0 and self.data.ncols != other.data.ncols:
-    #         return ValueError (
-    #             'For vertical concatination, the number of columns on both matrices must match.'
-    #         )
-        
-    #     if axis == 1 and self.data.nrows != other.data.nrows:
-    #         return ValueError (
-    #             'For horizontal concatination, the number of rows on both matrices must match.'
-    #         )
 
-    #     s = self.data.entries
-    #     o = other.data.entries
-    #     if axis == 0:
-    #         for row in range(ncols(s)):
-    #             s.append(o[row])
+# Functions for matricies
 
-    #     else:
-    #         len_s = s.nrows
-    #         len_o = o.ncols
-    #         for i in range(len_s):
-    #             for j in range(len_o):
-    #                 s[i].append(o[i][j])
-                    
-    #     nrows = s.nrows
-    #     ncols = s.ncols
-
-    #     return self.__class__(
-    #         base_ring=self.base_ring,
-    #         nrows=nrows,
-    #         ncols=ncols,
-    #         entries=s,
-    #         data=_MatrixGenericData(
-    #             base_ring=self.base_ring,
-    #             nrows=nrows,
-    #             ncols=ncols,
-    #             entries=s,
-    #             )
-    #         )
-
-        
-
-"""Functions for matricies."""
 def generate(value, nrows, ncols):
     """
     Generates a repeating matrix of size (rows, cols). Can be generic or not.
