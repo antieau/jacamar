@@ -188,6 +188,15 @@ class TestMatrix:
         a = Matrix(base_ring=RR, entries=[[1, 2], [2, 1]])
         assert a.det() == RR(-3)
 
+    def test_transpose(self):
+        """Tests flint transpose method."""
+        a = Matrix(base_ring=RR, entries=[[1, 2], [3, 4]])
+        b = Matrix(base_ring=RR, entries=[[1, 3], [2, 4]])
+        p = random(RR, 2, 5, 4, 1, 2)
+        assert p.transpose()[2, 3] == p[3, 2]
+        assert a.transpose() == b
+        assert a.T() == b
+
 class TestGenericMatrices:
     """Tests for generic matrices."""
     z = PolynomialRing(base_ring=ZZ, ngens=3, prefix="x", packed=False)
@@ -294,3 +303,6 @@ class TestGenericMatrices:
     def test_random(self):
         """Tests random matrix generation function."""
         f = random(RR, 10, 5, 5, 1, 3)
+        a = random(RR, 10, 10, 10)
+        b = random(RR, 2, 10, 10)
+        assert a * b, f

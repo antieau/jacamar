@@ -41,7 +41,7 @@ class _MatrixGenericData:
 
     def determinant(self):
         if self.nrows != self.nrows:
-            raise ValueError("matrix must be square")
+            raise ValueError("Matrix must be square.")
         if self.nrows == 0:
             return self.base_ring(0)
         if self.nrows == 1:
@@ -54,16 +54,33 @@ class _MatrixGenericData:
                 c[k] = c[k][:j]+c[k][j+1:]
             return c
         def det(array,n):
-            if n == 1 :return array[0][0]
-            if n == 2 :return array[0][0]*array[1][1] - array[0][1]*array[1][0]
-            sum = PolynomialRing(base_ring=RR, ngens=3, prefix="x", packed=False)
-            sum = sum.zero
+            if n == 1 :
+                return array[0][0]
+            if n == 2 :
+                return array[0][0]*array[1][1] - array[0][1]*array[1][0]
+            det = PolynomialRing(base_ring=RR, ngens=3, prefix="x", packed=False)
+            det = det.zero
             for i in range(0,n):
                 m = minor(array,0,i)
-                sum = sum + RR((-1)**i) * array[0][i] * det(m,n-1)
-            return sum
+                det = det + RR((-1)**i) * array[0][i] * det(m,n-1)
+            return det
         return det(entries, self.nrows)
 
+    def transpose(self):
+        """Returns copy of the transposed matrix data."""
+        entries = self.entries
+        new_entries = []
+        for i in range(self.ncols):
+            new_entries.append([])
+            for j in range(self.nrows):
+                new_entries[-1].append(entries[j][i])
+
+        return _MatrixGenericData(
+            base_ring=self.base_ring,
+            nrows=self.ncols,
+            ncols=self.nrows,
+            entries=new_entries
+        )
     def size(self):
         """Returns size of a matrix as a tuple (rows, cols)."""
         return (self.nrows, self.ncols)
@@ -458,15 +475,14 @@ class _MatrixGenericData:
                     ncols=len(c[0]),
                     entries=c
                 )
-            
+
             # Splitting matrix into easily parellizible tasks
-            five_power = np.floor(np.emath.logn(5, max(max(*self.size()), max(other.size()))))
             new_matrix = kauers_moosbauer(self, other)
             return new_matrix
-        
+
 
         # STRASSEN
-        elif self.ncols % 2 == 0 and self.nrows % 2 == 0 and other.ncols % 2 == 0 and other.nrows % 2 == 0:
+        elif self.ncols % 2 == 0 and self.nrows % 2 == 0 and other.ncols % 2 == 0 and other.nrows % 2 == 0 and self.size == other.size():
             def strassen(A, B):
                 n = len(A.entries)
                 if n <= 2:  # Base case
@@ -579,9 +595,6 @@ class _MatrixGenericData:
             entries=new_entries,
         )
 
-        
-
-
     def __sub__(self, other):
         if self.nrows != other.nrows or self.ncols != other.ncols:
             raise ValueError(
@@ -624,24 +637,23 @@ class _MatrixGenericData:
 
     def __getitem__(self, args):
         r, c = args
-        if True:
-            entries = self.entries
-            new_entries = entries[r]
-            new_data = []
+        entries = self.entries
+        new_entries = entries[r]
+        new_data = []
 
-            if not isinstance(new_entries[0], list):
-                new_data = [new_entries[c]]
-                if not isinstance(new_data[0], list):
-                    new_data = [new_data]
-            else:
-                for i in new_entries:
-                    if not isinstance(i[c], list):
-                        new_data.append([i[c]])
-                    else:
-                        new_data.append(i[c])
+        if not isinstance(new_entries[0], list):
+            new_data = [new_entries[c]]
+            if not isinstance(new_data[0], list):
+                new_data = [new_data]
+        else:
+            for i in new_entries:
+                if not isinstance(i[c], list):
+                    new_data.append([i[c]])
+                else:
+                    new_data.append(i[c])
 
-            ncols = len(new_data[0])
-            nrows = len(new_data)
+        ncols = len(new_data[0])
+        nrows = len(new_data)
         return self.__class__(
             base_ring=self.base_ring,
             nrows=nrows,
@@ -650,8 +662,14 @@ class _MatrixGenericData:
         )
 
 
-        
+
 class Matrix:
+    """
+    Base class for matrices of numbers or polynomials.
+    Numerical matrices are built off of flint mat objects
+    while generic (polynomial) matrices use the 
+    _GenericMatrixData format.
+    """
     def __init__(
         self,
         *,
@@ -796,7 +814,18 @@ class Matrix:
         if not self._is_generic:
             return self.base_ring(self.data.det())
         return self.data.det()
-
+    
+    def T(self):
+        """Alias for the transpose() method."""
+        return self.transpose()
+    
+    def transpose(self):
+        """Returns a transposed copy of self."""
+        return Matrix(base_ring=self.base_ring,
+                      nrows=self.ncols,
+                      ncols=self.nrows,
+                      data=self.data.transpose())
+    
     def size(self):
         """Returns size of a matrix as a tuple (rows, cols)."""
         return (self.nrows, self.ncols)
@@ -827,7 +856,7 @@ class Matrix:
 
             return self.__class__(
                 base_ring=self.base_ring,
-                nrows=self.nrows, 
+                nrows=self.nrows,
                 ncols=self.ncols,
                 data=self.data * other.data
             )
@@ -858,7 +887,12 @@ class Matrix:
         return self.data == other.data
 
     def __getitem__(self, args):
-        if len(args) == 2:
+        if type(args) == int or type(args) == slice:
+            return ValueError (
+                f'The matrix slice method takes 2 args [rows, columns], but 1 were given.'
+            )
+
+        elif len(args) == 2:
             r, c = args
             if not self._is_generic:
                 r, c = args
@@ -902,7 +936,11 @@ class Matrix:
                     ncols=ncols,
                     entries=new_data,
                     )
-                )        
+                )
+
+        return ValueError (
+            f'The matrix slice method takes 2 args [rows, columns], but {len(args)} were given.'
+        )
 
 
 # Functions for matricies
@@ -910,7 +948,6 @@ class Matrix:
 def generate(value, nrows, ncols):
     """
     Generates a repeating matrix of size (rows, cols). Can be generic or not.
-    TODO: Implement random function
     """
     entries = []
     for i in range(nrows):
@@ -961,17 +998,16 @@ def random(base_ring, max_val, nrows, ncols, poly=0, ngens=1):
                     entries=entries,
                     )
                 )
-    
+
     vals = np.random.random(nrows * ncols) * max_val
     for i in range(nrows):
         entries.append([])
         for j in range(ncols):
             entries[-1].append(base_ring(vals[(i + 1) * (j)]))
-    
+
     return Matrix(
                 base_ring=base_ring,
                 nrows=nrows,
                 ncols=ncols,
                 entries=entries,
                 )
-    
