@@ -13,13 +13,12 @@ AUTHORS:
 
 import flint
 import numpy as np
-
+import ray
 from nuthatch.rings.integers import ZZ
 from nuthatch.rings.reals import RR, RR_py
 from nuthatch.rings.complexes import CC
 from nuthatch.rings.rationals import QQ
 from nuthatch.rings.polynomials import PolynomialRing
-import time
 
 
 class _MatrixGenericData:
@@ -138,8 +137,7 @@ class _MatrixGenericData:
                 entries=[],
             )
         # KAUERS - MOOSBAUER
-        if self.ncols % 5 == 0 and self.nrows % 5 == 0 and other.ncols % 5 == 0 and other.nrows % 5 == 0:
-            print('kmb')
+        if self.ncols % 5 == 0 and self.nrows % 5 == 0 and other.ncols % 5 == 0 and other.nrows % 5 == 0 and False ==  True:
             def kauers_moosbauer(a, b):
                 la = a.nrows
                 lb = b.ncols
@@ -482,7 +480,7 @@ class _MatrixGenericData:
 
 
         # STRASSEN
-        elif self.ncols % 2 == 0 and self.nrows % 2 == 0 and other.ncols % 2 == 0 and other.nrows % 2 == 0 and self.size == other.size():
+        elif self.ncols % 2 == 0 and self.nrows % 2 == 0 and other.ncols % 2 == 0 and other.nrows % 2 == 0 and self.size() == other.size():
             def strassen(A, B):
                 n = len(A.entries)
                 if n <= 2:  # Base case
@@ -496,7 +494,6 @@ class _MatrixGenericData:
                     B12 = B[:mid, mid:]
                     B21 = B[mid:, :mid]
                     B22 = B[mid:, mid:]
-                    t1 = time.time()
                     P1 = A11 * (B12 - B22)
                     P2 = (A11 + A12) * (B22)
                     P3 = (A21 + A22) * B11
@@ -519,7 +516,6 @@ class _MatrixGenericData:
                     )
 
                 # Partitions
-                # t1 = time.time()
                 mid = n // 2
                 A11 = A[:mid, :mid]
                 A12 = A[:mid, mid:]
@@ -529,9 +525,7 @@ class _MatrixGenericData:
                 B12 = B[:mid, mid:]
                 B21 = B[mid:, :mid]
                 B22 = B[mid:, mid:]
-                # print(f'Partition: {time.time() - t1}')
                 # Recursions
-                t1 = time.time()
                 P1 = strassen(A11, B12 - B22)
                 P2 = strassen(A11 + A12, B22)
                 P3 = strassen(A21 + A22, B11)
@@ -539,15 +533,12 @@ class _MatrixGenericData:
                 P5 = strassen(A11 + A22, B11 + B22)
                 P6 = strassen(A12 - A22, B21 + B22)
                 P7 = strassen(A11 - A21, B11 + B12)
-                print(f'Recursion: {time.time() - t1}')
 
                 # Combine results to form C
-                # t1 = time.time()
                 C11 = (P5 + P4 - P2 + P6).entries
                 C12 = (P1 + P2).entries
                 C21 = (P3 + P4).entries
                 C22 = (P5 + P1 - P3 - P7).entries
-                # print(f'Combination: {time.time() - t1}')
 
                 C = []
                 lc = len(C11)
@@ -845,6 +836,7 @@ class Matrix:
         )
 
     def __mul__(self, other):
+        print("LLLL")
         if str(type(other)) == "<class 'nuthatch.rings.reals.RealNumber'>" or str(type(other)) == "<class 'nuthatch.rings.complexes.ComplexNumber'>" or str(type(other)) == "<class 'nuthatch.rings.integers.Integer'>" or str(type(other)) == "<class 'nuthatch.rings.rationals.Rational'>":
             if str(self.base_ring) == "<class 'nuthatch.rings.polynomials.PolynomialRing'>":
                 return self.__class__(
@@ -860,17 +852,62 @@ class Matrix:
                 ncols=self.ncols,
                 data=self.data * other.data
             )
-
+        
         if self.ncols != other.nrows:
             raise ValueError(
                 f"Cannot multiply matrix of size {self.nrows}x{self.ncols} with matrix of size {other.nrows}x{other.ncols}."
             )
+        
         if self.nrows == 0 or other.nrows == 0 or other.ncols == 0:
             return other.__class__(
                 base_ring=other.base_ring,
                 nrows=self.nrows,
                 ncols=other.ncols,
             )
+        ss = self.size()
+        so = other.size()
+        if ss == so and ss[0] % 2 == 0 and ss[1] % 2 == 0:
+            mid = self.size()[0] // 2
+            A11 = self[:mid, :mid].data
+            A12 = self[:mid, mid:].data
+            A21 = self[mid:, :mid].data
+            A22 = self[mid:, mid:].data
+            B11 = other[:mid, :mid].data
+            B12 = other[:mid, mid:].data
+            B21 = other[mid:, :mid].data
+            B22 = other[mid:, mid:].data
+            print("KKKKKK")
+            P1 = A11 * (B12 - B22)
+            P2 = (A11 + A12) * (B22)
+            P3 = (A21 + A22) * B11
+            P4 = A22 * (B21 - B11)
+            P5 = (A11 + A22) * (B11 + B22)
+            P6 = (A12 - A22) * ( B21 + B22)
+            P7 = (A11 - A21) * (B11 + B12)
+
+            C11 = P5 + P4 - P2 + P6
+            C12 = P1 + P2
+            C21 = P3 + P4
+            C22 = P5 + P1 - P3 - P7
+
+            C11 = C11.tolist()
+            C12 = C12.tolist()
+            C21 = C21.tolist()
+            C22 = C22.tolist()
+
+            C1 = np.concatenate((C11, C12), axis=1)
+            C2 = np.concatenate((C21, C22), axis=1)
+            C = np.concatenate((C1, C2), axis=0)
+
+            C = flint.arb_mat(C.tolist())
+            return other.__class__(
+                base_ring=self.base_ring,
+                nrows=self.nrows,
+                ncols=other.ncols,
+                data=C
+                )
+        
+
 
         return other.__class__(
             base_ring=other.base_ring,

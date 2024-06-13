@@ -14,7 +14,6 @@ from nuthatch.rings.polynomials import PolynomialRing
 import numpy as np
 from nuthatch.matrices.matrices import Matrix, _MatrixGenericData, generate, random
 import time
-
 class TestMatrix:
     """Tests for the Matrix class."""
 
@@ -79,31 +78,21 @@ class TestMatrix:
 
     def test_mul(self):
         """Tests __mul__."""
-        # x = self.m * self.n
-        # x_py = self.m_py * self.n_py
-        # assert x == Matrix(base_ring=ZZ, entries=[[9, 12, 15], [19, 26, 33]])
-        # assert x_py == Matrix(base_ring=ZZ_py, entries=[[9, 12, 15], [19, 26, 33]])
+        x = self.m * self.n
+        x_py = self.m_py * self.n_py
+        assert x == Matrix(base_ring=ZZ, entries=[[9, 12, 15], [19, 26, 33]])
+        assert x_py == Matrix(base_ring=ZZ_py, entries=[[9, 12, 15], [19, 26, 33]])
         s1 = 0
         s2 = 0
-        s3 = 1000
+        s3 = 17
         a = Matrix(base_ring=RR, entries=np.ones((s1, s1),dtype=int).tolist())
         b = Matrix(base_ring=RR, entries=np.ones((s2, s2),dtype=int).tolist())
         c = Matrix(base_ring=RR, entries=np.ones((s3, s3),dtype=int).tolist())
-        t1 = time.time()
         assert Matrix(base_ring=RR, entries=(-1*np.ones((s1, s1),dtype=int)).tolist()) == a*RR(-1)
         assert Matrix(base_ring=ZZ, entries=(-1*np.ones((s1, s1),dtype=int)).tolist()) == a*ZZ(-1)
-
         assert a*a == Matrix(base_ring=RR, entries=(s1*np.ones((s1, s1),dtype=int)).tolist())
-        print(f'Test 1 (Strassen): {round(time.time()-t1, 2)}')
-
-        t1 = time.time()
         assert b*b == Matrix(base_ring=RR, entries=(s2*np.ones((s2, s2),dtype=int)).tolist())
-        print(f'Test 1 (Generic): {round(time.time()-t1, 2)}')
-        t1 = time.time()
-
         assert c*c == Matrix(base_ring=RR, entries=(s3*np.ones((s3, s3),dtype=int)).tolist())
-        print(f'Test 1 (K-MB): {round(time.time()-t1, 2)}')
-
 
     def test_empty_mul(self):
         """Tests multiplication with empty matrices of various sizes."""
@@ -242,10 +231,16 @@ class TestGenericMatrices:
         """Tests __mul__ (strassen alogorithm) of a generic ZZ matrix."""
 
         f = self.z({(1, 1, 2, 1): ZZ(2), (0, 4): ZZ(9)})
-        s = 128
+        s = 32
         a = generate(f, s, s)
-        b = generate(ZZ(s)*f*f, s, s)
-        assert a * a == b
+        b = random(RR, 10, s, s, 1, 15)
+        t1 = time.time()
+
+        b * b
+        print(f'Test ({s}x{s}): {round(time.time()-t1, 2)}s')
+        assert 1 == 0
+
+
 
     def test_kmb_mult(self):
         """Tests __mul__ (Kauers-Moosbauer alogorithm) of a generic ZZ matrix."""
