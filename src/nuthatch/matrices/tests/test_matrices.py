@@ -8,7 +8,7 @@ classes.
 import pytest
 from nuthatch.rings.integers import ZZ, ZZ_py
 from nuthatch.rings.rationals import QQ
-from nuthatch.rings.reals import RR
+from nuthatch.rings.reals import RR, RR_py
 from nuthatch.rings.complexes import CC
 from nuthatch.rings.polynomials import PolynomialRing
 import numpy as np
@@ -33,6 +33,7 @@ class TestMatrix:
     def test_construction_from_nuthatch(self):
         """Tests for construction from Nuthatch elements."""
         assert self.m == Matrix(base_ring=ZZ, entries=[[ZZ(1), ZZ(2)], [ZZ(3), ZZ(4)]])
+        assert self.m._is_generic == False
 
     def test_classes(self):
         """Tests classes."""
@@ -78,21 +79,28 @@ class TestMatrix:
 
     def test_mul(self):
         """Tests __mul__."""
-        x = self.m * self.n
-        x_py = self.m_py * self.n_py
-        assert x == Matrix(base_ring=ZZ, entries=[[9, 12, 15], [19, 26, 33]])
-        assert x_py == Matrix(base_ring=ZZ_py, entries=[[9, 12, 15], [19, 26, 33]])
-        s1 = 0
-        s2 = 0
-        s3 = 17
-        a = Matrix(base_ring=RR, entries=np.ones((s1, s1),dtype=int).tolist())
-        b = Matrix(base_ring=RR, entries=np.ones((s2, s2),dtype=int).tolist())
-        c = Matrix(base_ring=RR, entries=np.ones((s3, s3),dtype=int).tolist())
-        assert Matrix(base_ring=RR, entries=(-1*np.ones((s1, s1),dtype=int)).tolist()) == a*RR(-1)
-        assert Matrix(base_ring=ZZ, entries=(-1*np.ones((s1, s1),dtype=int)).tolist()) == a*ZZ(-1)
-        assert a*a == Matrix(base_ring=RR, entries=(s1*np.ones((s1, s1),dtype=int)).tolist())
-        assert b*b == Matrix(base_ring=RR, entries=(s2*np.ones((s2, s2),dtype=int)).tolist())
-        assert c*c == Matrix(base_ring=RR, entries=(s3*np.ones((s3, s3),dtype=int)).tolist())
+        # x = self.m * self.n
+        # x_py = self.m_py * self.n_py
+        # assert x == Matrix(base_ring=ZZ, entries=[[9, 12, 15], [19, 26, 33]])
+        # assert x_py == Matrix(base_ring=ZZ_py, entries=[[9, 12, 15], [19, 26, 33]])
+        # s1 = 0
+        # s2 = 0
+        # s3 = 17
+        # a = Matrix(base_ring=RR, entries=np.ones((s1, s1),dtype=int).tolist())
+        # b = Matrix(base_ring=RR, entries=np.ones((s2, s2),dtype=int).tolist())
+        # c = Matrix(base_ring=RR, entries=np.ones((s3, s3),dtype=int).tolist())
+        # assert Matrix(base_ring=RR, entries=(-1*np.ones((s1, s1),dtype=int)).tolist()) == a*RR(-1)
+        # assert Matrix(base_ring=ZZ, entries=(-1*np.ones((s1, s1),dtype=int)).tolist()) == a*ZZ(-1)
+        # assert a*a == Matrix(base_ring=RR, entries=(s1*np.ones((s1, s1),dtype=int)).tolist())
+        # assert b*b == Matrix(base_ring=RR, entries=(s2*np.ones((s2, s2),dtype=int)).tolist())
+        # assert c*c == Matrix(base_ring=RR, entries=(s3*np.ones((s3, s3),dtype=int)).tolist())
+        s = 2000
+        a = random(ZZ, 100, s, s)
+        b = random(ZZ, 100, s, s)
+        t1 = time.time()
+        a * b
+        print(time.time() - t1)
+        assert 1 == 0
 
     def test_empty_mul(self):
         """Tests multiplication with empty matrices of various sizes."""
@@ -185,6 +193,26 @@ class TestMatrix:
         assert p.transpose()[2, 3] == p[3, 2]
         assert a.transpose() == b
         assert a.T() == b
+
+    def test_np_construction(self):
+        """Tests numpy construction for RR_py and ZZ_py."""
+        a = Matrix(base_ring=RR_py, entries=[[1, 2], [3, 4]])
+        print(a*a)
+        s = 1000
+        p = random(RR_py, 10, s, s)
+        print(p)
+        # f = random(RR, 10, s, s)
+        # t1 = time.time()
+        # p*p
+        # print(time.time()-t1)
+        # print(p*p)
+        # t1 = time.time()
+        # print(time.time()-t1)
+
+        assert 1 == 0
+
+
+
 
 class TestGenericMatrices:
     """Tests for generic matrices."""

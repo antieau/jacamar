@@ -14,7 +14,7 @@ AUTHORS:
 import flint
 import numpy as np
 import ray
-from nuthatch.rings.integers import ZZ
+from nuthatch.rings.integers import ZZ, ZZ_py
 from nuthatch.rings.reals import RR, RR_py
 from nuthatch.rings.complexes import CC
 from nuthatch.rings.rationals import QQ
@@ -654,6 +654,14 @@ class _MatrixGenericData:
 
 
 
+class _MatrixPythonData:
+    def __init__(self, *, base_ring, shape, entries):
+        self.base_ring = base_ring
+        self.shape = shape
+        self.entries = entries
+
+
+
 class Matrix:
     """
     Base class for matrices of numbers or polynomials.
@@ -671,10 +679,13 @@ class Matrix:
         data=None,
     ):
         self.base_ring = base_ring
-        if self.base_ring in {ZZ, QQ, RR, CC}:
+        if self.base_ring in {ZZ, QQ, RR, CC, RR_py, ZZ_py}:
             self._is_generic = False
+            if self.base_ring in {RR_py, ZZ_py}:
+                self._is_python = True
         else:
             self._is_generic = True
+            self._is_python = False
 
         # If data is provided, there is a fast constructor.
         if data is not None:
@@ -683,8 +694,13 @@ class Matrix:
                 self.nrows = data.nrows
                 self.ncols = data.ncols
             else:
-                self.nrows = data.nrows()
-                self.ncols = data.ncols()
+                if self._is_python:
+                    self.nrows = data.shape[0]
+                    self.ncols = data.shape[1]
+                else:
+
+                    self.nrows = data.nrows()
+                    self.ncols = data.ncols()
         # Else, if the rows or columns are zero, construct an empty matrix of
         # the appropriate size.
         elif nrows == 0 or ncols == 0:
@@ -701,6 +717,10 @@ class Matrix:
                 self.data = flint.arb_mat(self.nrows, self.ncols)
             elif self.base_ring == CC:
                 self.data = flint.acb_mat(self.nrows, self.ncols)
+            elif self.base_ring == ZZ_py:
+                self.data = np.ndarray([self.nrows, self.ncols])
+            elif self.base_ring == RR_py:
+                self.data = np.ndarray([self.nrows, self.ncols])
 
 
             else:
@@ -772,6 +792,10 @@ class Matrix:
                 self.data = flint.arb_mat(new_entries)
             elif self.base_ring == CC:
                 self.data = flint.acb_mat(new_entries)
+            elif self.base_ring == ZZ_py:
+                self.data = np.array(new_entries)
+            elif self.base_ring == RR_py:
+                self.data = np.array(new_entries)
 
             else:
                 self.data = _MatrixGenericData(
@@ -836,7 +860,6 @@ class Matrix:
         )
 
     def __mul__(self, other):
-        print("LLLL")
         if str(type(other)) == "<class 'nuthatch.rings.reals.RealNumber'>" or str(type(other)) == "<class 'nuthatch.rings.complexes.ComplexNumber'>" or str(type(other)) == "<class 'nuthatch.rings.integers.Integer'>" or str(type(other)) == "<class 'nuthatch.rings.rationals.Rational'>":
             if str(self.base_ring) == "<class 'nuthatch.rings.polynomials.PolynomialRing'>":
                 return self.__class__(
@@ -866,46 +889,45 @@ class Matrix:
             )
         ss = self.size()
         so = other.size()
-        if ss == so and ss[0] % 2 == 0 and ss[1] % 2 == 0:
-            mid = self.size()[0] // 2
-            A11 = self[:mid, :mid].data
-            A12 = self[:mid, mid:].data
-            A21 = self[mid:, :mid].data
-            A22 = self[mid:, mid:].data
-            B11 = other[:mid, :mid].data
-            B12 = other[:mid, mid:].data
-            B21 = other[mid:, :mid].data
-            B22 = other[mid:, mid:].data
-            print("KKKKKK")
-            P1 = A11 * (B12 - B22)
-            P2 = (A11 + A12) * (B22)
-            P3 = (A21 + A22) * B11
-            P4 = A22 * (B21 - B11)
-            P5 = (A11 + A22) * (B11 + B22)
-            P6 = (A12 - A22) * ( B21 + B22)
-            P7 = (A11 - A21) * (B11 + B12)
+        # if ss == so and ss[0] % 2 == 0 and ss[1] % 2 == 0:
+        #     mid = self.size()[0] // 2
+        #     A11 = self[:mid, :mid].data
+        #     A12 = self[:mid, mid:].data
+        #     A21 = self[mid:, :mid].data
+        #     A22 = self[mid:, mid:].data
+        #     B11 = other[:mid, :mid].data
+        #     B12 = other[:mid, mid:].data
+        #     B21 = other[mid:, :mid].data
+        #     B22 = other[mid:, mid:].data
+        #     P1 = A11 * (B12 - B22)
+        #     P2 = (A11 + A12) * (B22)
+        #     P3 = (A21 + A22) * B11
+        #     P4 = A22 * (B21 - B11)
+        #     P5 = (A11 + A22) * (B11 + B22)
+        #     P6 = (A12 - A22) * ( B21 + B22)
+        #     P7 = (A11 - A21) * (B11 + B12)
 
-            C11 = P5 + P4 - P2 + P6
-            C12 = P1 + P2
-            C21 = P3 + P4
-            C22 = P5 + P1 - P3 - P7
+        #     C11 = P5 + P4 - P2 + P6
+        #     C12 = P1 + P2
+        #     C21 = P3 + P4
+        #     C22 = P5 + P1 - P3 - P7
 
-            C11 = C11.tolist()
-            C12 = C12.tolist()
-            C21 = C21.tolist()
-            C22 = C22.tolist()
+        #     C11 = C11.tolist()
+        #     C12 = C12.tolist()
+        #     C21 = C21.tolist()
+        #     C22 = C22.tolist()
 
-            C1 = np.concatenate((C11, C12), axis=1)
-            C2 = np.concatenate((C21, C22), axis=1)
-            C = np.concatenate((C1, C2), axis=0)
+        #     C1 = np.concatenate((C11, C12), axis=1)
+        #     C2 = np.concatenate((C21, C22), axis=1)
+        #     C = np.concatenate((C1, C2), axis=0)
 
-            C = flint.arb_mat(C.tolist())
-            return other.__class__(
-                base_ring=self.base_ring,
-                nrows=self.nrows,
-                ncols=other.ncols,
-                data=C
-                )
+        #     C = flint.arb_mat(C.tolist())
+        #     return other.__class__(
+        #         base_ring=self.base_ring,
+        #         nrows=self.nrows,
+        #         ncols=other.ncols,
+        #         data=C
+        #         )
         
 
 
@@ -1036,11 +1058,19 @@ def random(base_ring, max_val, nrows, ncols, poly=0, ngens=1):
                     )
                 )
 
-    vals = np.random.random(nrows * ncols) * max_val
-    for i in range(nrows):
-        entries.append([])
-        for j in range(ncols):
-            entries[-1].append(base_ring(vals[(i + 1) * (j)]))
+    if base_ring == RR:
+        vals = np.random.random(nrows * ncols) * max_val
+        for i in range(nrows):
+            entries.append([])
+            for j in range(ncols):
+                entries[-1].append(base_ring(vals[(i + 1) * (j)]))
+
+    elif base_ring == ZZ:
+        vals = np.random.randint(max_val, size=nrows * ncols)
+        for i in range(nrows):
+            entries.append([])
+            for j in range(ncols):
+                entries[-1].append(base_ring(int(vals[(i + 1) * (j)])))
 
     return Matrix(
                 base_ring=base_ring,
