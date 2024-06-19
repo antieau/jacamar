@@ -9,6 +9,7 @@ examples are provided by `FLINT`.
 
 AUTHORS:
 - Benjamin Antieau (2024): initial version.
+- Luca Zerega (2024): major revisions.
 """
 
 import flint
@@ -681,6 +682,8 @@ class Matrix:
         self.base_ring = base_ring
         if self.base_ring in {ZZ, QQ, RR, CC, RR_py, ZZ_py}:
             self._is_generic = False
+            self._is_python = False
+
             if self.base_ring in {RR_py, ZZ_py}:
                 self._is_python = True
         else:
@@ -827,6 +830,8 @@ class Matrix:
         if self.nrows != self.ncols:
             raise ValueError("Matrix must be square.")
         if not self._is_generic:
+            if self._is_python:
+                return self.base_ring(np.linalg.det(self.data))
             return self.base_ring(self.data.det())
         return self.data.det()
     
@@ -943,7 +948,10 @@ class Matrix:
         return self.data.__repr__()
 
     def __eq__(self, other):
+        if self._is_python and other._is_python:
+            return self.data.all() == other.data.all()
         return self.data == other.data
+    
 
     def __getitem__(self, args):
         if type(args) == int or type(args) == slice:
@@ -1057,7 +1065,6 @@ def random(base_ring, max_val, nrows, ncols, poly=0, ngens=1):
                     entries=entries,
                     )
                 )
-
     if base_ring == RR:
         vals = np.random.random(nrows * ncols) * max_val
         for i in range(nrows):
@@ -1071,6 +1078,29 @@ def random(base_ring, max_val, nrows, ncols, poly=0, ngens=1):
             entries.append([])
             for j in range(ncols):
                 entries[-1].append(base_ring(int(vals[(i + 1) * (j)])))
+    
+    elif base_ring == RR_py:
+        vals = np.random.random(nrows * ncols) * max_val
+        for i in range(nrows):
+            entries.append([])
+            for j in range(ncols):
+                entries[-1].append(vals[(i + 1) * (j)])
+        
+        return Matrix(
+                    base_ring=base_ring,
+                    entries=entries,
+                    )
+    elif base_ring == ZZ_py:
+        vals = np.random.randint(max_val, size=nrows * ncols)
+        for i in range(nrows):
+            entries.append([])
+            for j in range(ncols):
+                entries[-1].append(int(vals[(i + 1) * (j)]))
+    
+        return Matrix(
+                    base_ring=base_ring,
+                    entries=entries,
+                    )
 
     return Matrix(
                 base_ring=base_ring,

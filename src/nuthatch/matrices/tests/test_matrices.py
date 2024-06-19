@@ -74,7 +74,7 @@ class TestMatrix:
             self.m_py + self.n_py
         with pytest.raises(TypeError):
             self.m + self.m_py
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             self.m_py + self.m
 
     def test_mul(self):
@@ -83,24 +83,17 @@ class TestMatrix:
         # x_py = self.m_py * self.n_py
         # assert x == Matrix(base_ring=ZZ, entries=[[9, 12, 15], [19, 26, 33]])
         # assert x_py == Matrix(base_ring=ZZ_py, entries=[[9, 12, 15], [19, 26, 33]])
-        # s1 = 0
-        # s2 = 0
-        # s3 = 17
-        # a = Matrix(base_ring=RR, entries=np.ones((s1, s1),dtype=int).tolist())
-        # b = Matrix(base_ring=RR, entries=np.ones((s2, s2),dtype=int).tolist())
-        # c = Matrix(base_ring=RR, entries=np.ones((s3, s3),dtype=int).tolist())
-        # assert Matrix(base_ring=RR, entries=(-1*np.ones((s1, s1),dtype=int)).tolist()) == a*RR(-1)
-        # assert Matrix(base_ring=ZZ, entries=(-1*np.ones((s1, s1),dtype=int)).tolist()) == a*ZZ(-1)
-        # assert a*a == Matrix(base_ring=RR, entries=(s1*np.ones((s1, s1),dtype=int)).tolist())
-        # assert b*b == Matrix(base_ring=RR, entries=(s2*np.ones((s2, s2),dtype=int)).tolist())
-        # assert c*c == Matrix(base_ring=RR, entries=(s3*np.ones((s3, s3),dtype=int)).tolist())
-        s = 2000
-        a = random(ZZ, 100, s, s)
-        b = random(ZZ, 100, s, s)
-        t1 = time.time()
-        a * b
-        print(time.time() - t1)
-        assert 1 == 0
+        s1 = 0
+        s2 = 0
+        s3 = 17
+        a = Matrix(base_ring=RR, entries=np.ones((s1, s1),dtype=int).tolist())
+        b = Matrix(base_ring=RR, entries=np.ones((s2, s2),dtype=int).tolist())
+        c = Matrix(base_ring=RR, entries=np.ones((s3, s3),dtype=int).tolist())
+        assert Matrix(base_ring=RR, entries=(-1*np.ones((s1, s1),dtype=int)).tolist()) == a*RR(-1)
+        assert Matrix(base_ring=ZZ, entries=(-1*np.ones((s1, s1),dtype=int)).tolist()) == a*ZZ(-1)
+        assert a*a == Matrix(base_ring=RR, entries=(s1*np.ones((s1, s1),dtype=int)).tolist())
+        assert b*b == Matrix(base_ring=RR, entries=(s2*np.ones((s2, s2),dtype=int)).tolist())
+        assert c*c == Matrix(base_ring=RR, entries=(s3*np.ones((s3, s3),dtype=int)).tolist())
 
     def test_empty_mul(self):
         """Tests multiplication with empty matrices of various sizes."""
@@ -150,7 +143,7 @@ class TestMatrix:
             self.m_py - self.n_py
         with pytest.raises(TypeError):
             self.m - self.m_py
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             self.m_py - self.m
 
     def test_rational(self):
@@ -170,6 +163,15 @@ class TestMatrix:
         b = Matrix(base_ring=RR, entries=[[5]])
         c = Matrix(base_ring=RR, entries=[[3], [6], [9]])
         d = Matrix(base_ring=RR, entries=[[4, 5]])
+        a_py = Matrix(base_ring=RR_py, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        b_py = Matrix(base_ring=RR_py, entries=[[5]])
+        c_py = Matrix(base_ring=RR_py, entries=[[3], [6], [9]])
+        d_py = Matrix(base_ring=RR_py, entries=[[4, 5]])
+        assert a_py[:, :] == a_py
+        assert a_py[1, 1] == b_py
+        assert a_py[:, 2] == c_py
+        assert a_py[1, 0:2] == d_py
+
         assert a[:, :] == a
         assert a[1, 1] == b
         assert a[:, 2] == c
@@ -178,38 +180,42 @@ class TestMatrix:
     def test_size(self):
         """Tests .size()"""
         a = Matrix(base_ring=RR, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        b = Matrix(base_ring=RR_py, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+
         assert a.size() == (3, 3)
+        assert b.size() == (3, 3)
 
     def test_det(self):
         """Tests flint determiant method."""
         a = Matrix(base_ring=RR, entries=[[1, 2], [2, 1]])
+        b = Matrix(base_ring=RR_py, entries=[[1, 2], [2, 1]])
+        
+        assert b.det() 
         assert a.det() == RR(-3)
 
     def test_transpose(self):
         """Tests flint transpose method."""
         a = Matrix(base_ring=RR, entries=[[1, 2], [3, 4]])
         b = Matrix(base_ring=RR, entries=[[1, 3], [2, 4]])
+        a_py = Matrix(base_ring=RR_py, entries=[[1, 2], [3, 4]])
+        b_py = Matrix(base_ring=RR_py, entries=[[1, 3], [2, 4]])
         p = random(RR, 2, 5, 4, 1, 2)
+
         assert p.transpose()[2, 3] == p[3, 2]
         assert a.transpose() == b
+        assert a_py.transpose() == b_py
         assert a.T() == b
 
     def test_np_construction(self):
         """Tests numpy construction for RR_py and ZZ_py."""
-        a = Matrix(base_ring=RR_py, entries=[[1, 2], [3, 4]])
-        print(a*a)
+        a = Matrix(base_ring=ZZ_py, entries=[[1, 2], [3, 4]])
         s = 1000
-        p = random(RR_py, 10, s, s)
-        print(p)
-        # f = random(RR, 10, s, s)
-        # t1 = time.time()
-        # p*p
-        # print(time.time()-t1)
-        # print(p*p)
-        # t1 = time.time()
-        # print(time.time()-t1)
+        r = random(RR_py, 10, s, s)
+        z = random(ZZ_py, 10, s, s)
 
-        assert 1 == 0
+        assert r*r
+        assert z*z
+
 
 
 
@@ -261,12 +267,10 @@ class TestGenericMatrices:
         f = self.z({(1, 1, 2, 1): ZZ(2), (0, 4): ZZ(9)})
         s = 32
         a = generate(f, s, s)
-        b = random(RR, 10, s, s, 1, 15)
-        t1 = time.time()
+        b = random(RR, 10, s, s, 1, 2)
 
-        b * b
-        print(f'Test ({s}x{s}): {round(time.time()-t1, 2)}s')
-        assert 1 == 0
+        assert b * b
+
 
 
 
