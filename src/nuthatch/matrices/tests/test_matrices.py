@@ -264,12 +264,20 @@ class TestGenericMatrices:
     def test_straussen_mult(self):
         """Tests __mul__ (strassen alogorithm) of a generic ZZ matrix."""
 
-        f = self.z({(1, 1, 2, 1): ZZ(2), (0, 4): ZZ(9)})
-        s = 32
-        a = generate(f, s, s)
-        b = random(RR, 10, s, s, 1, 2)
+        f = self.z({(1, 1, 1, 2, 1, 4, 1, 5): ZZ(2)})
+        q = self.z({(1, 1, 1, 2, 2, 4, 2, 5): ZZ(2)})
+        s = 8
+        a = random(ZZ, 10, s, s, 1, PolynomialRing, 1)
+        b = random(ZZ, 10, s, s, 1, PolynomialRing, 2)
+        b * b
+        # t1 = time.time()
+        # assert a * a
+        # print(time.time() - t1)
+        # t1 = time.time()
+        # assert b * b
+        # print(time.time() - t1)
 
-        assert b * b
+        assert 1 == 0
 
 
 
@@ -329,7 +337,7 @@ class TestGenericMatrices:
     
     def test_random(self):
         """Tests random matrix generation function."""
-        f = random(RR, 10, 5, 5, 1, 3)
+        f = random(RR, 10, 5, 5, 1, PolynomialRing, 3)
         a = random(RR, 10, 10, 10)
         b = random(RR, 2, 10, 10)
         assert a * b, f

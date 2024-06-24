@@ -25,6 +25,7 @@ from nuthatch.rings.elements import AbstractRingElement
 from nuthatch.rings.rings import AbstractRing
 from nuthatch.rings.integers import ZZ
 from nuthatch.rings.morphisms import AbstractRingMorphism
+from nuthatch.matrices.matrices import Matrix, _MatrixGenericData
 
 # The following constant controls the maximum allowed weight of a power x^n in a
 # monomial.
@@ -264,13 +265,19 @@ class PolynomialData:
 
     def __mul__(self, other):
         new_dict = {}
+        # l = len([c for m, c in self.monomial_dictionary.items()])
+        # sm = Matrix(base_ring=PolynomialRing, entries=[m for m, c in self.monomial_dictionary.items()], data=_MatrixGenericData(base_ring=self.base_ring, nrows=1, ncols=l, entries=[[m for m, c in self.monomial_dictionary.items()]])).T()
+        # sc = Matrix(base_ring=self.base_ring, nrows=1, ncols=l, entries=[[c for m, c in self.monomial_dictionary.items()]]).T()
+        # on = Matrix(base_ring=PolynomialRing, entries=[n for n, d in other.monomial_dictionary.items()], data=_MatrixGenericData(base_ring=self.base_ring, nrows=1, ncols=l, entries=[[c for m, c in self.monomial_dictionary.items()]])).T()
+        # od = Matrix(base_ring=self.base_ring, nrows=1, ncols=l, entries=[[d for n, d in other.monomial_dictionary.items()]])
+        # print(sm * on)
         for m, c in self.monomial_dictionary.items():
             for n, d in other.monomial_dictionary.items():
                 k = m * n
                 e = c * d
-                try:
+                if k in new_dict:
                     new_dict[k] += e
-                except KeyError:
+                else:
                     new_dict[k] = e
         return other.__class__(other.base_ring, new_dict)
 
