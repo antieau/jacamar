@@ -490,16 +490,14 @@ class _MatrixGenericData:
             def strassen(A, B):
                 n = len(A.entries)
                 if n <= 2:  # Base case
-                    mid = n // 2
-
-                    A11 = A[:mid, :mid]
-                    A12 = A[:mid, mid:]
-                    A21 = A[mid:, :mid]
-                    A22 = A[mid:, mid:]
-                    B11 = B[:mid, :mid]
-                    B12 = B[:mid, mid:]
-                    B21 = B[mid:, :mid]
-                    B22 = B[mid:, mid:]
+                    A11 = A[:1, :1]
+                    A12 = A[:1, 1:]
+                    A21 = A[1:, :1]
+                    A22 = A[1:, 1:]
+                    B11 = B[:1, :1]
+                    B12 = B[:1, 1:]
+                    B21 = B[1:, :1]
+                    B22 = B[1:, 1:]
                     P1 = A11 * (B12 - B22)
                     P2 = (A11 + A12) * (B22)
                     P3 = (A21 + A22) * B11
@@ -513,12 +511,11 @@ class _MatrixGenericData:
                     C21 = P3 + P4
                     C22 = P5 + P1 - P3 - P7
                     
-                    C = [[C11.entries[0][0], C12.entries[0][0]], [C21.entries[0][0], C22.entries[0][0]]]
                     return B.__class__(
                         base_ring=B.base_ring,
-                        nrows=A.nrows,
-                        ncols=A.ncols,
-                        entries=C,
+                        nrows=n,
+                        ncols=n,
+                        entries=[[C11, C12], [C21, C22]],
                     )
 
                 # Partitions
@@ -546,36 +543,22 @@ class _MatrixGenericData:
                 C21 = (P3 + P4).entries
                 C22 = (P5 + P1 - P3 - P7).entries
 
-                C = []
-                lc = len(C11)
-                lc0 = len(C11[0])
-                for i in range(lc):
-                    C.append([])
-                    for j in range(lc0):
-                        C[-1].append(C11[i][j])
-                    for j in range(lc0):
-                        C[-1].append(C12[i][j])
-                for i in range(lc):
-                    C.append([])
-                    for j in range(lc0):
-                        C[-1].append(C21[i][j])
-                    for j in range(lc0):
-                        C[-1].append(C22[i][j])
+                C1 = np.hstack((np.array(C11), np.array(C12)))
+                C2 = np.hstack((np.array(C21), np.array(C22)))
+                C = np.vstack((C1, C2)).tolist()
 
                 # Combine quadrants to form C
-                C = _MatrixGenericData(
+                return _MatrixGenericData(
                     base_ring=A.base_ring,
                     nrows=len(C),
                     ncols=len(C[0]),
                     entries=C
                 )
-                return C
-            new_matrix = strassen(self, other)
-            return new_matrix
+            return strassen(self, other)
 
         # standard matrix multiplication
         else:
-            new_entries = []
+            new_entries: list = []
             for i in range(self.nrows):
                 new_entries.append([])
                 for j in range(other.ncols):
@@ -650,6 +633,9 @@ class _MatrixGenericData:
 
         ncols = len(new_data[0])
         nrows = len(new_data)
+        if nrows == 1 and ncols == 1:
+            return entries[0][0]
+        
         return self.__class__(
             base_ring=self.base_ring,
             nrows=nrows,
@@ -1008,7 +994,7 @@ def random(base_ring, max_val, nrows, ncols, poly=0, poly_ring=0, ngens=1):
     entries = []
 
     if poly:
-        p = poly_ring(base_ring=base_ring, ngens=ngens, prefix="x", packed=False)
+        p = poly_ring(base_ring=base_ring, ngens=ngens, prefix="x", packed=True)
         for i in range(nrows):
             entries.append([])
             for j in range(ncols):

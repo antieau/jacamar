@@ -6,14 +6,14 @@ classes.
 """
 
 import pytest
+import timeit
+import numpy as np
 from nuthatch.rings.integers import ZZ, ZZ_py
 from nuthatch.rings.rationals import QQ
 from nuthatch.rings.reals import RR, RR_py
 from nuthatch.rings.complexes import CC
 from nuthatch.rings.polynomials import PolynomialRing
-import numpy as np
 from nuthatch.matrices.matrices import Matrix, _MatrixGenericData, generate, random
-import time
 class TestMatrix:
     """Tests for the Matrix class."""
 
@@ -266,18 +266,13 @@ class TestGenericMatrices:
 
         f = self.z({(1, 1, 1, 2, 1, 4, 1, 5): ZZ(2)})
         q = self.z({(1, 1, 1, 2, 2, 4, 2, 5): ZZ(2)})
-        s = 8
-        a = random(ZZ, 10, s, s, 1, PolynomialRing, 1)
-        b = random(ZZ, 10, s, s, 1, PolynomialRing, 2)
-        b * b
-        # t1 = time.time()
-        # assert a * a
-        # print(time.time() - t1)
-        # t1 = time.time()
-        # assert b * b
-        # print(time.time() - t1)
+        s = 16
 
-        assert 1 == 0
+        # print(timeit.timeit(lambda: q*q, number=s**3))
+        mq = generate(q, s, s)
+        assert mq * mq == generate(ZZ(s)*q*q, s, s)
+        # print(timeit.timeit(lambda: mq*mq, number=1))
+        # assert 1 == 0
 
 
 

@@ -5,6 +5,7 @@ Tests for the MonomialData, PolynomialData, Polynomial, and PolynomialRing class
 """
 
 import pytest
+import timeit
 import flint
 from nuthatch.rings.polynomials import (
     MonomialData,
@@ -18,6 +19,7 @@ from nuthatch.rings.polynomials import (
 from nuthatch.rings.integers import ZZ, ZZ_py
 from nuthatch.rings.morphisms import AbstractRingMorphism
 from nuthatch.rings.rationals import QQ
+from nuthatch.rings.reals import RR
 
 
 class TestMonomialData:
@@ -54,8 +56,14 @@ class TestSparseMonomial:
         """Tests the __mul__ method."""
         m = SparseMonomialData((1, 2, 4, 7))
         n = SparseMonomialData((0, 3, 3, 3, 4, 1))
-        assert m * n == SparseMonomialData((0, 3, 1, 2, 3, 3, 4, 8))
+        j = SparseMonomialData((1, 1, 1, 2, 2, 4, 2, 5))
+        # print(timeit.timeit(lambda: j*j, number=100000))
+        # a = ZZ(2)
+        # print(timeit.timeit(lambda: a*a, number=100000))
+
+        assert n * m == SparseMonomialData((0, 3, 1, 2, 3, 3, 4, 8))
         assert m * SparseMonomialData(()) == m
+        # assert 1 == 0
 
     def test_hash(self):
         """Tests the __hash__ method."""

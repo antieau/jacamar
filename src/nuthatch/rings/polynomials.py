@@ -21,16 +21,15 @@ AUTHORS:
 
 import functools
 import flint
+import cython
+import time
 from nuthatch.rings.elements import AbstractRingElement
 from nuthatch.rings.rings import AbstractRing
 from nuthatch.rings.integers import ZZ
 from nuthatch.rings.morphisms import AbstractRingMorphism
-from nuthatch.matrices.matrices import Matrix, _MatrixGenericData
-
 # The following constant controls the maximum allowed weight of a power x^n in a
 # monomial.
 PACKING_BOUND = 2**16
-
 
 class MonomialData:
     """Abstract class for monomials."""
@@ -109,6 +108,7 @@ class PackedMonomialData(MonomialData):
         encountered. Ensure that no variable is powered to more than the
         module-level constant PACKING_BOUND.
         """
+        other.__class__(self.weight + other.weight)
         return other.__class__(self.weight + other.weight)
 
     def __str__(self):
@@ -125,8 +125,9 @@ class SparseMonomialData(MonomialData):
     INPUT:
     - `t`     -- a tuple of Python integers
     """
-
+    
     def __init__(self, *t):
+        t: tuple
         if len(t) == 1 & isinstance(t, tuple):
             self.degrees = t[0]
         else:
@@ -166,11 +167,11 @@ class SparseMonomialData(MonomialData):
         return str(self)
 
     def __mul__(self, other):
-        new_list = []
-        self_index = 0
-        other_index = 0
-        self_len = len(self.degrees)
-        other_len = len(other.degrees)
+        new_list: list = []
+        self_index: int = 0
+        other_index: int = 0
+        self_len: int = len(self.degrees)
+        other_len: int = len(other.degrees)
         while self_index < self_len and other_index < other_len:
             if self.degrees[self_index] < other.degrees[other_index]:
                 new_list.extend(self.degrees[self_index : self_index + 2])
@@ -191,7 +192,6 @@ class SparseMonomialData(MonomialData):
         while self_index < self_len:
             new_list.extend(self.degrees[self_index : self_index + 2])
             self_index += 2
-
         while other_index < other_len:
             new_list.extend(other.degrees[other_index : other_index + 2])
             other_index += 2
@@ -262,15 +262,9 @@ class PolynomialData:
         for m, c in new_dict.items():
             new_dict[m] = -c
         return self.__class__(self.base_ring, new_dict)
-
+    
     def __mul__(self, other):
-        new_dict = {}
-        # l = len([c for m, c in self.monomial_dictionary.items()])
-        # sm = Matrix(base_ring=PolynomialRing, entries=[m for m, c in self.monomial_dictionary.items()], data=_MatrixGenericData(base_ring=self.base_ring, nrows=1, ncols=l, entries=[[m for m, c in self.monomial_dictionary.items()]])).T()
-        # sc = Matrix(base_ring=self.base_ring, nrows=1, ncols=l, entries=[[c for m, c in self.monomial_dictionary.items()]]).T()
-        # on = Matrix(base_ring=PolynomialRing, entries=[n for n, d in other.monomial_dictionary.items()], data=_MatrixGenericData(base_ring=self.base_ring, nrows=1, ncols=l, entries=[[c for m, c in self.monomial_dictionary.items()]])).T()
-        # od = Matrix(base_ring=self.base_ring, nrows=1, ncols=l, entries=[[d for n, d in other.monomial_dictionary.items()]])
-        # print(sm * on)
+        new_dict: dict = {}
         for m, c in self.monomial_dictionary.items():
             for n, d in other.monomial_dictionary.items():
                 k = m * n
@@ -280,7 +274,7 @@ class PolynomialData:
                 else:
                     new_dict[k] = e
         return other.__class__(other.base_ring, new_dict)
-
+    
     def __rmul__(self, other):
         """
         We just try to multiply the coefficients of self with other.
