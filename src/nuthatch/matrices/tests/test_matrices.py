@@ -265,14 +265,23 @@ class TestGenericMatrices:
         """Tests __mul__ (strassen alogorithm) of a generic ZZ matrix."""
 
         f = self.z({(1, 1, 1, 2, 1, 4, 1, 5): ZZ(2)})
-        q = self.z({(1, 1, 1, 2, 2, 4, 2, 5): ZZ(2)})
+        q = self.z({(1, 1): ZZ(2)})
         s = 16
-
-        # print(timeit.timeit(lambda: q*q, number=s**3))
+        # mq = random(ZZ, 3, s, s, 1, PolynomialRing, 2)
+        # print(type(mq[:, :]))
         mq = generate(q, s, s)
+        # print(timeit.timeit(lambda: q*q, number=int(s**2.81)))
+        # print(timeit.timeit(lambda: q*q, number=int(s**3)))
         assert mq * mq == generate(ZZ(s)*q*q, s, s)
+        print(timeit.timeit(lambda: mq*mq, number=1))
+        # mq = generate(q, s+1, s+1)
+
         # print(timeit.timeit(lambda: mq*mq, number=1))
-        # assert 1 == 0
+        # mq = generate(q, 130, 130)
+
+        # print(timeit.timeit(lambda: mq*mq, number=1))
+
+        assert 1 == 0
 
 
 
