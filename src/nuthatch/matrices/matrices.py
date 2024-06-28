@@ -170,13 +170,13 @@ class _MatrixGenericData:
                 B22 = B[mid:, mid:]
                 # Recursions
                 futures = [
-                    strassen(A11, B12 - B22),
-                    strassen(A11 + A12, B22),
-                    strassen(A21 + A22, B11),
-                    strassen(A22, B21 - B11),
-                    strassen(A11 + A22, B11 + B22),
-                    strassen(A12 - A22, B21 + B22),
-                    strassen(A11 - A21, B11 + B12)
+                    strassen.remote(A11, B12 - B22),
+                    strassen.remote(A11 + A12, B22),
+                    strassen.remote(A21 + A22, B11),
+                    strassen.remote(A22, B21 - B11),
+                    strassen.remote(A11 + A22, B11 + B22),
+                    strassen.remote(A12 - A22, B21 + B22),
+                    strassen.remote(A11 - A21, B11 + B12)
                     ]
                 
                 P1 = futures[0]
