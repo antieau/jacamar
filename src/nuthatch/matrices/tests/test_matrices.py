@@ -14,6 +14,7 @@ from nuthatch.rings.reals import RR, RR_py
 from nuthatch.rings.complexes import CC
 from nuthatch.rings.polynomials import PolynomialRing
 from nuthatch.matrices.matrices import Matrix, _MatrixGenericData, generate, random
+
 class TestMatrix:
     """Tests for the Matrix class."""
 
@@ -264,19 +265,19 @@ class TestGenericMatrices:
     def test_straussen_mult(self):
         """Tests __mul__ (strassen alogorithm) of a generic ZZ matrix."""
 
-        f = self.z({(1, 1, 1, 2, 1, 4, 1, 5): ZZ(2)})
-        q = self.z({(1, 1): ZZ(2)})
-        s = 16
-        # mq = random(ZZ, 3, s, s, 1, PolynomialRing, 2)
+        f = self.z({(1, 1, 1, 2, 1, 4, 1, 5): RR(2)})
+        q = self.z({(1, 1): RR(2)})
+        s = 64
+        # mq = random(RR, 3, s, s, 1, PolynomialRing, 4)
         # print(type(mq[:, :]))
         mq = generate(q, s, s)
         # print(timeit.timeit(lambda: q*q, number=int(s**2.81)))
         # print(timeit.timeit(lambda: q*q, number=int(s**3)))
-        assert mq * mq == generate(ZZ(s)*q*q, s, s)
+        assert mq * mq == generate(RR(s)*q*q, s, s)
         print(timeit.timeit(lambda: mq*mq, number=1))
-        # mq = generate(q, s+1, s+1)
+        mq = generate(q, s//2, s//2)
 
-        # print(timeit.timeit(lambda: mq*mq, number=1))
+        print(timeit.timeit(lambda: mq*mq, number=8))
         # mq = generate(q, 130, 130)
 
         # print(timeit.timeit(lambda: mq*mq, number=1))

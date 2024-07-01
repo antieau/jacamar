@@ -19,7 +19,7 @@ from nuthatch.rings.integers import ZZ, ZZ_py
 from nuthatch.rings.reals import RR, RR_py
 from nuthatch.rings.complexes import CC
 from nuthatch.rings.rationals import QQ
-
+from nuthatch.constants import MATRIX_SWITCH
 
 class _MatrixGenericData:
     """
@@ -80,6 +80,7 @@ class _MatrixGenericData:
             ncols=self.nrows,
             entries=new_entries
         )
+    
     def size(self):
         """Returns size of a matrix as a tuple (rows, cols)."""
         return (self.nrows, self.ncols)
@@ -146,7 +147,7 @@ class _MatrixGenericData:
               and other.ncols % 2 == 0
               and other.nrows % 2 == 0
               and self.size() == other.size()
-              and self.size()[0] > 250):
+              and self.size()[0] > MATRIX_SWITCH):
             @ray.remote
             def strassen(A, B):
                 n = len(A.entries)
@@ -169,23 +170,13 @@ class _MatrixGenericData:
                 B21 = B[mid:, :mid]
                 B22 = B[mid:, mid:]
                 # Recursions
-                futures = [
-                    strassen.remote(A11, B12 - B22),
-                    strassen.remote(A11 + A12, B22),
-                    strassen.remote(A21 + A22, B11),
-                    strassen.remote(A22, B21 - B11),
-                    strassen.remote(A11 + A22, B11 + B22),
-                    strassen.remote(A12 - A22, B21 + B22),
-                    strassen.remote(A11 - A21, B11 + B12)
-                    ]
-                
-                P1 = futures[0]
-                P2 = futures[1]
-                P3 = futures[2]
-                P4 = futures[3]
-                P5 = futures[4]
-                P6 = futures[5]
-                P7 = futures[6]
+                P1 = strassen(A11, B12 - B22)
+                P2 = strassen(A11 + A12, B22)
+                P3 = strassen(A21 + A22, B11)
+                P4 = strassen(A22, B21 - B11)
+                P5 = strassen(A11 + A22, B11 + B22)
+                P6 = strassen(A12 - A22, B21 + B22)
+                P7 = strassen(A11 - A21, B11 + B12)
 
                 # Combine results to form C
                 C11 = (P5 + P4 - P2 + P6).entries
@@ -216,14 +207,24 @@ class _MatrixGenericData:
             B21 = other[mid:, :mid]
             B22 = other[mid:, mid:]
             # Recursions (parallel)
-
-            P1 = strassen(A11, B12 - B22)
-            P2 = strassen(A11 + A12, B22)
-            P3 = strassen(A21 + A22, B11)
-            P4 = strassen(A22, B21 - B11)
-            P5 = strassen(A11 + A22, B11 + B22)
-            P6 = strassen(A12 - A22, B21 + B22)
-            P7 = strassen(A11 - A21, B11 + B12)
+            
+            futures = [
+                strassen.remote(A11, B12 - B22),
+                strassen.remote(A11 + A12, B22),
+                strassen.remote(A21 + A22, B11),
+                strassen.remote(A22, B21 - B11),
+                strassen.remote(A11 + A22, B11 + B22),
+                strassen.remote(A12 - A22, B21 + B22),
+                strassen.remote(A11 - A21, B11 + B12)
+                ]
+            
+            P1 = futures[0]
+            P2 = futures[1]
+            P3 = futures[2]
+            P4 = futures[3]
+            P5 = futures[4]
+            P6 = futures[5]
+            P7 = futures[6]
 
             # Combine results to form C
             C11 = (P5 + P4 - P2 + P6).entries

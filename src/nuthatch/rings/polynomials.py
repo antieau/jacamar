@@ -27,9 +27,9 @@ from nuthatch.rings.elements import AbstractRingElement
 from nuthatch.rings.rings import AbstractRing
 from nuthatch.rings.integers import ZZ
 from nuthatch.rings.morphisms import AbstractRingMorphism
+from nuthatch.constants import PACKING_BOUND
 # The following constant controls the maximum allowed weight of a power x^n in a
-# monomial.
-PACKING_BOUND = 2**16
+# monomial: PACKING_BOUND = 2 ** 16.
 
 class MonomialData:
     """Abstract class for monomials."""
