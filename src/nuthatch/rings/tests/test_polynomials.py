@@ -57,13 +57,11 @@ class TestSparseMonomial:
         m = SparseMonomialData((1, 2, 4, 7))
         n = SparseMonomialData((0, 3, 3, 3, 4, 1))
         j = SparseMonomialData((1, 1, 1, 2, 2, 4, 2, 5))
-        # print(timeit.timeit(lambda: j*j, number=100000))
-        # a = ZZ(2)
-        # print(timeit.timeit(lambda: a*a, number=100000))
+        print(timeit.timeit(lambda: m*n, number=100000))
 
         assert n * m == SparseMonomialData((0, 3, 1, 2, 3, 3, 4, 8))
         assert m * SparseMonomialData(()) == m
-        # assert 1 == 0
+        assert 1 == 0
 
     def test_hash(self):
         """Tests the __hash__ method."""
@@ -111,6 +109,8 @@ class TestPackedMonomial:
         """Tests the __mul__ method."""
         m = PackedMonomialData.from_sparse_tuple((1, 2, 4, 7))
         n = PackedMonomialData.from_sparse_tuple((0, 3, 3, 3, 4, 1))
+        print(timeit.timeit(lambda: m * n, number=1000000))
+        assert 1 == 0
         assert m * n == PackedMonomialData.from_sparse_tuple((0, 3, 1, 2, 3, 3, 4, 8))
 
     def test_hash(self):
@@ -147,12 +147,15 @@ class TestPolynomialDataClass:
     d = {
         SparseMonomialData((0, 1)): flint.fmpz(1),
         SparseMonomialData((1, 1)): flint.fmpz(1),
+
     }
     p = PolynomialData(ZZ, d)
 
     def test_mul(self):
         """Tests for the __mul__ method."""
         # (x+y)^2 == x^2 + 2xy + y^2
+        print(timeit.timeit(lambda: self.p*self.p, number=1000000))
+        assert 1 == 0
         assert self.p * self.p == PolynomialData(
             ZZ,
             {

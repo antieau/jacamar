@@ -31,6 +31,7 @@ from nuthatch.constants import PACKING_BOUND
 # The following constant controls the maximum allowed weight of a power x^n in a
 # monomial: PACKING_BOUND = 2 ** 16.
 
+@cython.cclass
 class MonomialData:
     """Abstract class for monomials."""
 
@@ -99,7 +100,7 @@ class PackedMonomialData(MonomialData):
 
     def __eq__(self, other):
         return self.weight == other.weight
-
+    @cython.ccall
     def __mul__(self, other):
         """
         Multiplication of monomials.
@@ -108,7 +109,6 @@ class PackedMonomialData(MonomialData):
         encountered. Ensure that no variable is powered to more than the
         module-level constant PACKING_BOUND.
         """
-        other.__class__(self.weight + other.weight)
         return other.__class__(self.weight + other.weight)
 
     def __str__(self):
@@ -117,7 +117,7 @@ class PackedMonomialData(MonomialData):
     def __repr__(self):
         return self.__str__()
 
-
+@cython.cclass
 class SparseMonomialData(MonomialData):
     """
     The class of a monomial in a PolynomialData.
@@ -167,11 +167,11 @@ class SparseMonomialData(MonomialData):
         return str(self)
 
     def __mul__(self, other):
-        new_list: list = []
-        self_index: int = 0
-        other_index: int = 0
-        self_len: int = len(self.degrees)
-        other_len: int = len(other.degrees)
+        new_list = []
+        self_index: cython.int = 0
+        other_index: cython.int = 0
+        self_len: cython.int = len(self.degrees)
+        other_len: cython.int = len(other.degrees)
         while self_index < self_len and other_index < other_len:
             if self.degrees[self_index] < other.degrees[other_index]:
                 new_list.extend(self.degrees[self_index : self_index + 2])
@@ -264,7 +264,7 @@ class PolynomialData:
         return self.__class__(self.base_ring, new_dict)
     
     def __mul__(self, other):
-        new_dict: dict = {}
+        new_dict = {}
         for m, c in self.monomial_dictionary.items():
             for n, d in other.monomial_dictionary.items():
                 k = m * n
