@@ -57,7 +57,7 @@ class TestSparseMonomial:
         m = SparseMonomialData((1, 2, 4, 7))
         n = SparseMonomialData((0, 3, 3, 3, 4, 1))
         j = SparseMonomialData((1, 1, 1, 2, 2, 4, 2, 5))
-        print(timeit.timeit(lambda: m*n, number=100000))
+        print(timeit.timeit(lambda: m * n, number=1000000))
 
         assert n * m == SparseMonomialData((0, 3, 1, 2, 3, 3, 4, 8))
         assert m * SparseMonomialData(()) == m
@@ -278,6 +278,8 @@ class TestLayers:
     def test_multiplication(self):
         with pytest.raises(TypeError):
             self.b * self.a
+        print(timeit.timeit(lambda: self.a*self.b, number=100000))
+        assert 1 == 0
         assert self.a * self.b == self.s(self.a) + self.a * self.y0 + self.a * self.y1
         assert self.s(self.a) * self.b == self.a * self.b
 

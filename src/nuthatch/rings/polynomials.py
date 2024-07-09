@@ -31,7 +31,6 @@ from nuthatch.constants import PACKING_BOUND
 # The following constant controls the maximum allowed weight of a power x^n in a
 # monomial: PACKING_BOUND = 2 ** 16.
 
-@cython.cclass
 class MonomialData:
     """Abstract class for monomials."""
 
@@ -100,7 +99,7 @@ class PackedMonomialData(MonomialData):
 
     def __eq__(self, other):
         return self.weight == other.weight
-    @cython.ccall
+    # @cython.ccall
     def __mul__(self, other):
         """
         Multiplication of monomials.
@@ -117,7 +116,7 @@ class PackedMonomialData(MonomialData):
     def __repr__(self):
         return self.__str__()
 
-@cython.cclass
+# @cython.cclass
 class SparseMonomialData(MonomialData):
     """
     The class of a monomial in a PolynomialData.
@@ -167,11 +166,12 @@ class SparseMonomialData(MonomialData):
         return str(self)
 
     def __mul__(self, other):
+        # return cpoly.cmul(self, other)
         new_list = []
-        self_index: cython.int = 0
-        other_index: cython.int = 0
-        self_len: cython.int = len(self.degrees)
-        other_len: cython.int = len(other.degrees)
+        self_index: int = 0
+        other_index: int = 0
+        self_len: int = len(self.degrees)
+        other_len: int = len(other.degrees)
         while self_index < self_len and other_index < other_len:
             if self.degrees[self_index] < other.degrees[other_index]:
                 new_list.extend(self.degrees[self_index : self_index + 2])
