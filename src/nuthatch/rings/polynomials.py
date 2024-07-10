@@ -23,6 +23,9 @@ import functools
 import flint
 import cython
 import time
+import pyximport 
+pyximport.install()
+import nuthatch.rings.cpoly as cpoly
 from nuthatch.rings.elements import AbstractRingElement
 from nuthatch.rings.rings import AbstractRing
 from nuthatch.rings.integers import ZZ
@@ -108,7 +111,8 @@ class PackedMonomialData(MonomialData):
         encountered. Ensure that no variable is powered to more than the
         module-level constant PACKING_BOUND.
         """
-        return other.__class__(self.weight + other.weight)
+        return cpoly.c_packed_mul(self, other)
+        # return other.__class__(self.weight + other.weight)
 
     def __str__(self):
         return str(self.weight)
@@ -166,7 +170,7 @@ class SparseMonomialData(MonomialData):
         return str(self)
 
     def __mul__(self, other):
-        # return cpoly.cmul(self, other)
+        return cpoly.c_sparse_mul(self, other)
         new_list = []
         self_index: int = 0
         other_index: int = 0
@@ -264,7 +268,9 @@ class PolynomialData:
         return self.__class__(self.base_ring, new_dict)
     
     def __mul__(self, other):
+        # return cpoly.c_poly_mul(self, other)
         new_dict = {}
+
         for m, c in self.monomial_dictionary.items():
             for n, d in other.monomial_dictionary.items():
                 k = m * n

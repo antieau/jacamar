@@ -61,7 +61,7 @@ class TestSparseMonomial:
 
         assert n * m == SparseMonomialData((0, 3, 1, 2, 3, 3, 4, 8))
         assert m * SparseMonomialData(()) == m
-        assert 1 == 0
+        
 
     def test_hash(self):
         """Tests the __hash__ method."""
@@ -109,8 +109,9 @@ class TestPackedMonomial:
         """Tests the __mul__ method."""
         m = PackedMonomialData.from_sparse_tuple((1, 2, 4, 7))
         n = PackedMonomialData.from_sparse_tuple((0, 3, 3, 3, 4, 1))
+        print(n)
         print(timeit.timeit(lambda: m * n, number=1000000))
-        assert 1 == 0
+        
         assert m * n == PackedMonomialData.from_sparse_tuple((0, 3, 1, 2, 3, 3, 4, 8))
 
     def test_hash(self):
@@ -154,8 +155,8 @@ class TestPolynomialDataClass:
     def test_mul(self):
         """Tests for the __mul__ method."""
         # (x+y)^2 == x^2 + 2xy + y^2
-        print(timeit.timeit(lambda: self.p*self.p, number=1000000))
-        assert 1 == 0
+        print(timeit.timeit(lambda: self.p*self.p, number=1))
+        
         assert self.p * self.p == PolynomialData(
             ZZ,
             {
@@ -279,7 +280,7 @@ class TestLayers:
         with pytest.raises(TypeError):
             self.b * self.a
         print(timeit.timeit(lambda: self.a*self.b, number=100000))
-        assert 1 == 0
+        
         assert self.a * self.b == self.s(self.a) + self.a * self.y0 + self.a * self.y1
         assert self.s(self.a) * self.b == self.a * self.b
 

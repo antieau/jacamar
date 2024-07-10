@@ -1,9 +1,15 @@
+"""
+C-POLY
+Cython implementation of polynomial multiplication methods. 
+Compiled in C in the file cpoly.c
+"""
 import cython
-def c_mon_mul(self, other):
-    if self.packed and other.packed:
-        s: cython.int = self.weight
-        o: cython.int = other.weight
-        return other.__class__(s + o)
+def c_packed_mul(self, other):
+    s: cython.int = self.weight
+    o: cython.int = other.weight
+    return other.__class__(s + o)
+
+def c_sparse_mul(self, other):
     new_list = []
     self_index: cython.int = 0
     other_index: cython.int = 0
@@ -32,13 +38,14 @@ def c_mon_mul(self, other):
     while other_index < other_len:
         new_list.extend(other.degrees[other_index : other_index + 2])
         other_index += 2
-
+    
+    return other.__class__(tuple(new_list))
 
 def c_poly_mul(self, other):
     new_dict = {}
     for m, c in self.monomial_dictionary.items():
         for n, d in other.monomial_dictionary.items():
-            k = c_mon_mul(m, n)
+            k = m * n
             e = c * d
             if k in new_dict:
                 new_dict[k] += e
