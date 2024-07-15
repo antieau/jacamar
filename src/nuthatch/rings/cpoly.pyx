@@ -4,13 +4,11 @@ Cython implementation of polynomial multiplication methods.
 Compiled in C in the file cpoly.c
 """
 import cython
-def c_packed_mul(self, other):
-    s: cython.int = self.weight
-    o: cython.int = other.weight
-    return other.__class__(s + o)
+def c_packed_mul(s: int, o: int):
+    return s + o
 
 def c_sparse_mul(self, other):
-    new_list = []
+    new_list= []
     self_index: cython.int = 0
     other_index: cython.int = 0
     self_len: cython.int = len(self.degrees)

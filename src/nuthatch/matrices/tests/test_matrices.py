@@ -271,14 +271,12 @@ class TestGenericMatrices:
         # print(timeit.timeit(lambda: q*q, number=int(s**3)))
         assert mq * mq == generate(RR(s)*q*q, s, s)
         print(timeit.timeit(lambda: mq*mq, number=1))
-        mq = generate(q, s//2, s//2)
+        # mq = generate(q, s//2, s//2)
 
-        print(timeit.timeit(lambda: mq*mq, number=8))
-        # mq = generate(q, 130, 130)
+        # print(timeit.timeit(lambda: mq*mq, number=8))
+        mq = generate(q, 130, 130)
 
-        # print(timeit.timeit(lambda: mq*mq, number=1))
-
-
+        print(timeit.timeit(lambda: mq*mq, number=1))
 
 
 

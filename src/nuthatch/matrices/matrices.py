@@ -15,6 +15,7 @@ AUTHORS:
 import flint
 import numpy as np
 import ray
+
 from nuthatch.rings.integers import ZZ, ZZ_py
 from nuthatch.rings.reals import RR, RR_py
 from nuthatch.rings.complexes import CC
@@ -246,13 +247,17 @@ class _MatrixGenericData:
 
         # standard matrix multiplication
         else:
-            new_entries: list = []
-            for i in range(self.nrows):
+            se = self.entries
+            oe = other.entries
+            sr = self.nrows
+            on = other.ncols
+            new_entries = []
+            for i in range(sr):
                 new_entries.append([])
-                for j in range(other.ncols):
-                    new_entry = self.entries[i][0] * other.entries[0][j]
+                for j in range(on):
+                    new_entry = se[i][0] * oe[0][j]
                     for k in range(1, self.ncols):
-                        new_entry += self.entries[i][k] * other.entries[k][j]
+                        new_entry += se[i][k] * oe[k][j]
                     new_entries[i].append(new_entry)
 
 

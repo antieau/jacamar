@@ -12,9 +12,11 @@ from nuthatch.rings.polynomials import (
     PackedMonomialData,
     SparseMonomialData,
     PolynomialData,
+    SpecialPolynomialData,
     Polynomial,
     PolynomialRing,
     PolynomialRingMorphism,
+    SpecialPolynomial,
 )
 from nuthatch.rings.integers import ZZ, ZZ_py
 from nuthatch.rings.morphisms import AbstractRingMorphism
@@ -61,6 +63,7 @@ class TestSparseMonomial:
 
         assert n * m == SparseMonomialData((0, 3, 1, 2, 3, 3, 4, 8))
         assert m * SparseMonomialData(()) == m
+        
         
 
     def test_hash(self):
@@ -109,7 +112,6 @@ class TestPackedMonomial:
         """Tests the __mul__ method."""
         m = PackedMonomialData.from_sparse_tuple((1, 2, 4, 7))
         n = PackedMonomialData.from_sparse_tuple((0, 3, 3, 3, 4, 1))
-        print(n)
         print(timeit.timeit(lambda: m * n, number=1000000))
         
         assert m * n == PackedMonomialData.from_sparse_tuple((0, 3, 1, 2, 3, 3, 4, 8))
@@ -151,11 +153,24 @@ class TestPolynomialDataClass:
 
     }
     p = PolynomialData(ZZ, d)
+    sd = {(0, 1): flint.fmpz(1), (1, 1): flint.fmpz(1)}
+
+    sp = SpecialPolynomialData(ZZ, sd)
+    
+    def test_special_data(self):
+        assert self.sp *self.sp
+        print(timeit.timeit(lambda: self.sp*self.sp, number=1000000))
+        
+    
+        
+
+
+
 
     def test_mul(self):
         """Tests for the __mul__ method."""
         # (x+y)^2 == x^2 + 2xy + y^2
-        print(timeit.timeit(lambda: self.p*self.p, number=1))
+        print(timeit.timeit(lambda: self.p*self.p, number=1000000))
         
         assert self.p * self.p == PolynomialData(
             ZZ,
@@ -200,11 +215,24 @@ class TestPolynomialRing:
     x2 = r.gens[2]
     a = r(-5) + x0 + x1 + x2
 
+    def test_special_poly(self):
+        # ctx = flint.fmpz_mpoly_ctx(2, flint.Ordering.lex, ['x0','x1'])
+        # m = flint.fmpz_mpoly({(1,0):2, (1,1):3, (0,1):1}, ctx)
+        s = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x', special=True)
+        x0 = s.gens[0]
+        x1 = s.gens[1]
+        x2 = s.gens[2]
+        
+        a = s(3) + x0 + x1 + x2
+        print(timeit.timeit(lambda: a*a, number=1000000))
+        print(timeit.timeit(lambda: self.a*self.a, number=1000000))
+
     def test_gens_data(self):
         """Tests the correct creation of the generators."""
         assert self.r.gens[0].data == PolynomialData(
             ZZ, {SparseMonomialData((0, 1)): flint.fmpz(1)}
         )
+
 
     def test_square(self):
         """Tests that (x0+x1)**2 == x0**2 + 2*x0x1 + x1**2."""
@@ -214,10 +242,23 @@ class TestPolynomialRing:
 
     def test_constructor_from_int(self):
         """Tests r(5)."""
+        r = PolynomialRing(
+        base_ring=ZZ,
+        ngens=1,
+        prefix="x",
+        )
+
+        ctx = flint.fmpq_mpoly_ctx(3, flint.Ordering.lex, ['x','y', 'z'])
+        m = flint.fmpq_mpoly({(1,0,1):2, (1,1,2):3, (0,1,3):1}, ctx)
+        print(timeit.timeit(lambda: m*m, number=1000000))
+        print(m(2, 4, 3))
+        
         assert str(self.r(5)) == "5"
 
     def test_constructor_from_base_ring(self):
         """Tests r(ZZ(5))."""
+        print(type(self.x0))
+        
         assert str(self.r(ZZ(5))) == "5"
 
     def test_constructor_from_element(self):
@@ -272,14 +313,13 @@ class TestLayers:
 
     def test_evaluation(self):
         """Tests evaluation."""
-        print(self.a)
+        print(type(self.a.data))
         print(self.s(self.a)(0, 0))
         assert self.s(self.a)(0, 0) == self.a
 
     def test_multiplication(self):
         with pytest.raises(TypeError):
             self.b * self.a
-        print(timeit.timeit(lambda: self.a*self.b, number=100000))
         
         assert self.a * self.b == self.s(self.a) + self.a * self.y0 + self.a * self.y1
         assert self.s(self.a) * self.b == self.a * self.b
@@ -480,3 +520,6 @@ class TestCoercion:
 
     def test_call(self):
         assert self.f(self.x) == self.f0
+
+
+# class TestFlintMPoly:
