@@ -12,7 +12,6 @@ from nuthatch.rings.polynomials import (
     PackedMonomialData,
     SparseMonomialData,
     PolynomialData,
-    SpecialPolynomialData,
     Polynomial,
     PolynomialRing,
     PolynomialRingMorphism,
@@ -153,19 +152,6 @@ class TestPolynomialDataClass:
 
     }
     p = PolynomialData(ZZ, d)
-    sd = {(0, 1): flint.fmpz(1), (1, 1): flint.fmpz(1)}
-
-    sp = SpecialPolynomialData(ZZ, sd)
-    
-    def test_special_data(self):
-        assert self.sp *self.sp
-        print(timeit.timeit(lambda: self.sp*self.sp, number=1000000))
-        
-    
-        
-
-
-
 
     def test_mul(self):
         """Tests for the __mul__ method."""
@@ -224,8 +210,8 @@ class TestPolynomialRing:
         x2 = s.gens[2]
         
         a = s(3) + x0 + x1 + x2
-        print(timeit.timeit(lambda: a*a, number=1000000))
-        print(timeit.timeit(lambda: self.a*self.a, number=1000000))
+        # print(timeit.timeit(lambda: a*a, number=1000000))
+        # print(timeit.timeit(lambda: self.a*self.a, number=1000000))
 
     def test_gens_data(self):
         """Tests the correct creation of the generators."""
@@ -301,6 +287,85 @@ class TestPolynomialRing:
             self.a**self.a
 
 
+class TestSpecialPolynomialRing:
+    s = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x', special=True)
+    x0 = s.gens[0]
+    x1 = s.gens[1]
+    x2 = s.gens[2]
+    a = s(3) + x0 + x1 + x2
+    b = s(1) + x0 ** ZZ(3) * x2 + x1
+
+    def test_eval(self):
+        assert self.b(ZZ(1), ZZ(1), ZZ(1)) == ZZ(3)
+    
+    def test_special_poly(self):
+        assert self.a
+
+    def test_gens_data(self):
+        """Tests the correct creation of the generators."""
+        assert self.s.gens[0].data == flint.fmpz_mpoly(
+            {(1, 0, 0): flint.fmpz(1)}, self.s.ctx
+        )
+        assert self.s.gens[1].data == flint.fmpz_mpoly(
+            {(0, 1, 0): flint.fmpz(1)}, self.s.ctx
+        )
+        assert self.s.gens[2].data == flint.fmpz_mpoly(
+            {(0, 0, 1): flint.fmpz(1)}, self.s.ctx
+        )
+
+    def test_square(self):
+        """Tests that (x0+x1)**2 == x0**2 + 2*x0x1 + x1**2."""
+        assert (self.x0 + self.x1) ** ZZ(2) == (
+            self.x0 ** ZZ(2) + ZZ(2) * self.x0 * self.x1 + self.x1 ** ZZ(2)
+        )
+
+    def test_constructor_from_int(self):
+        """Tests r(5)."""
+        assert str(self.s(5)) == "5"
+
+    def test_constructor_from_base_ring(self):
+        """Tests r(ZZ(5))."""        
+        assert str(self.s(ZZ(5))) == "5"
+
+    def test_constructor_from_element(self):
+        assert self.s(self.a) == self.a
+
+    def test_constructor_from_element_data(self):
+        assert self.s(self.a.data) == self.a
+
+    # def test_constructor_from_dict(self):
+    #     """Tests dictionary constructor."""
+    #     f = self.s({(1, 1, 2, 1): ZZ(2), (0, 4): ZZ(9)})
+    #     assert f == ZZ(2) * self.x1 * self.x2 + ZZ(9) * self.x0 ** ZZ(4)
+
+    def test_packed_sparse_str(self):
+        """Tests that sparse and packed versions print the same."""
+        m = str(self.a * self.a)
+        s = PolynomialRing(base_ring=ZZ, ngens=3, prefix="x", packed=True)
+        x0, x1, x2 = s.gens
+        b = s(-5) + x0 + x1 + x2
+        m == str(b * b)
+
+    def test_sub(self):
+        """Tests the sub method."""
+        assert self.a - self.a == self.s.zero
+
+    def test_negative_power(self):
+        """Tests that powering fails with negative input."""
+        with pytest.raises(ValueError):
+            self.a ** ZZ(-5)
+
+    def test_zero_power(self):
+        """Tests that powering by zero returns one."""
+        assert self.a ** ZZ(0) == self.s.one
+
+    def test_power_failure(self):
+        """Tests that powering by rational or polynomial fails."""
+        with pytest.raises(TypeError):
+            self.a ** QQ(1, 2)
+        with pytest.raises(TypeError):
+            self.a**self.a
+    
 class TestLayers:
     """Tests polynomial rings over polynomial rings."""
 

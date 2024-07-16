@@ -204,135 +204,6 @@ class SparseMonomialData(MonomialData):
     def __eq__(self, other):
         return self.degrees == other.degrees
 
-class SpecialPolynomialData:
-    """
-    The  class of polynomials built on the flint.fmpz_mpoly class.
-
-    Special polynomials are designed to work with generic ones.
-    """
-
-    def __init__(self, base_ring, monomial_dictionary):
-        self.monomial_dictionary = {}
-        self.base_ring = base_ring
-        for m, c in monomial_dictionary.items():
-            if c != self.base_ring.zero.data:
-                self.monomial_dictionary[m] = c
-        self.base_ring = base_ring
-        l = len(list(self.monomial_dictionary.items())[0][0])
-        self._ctx = flint.fmpz_mpoly_ctx(l, flint.Ordering.lex, [f'x{i}' for i in range(l)])
-        self.data = flint.fmpz_mpoly(self.monomial_dictionary, self._ctx)
-
-    def is_zero(self):
-        """Tests if self is zero."""
-        if len(self.monomial_dictionary) == 0:
-            return True
-        return False
-    
-    def term_data(self):
-        """Returns the iterator over the items {m:c} in self.monomial_dictionary."""
-        return self.monomial_dictionary.items()
-    
-    def __str__(self):
-        return str(self.monomial_dictionary)
-
-    def __repr__(self):
-        return str(self)
-    
-    def __add__(self, other):
-        if other.__class__ == self.__class__:
-            return other.__class__(other.base_ring, (self.data + other.data).to_dict())
-        if len(self.monomial_dictionary) < len(other.monomial_dictionary):
-            new_dict = other.monomial_dictionary.copy()
-            other_dict = self.monomial_dictionary
-
-        else:
-            new_dict = self.monomial_dictionary.copy()
-            other_dict = other.monomial_dictionary
-
-        for m, c in other_dict.items():
-            try:
-                new_dict[m] += c
-            except KeyError:
-                new_dict[m] = c
-        return other.__class__(other.base_ring, new_dict)
-
-    def __sub__(self, other):
-        return self + (-other)
-
-    def __neg__(self):
-        return - self
-
-    def __mul__(self, other):
-        if other.__class__ == self.__class__:
-            return self.data * other.data
-        new_dict = {}
-
-        for m, c in self.monomial_dictionary.items():
-            for n, d in other.monomial_dictionary.items():
-                k = m * n
-                e = c * d
-                if k in new_dict:
-                    new_dict[k] += e
-                else:
-                    new_dict[k] = e
-        return other.__class__(other.base_ring, new_dict)
-    
-    def __rmul__(self, other):
-        """
-        We just try to multiply the coefficients of self with other.
-        """
-        new_dict = {}
-        for m, c in self.monomial_dictionary.items():
-            new_dict[m] = c * other
-        return self.__class__(self.base_ring, new_dict)
-
-    def __eq__(self, other):
-        return (self.base_ring == other.base_ring) & (
-            self.monomial_dictionary == other.monomial_dictionary
-        )
-
-    def __pow__(self, n):
-        if isinstance(n, (flint.fmpz, int)):
-            if n < 0:
-                raise TypeError("Cannot power a polynomial by a negative integer.")
-
-            apow = self
-            while not n & 1:
-                # While even
-                apow *= apow
-                # Bitshift
-                n >>= 1
-
-            # Now multiply together the correct factors a^(2^i)
-            res = apow
-            n >>= 1
-            while n:
-                apow *= apow
-                if n & 1:
-                    res = apow * res
-                n >>= 1
-            return res
-
-        raise TypeError(f"Cannot power polynomial by {n}.")
-
-    def __call__(self, arg):
-        """The PolynomialData class can be called on a monomial."""
-        try:
-            return self.monomial_dictionary[arg]
-        except KeyError:
-            return self.base_ring.zero.data
-
-    def evaluate(self, args):
-        """Returns f(a_1,...,a_n) where arguments=[a_1,...,a_n]."""
-        x = self.base_ring.zero.data
-        for key, value in self.monomial_dictionary.items():
-            monomial_part = self.base_ring.one.data
-            for i in range(len(key.degrees) // 2):
-                monomial_part *= args[key.degrees[2 * i]] ** key.degrees[2 * i + 1]
-            x += value * monomial_part
-        return x
-
-
 
 class PolynomialData:
     """
@@ -577,7 +448,7 @@ class Polynomial(AbstractRingElement):
     def __repr__(self):
         """String representation."""
         return str(self)
-    
+
 
 class SpecialPolynomial(AbstractRingElement):
     """
@@ -612,12 +483,10 @@ class SpecialPolynomial(AbstractRingElement):
         # if len(args) == 1:
         #     if isinstance(args[0], MonomialData):
         #         return self.base_ring(self.data(args[0]))
-
         if len(args) == self.ring.ngens:
-            try:
-                return self.base_ring(self.data(x for x in args))
-            except AttributeError:
-                pass
+            return self.base_ring(self.data(*tuple(x.data for x in args)))
+            # except AttributeError:
+            #     pass
 
             # Fall back on making it into a monomial and accessing its
             # coefficient.
@@ -628,7 +497,7 @@ class SpecialPolynomial(AbstractRingElement):
 
     def __str__(self):
         """String representation."""
-        return self.data.__str__
+        return str(self.data)
         
     def __repr__(self):
         """String representation."""
@@ -682,7 +551,7 @@ class PolynomialRing(AbstractRing):
 
             self.gens = []
             ctx = flint.fmpz_mpoly_ctx(self.ngens, flint.Ordering.lex, [f'{self._prefix}{x}' for x in range(self.ngens)])
-            self._ctx = ctx
+            self.ctx = ctx
             for i in range(self.ngens):
                 self.gens.append(
                     SpecialPolynomial(
@@ -760,9 +629,37 @@ class PolynomialRing(AbstractRing):
                         self,
                         flint.fmpz_mpoly(
                             data,
-                            self._ctx
+                            self.ctx
                         ),
                     )
+            if isinstance(data, dict):
+                new_dict = {}
+                for key, value in data.items():
+                    new_dict[key] = value.data
+                return SpecialPolynomial(
+                        self,
+                        flint.fmpz_mpoly(
+                            new_dict,
+                            self.ctx
+                        ),
+                    )
+            if isinstance(data, self.element_class):
+                if data.ring == self:
+                    # Create a new element with the same data.
+                    return self.element_class(self, data.data)
+            if isinstance(data, self.element_class.data_class):
+                return self.element_class(self, data)
+            if isinstance(data, self.base_ring.element_class):
+                if data.ring == self.base_ring:
+                    return SpecialPolynomial(
+                        self,
+                        flint.fmpz_mpoly(
+                            data.data,
+                            self.ctx
+                        ),
+                    )
+
+            raise TypeError(f"No known constructor for input data of type {type(data)}.")
 
         if isinstance(data, int):
             return Polynomial(

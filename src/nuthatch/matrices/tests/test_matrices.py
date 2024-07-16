@@ -223,11 +223,17 @@ class TestGenericMatrices:
     x0 = z.gens[0]
     x1 = z.gens[1]
     x2 = z.gens[2]
-
+    zreg = x0 + x1
     r = PolynomialRing(base_ring=RR, ngens=3, prefix="x", packed=False)
     y0 = r.gens[0]
     y1 = r.gens[1]
     y2 = r.gens[2]
+
+    s = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x', special=True)
+    x0 = s.gens[0]
+    x1 = s.gens[1]
+    x2 = s.gens[2]
+    sp = x0 + x1
 
 
     # ZZ tests
@@ -266,17 +272,19 @@ class TestGenericMatrices:
         s = 16
         # mq = random(RR, 3, s, s, 1, PolynomialRing, 4)
         # print(type(mq[:, :]))
-        mq = generate(q, s, s)
+        # mq = generate(q, s, s)
         # print(timeit.timeit(lambda: q*q, number=int(s**2.81)))
         # print(timeit.timeit(lambda: q*q, number=int(s**3)))
-        assert mq * mq == generate(RR(s)*q*q, s, s)
-        print(timeit.timeit(lambda: mq*mq, number=1))
+        # assert mq * mq == generate(RR(s)*q*q, s, s)
+        # print(timeit.timeit(lambda: mq*mq, number=1))
         # mq = generate(q, s//2, s//2)
 
         # print(timeit.timeit(lambda: mq*mq, number=8))
-        mq = generate(q, 130, 130)
+        mq = generate(q, s, s)
 
-        print(timeit.timeit(lambda: mq*mq, number=1))
+        # print(timeit.timeit(lambda: mq*mq, number=1))
+        # assert 1 == 0
+        assert mq * mq == generate(ZZ(s)*q*q, s, s)
 
 
 
