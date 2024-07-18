@@ -286,8 +286,6 @@ class TestGenericMatrices:
         # assert 1 == 0
         assert mq * mq == generate(ZZ(s)*q*q, s, s)
 
-
-
     def test_kmb_mult(self):
         """Tests __mul__ (Kauers-Moosbauer alogorithm) of a generic ZZ matrix."""
         f = self.z({(1, 1, 2, 1): ZZ(2), (0, 4): ZZ(9)})

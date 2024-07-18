@@ -525,11 +525,16 @@ class PolynomialRing(AbstractRing):
         prefix,
         weights=None,
         packed=True,
-        special=False,
+        special=False
     ):  
-        self._special = special
+        # Choose constructuion method: fmpz_mpoly works only for ZZ as of now
+        if base_ring == ZZ:
+            self._special = True and special
+        else:
+            self._special = False
 
-        if special:
+        # Special construction
+        if self._special:
             self.element_class = SpecialPolynomial
             self.base_ring = base_ring
             self.ngens = ngens
@@ -572,6 +577,7 @@ class PolynomialRing(AbstractRing):
             self.one = self(1)
             self.zero = self(0)
 
+        # Generic construction  
         else:
             self.base_ring = base_ring
             self.ngens = ngens
@@ -623,6 +629,7 @@ class PolynomialRing(AbstractRing):
 
     def __call__(self, data):
         """Create a new polynomial from data, if possible."""
+        # Special calls
         if self._special:
             if isinstance(data, int):
                 return SpecialPolynomial(
@@ -643,10 +650,12 @@ class PolynomialRing(AbstractRing):
                             self.ctx
                         ),
                     )
-            if isinstance(data, self.element_class):
-                if data.ring == self:
-                    # Create a new element with the same data.
-                    return self.element_class(self, data.data)
+            # if isinstance(data, self.element_class):
+            #     print("l")
+            #     if data.ring == self:
+            #         # Create a new element with the same data.
+            #         return self.element_class(self, flint.fmpz_mpoly(data.data, self.ctx))
+            #     return self.element_class(self, flint.fmpz_mpoly(data.data, data.ring.ctx))
             if isinstance(data, self.element_class.data_class):
                 return self.element_class(self, data)
             if isinstance(data, self.base_ring.element_class):
@@ -700,6 +709,18 @@ class PolynomialRing(AbstractRing):
                 )
         raise TypeError(f"No known constructor for input data of type {type(data)}.")
 
+    def to_generic(self):
+        """Creates a generic copy of a special polynomial"""
+        if not self._special:
+            return self
+        return self.__class__(base_ring=self.base_ring,
+                            ngens=self.ngens,
+                            prefix=self._prefix,
+                            weights=self.weights,
+                            packed=self.packed,
+                            special=False)
+    
+    
 
 class PolynomialRingMorphism(AbstractRingMorphism):
     """

@@ -204,7 +204,7 @@ class TestPolynomialRing:
     def test_special_poly(self):
         # ctx = flint.fmpz_mpoly_ctx(2, flint.Ordering.lex, ['x0','x1'])
         # m = flint.fmpz_mpoly({(1,0):2, (1,1):3, (0,1):1}, ctx)
-        s = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x', special=True)
+        s = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x')
         x0 = s.gens[0]
         x1 = s.gens[1]
         x2 = s.gens[2]
@@ -294,6 +294,15 @@ class TestSpecialPolynomialRing:
     x2 = s.gens[2]
     a = s(3) + x0 + x1 + x2
     b = s(1) + x0 ** ZZ(3) * x2 + x1
+    u = PolynomialRing(base_ring=ZZ, ngens=5, prefix='y', special=True)
+    y0 = u.gens[0]
+    y1 = u.gens[1]
+    y2 = u.gens[2]
+    y3 = u.gens[3]
+    y4 = u.gens[4]
+
+    v = y0 + ZZ(4) * y1 ** ZZ(2) + y2 + y3 + y4
+
 
     def test_eval(self):
         assert self.b(ZZ(1), ZZ(1), ZZ(1)) == ZZ(3)
@@ -354,6 +363,9 @@ class TestSpecialPolynomialRing:
         """Tests that powering fails with negative input."""
         with pytest.raises(ValueError):
             self.a ** ZZ(-5)
+    
+    def test_mul(self):
+        assert self.a * self.v
 
     def test_zero_power(self):
         """Tests that powering by zero returns one."""
@@ -365,6 +377,9 @@ class TestSpecialPolynomialRing:
             self.a ** QQ(1, 2)
         with pytest.raises(TypeError):
             self.a**self.a
+
+    def test_to_generic(self):
+        assert self.s
     
 class TestLayers:
     """Tests polynomial rings over polynomial rings."""
@@ -484,10 +499,10 @@ class TestWeights:
 class TestMorphism:
     """Tests PolynomialRingMorphisms."""
 
-    r = PolynomialRing(base_ring=ZZ, ngens=2, prefix="x")
+    r = PolynomialRing(base_ring=ZZ, ngens=2, prefix="x", special=True).to_generic()
     x0, x1 = r.gens
 
-    s = PolynomialRing(base_ring=ZZ, ngens=2, prefix="y")
+    s = PolynomialRing(base_ring=ZZ, ngens=2, prefix="y").to_generic()
     y0, y1 = s.gens
 
     f0 = ZZ(2) * y0 ** ZZ(3) + y0 * y1
