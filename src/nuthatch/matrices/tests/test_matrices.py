@@ -219,17 +219,17 @@ class TestMatrix:
 
 class TestGenericMatrices:
     """Tests for generic matrices."""
-    z = PolynomialRing(base_ring=ZZ, ngens=3, prefix="x", packed=False)
+    z = PolynomialRing(base_ring=ZZ, ngens=3, prefix="x", packed=False).to_generic()
     x0 = z.gens[0]
     x1 = z.gens[1]
     x2 = z.gens[2]
     zreg = x0 + x1
-    r = PolynomialRing(base_ring=RR, ngens=3, prefix="x", packed=False)
+    r = PolynomialRing(base_ring=RR, ngens=3, prefix="x", packed=False).to_generic()
     y0 = r.gens[0]
     y1 = r.gens[1]
     y2 = r.gens[2]
 
-    s = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x', special=True)
+    s = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x').to_generic()
     x0 = s.gens[0]
     x1 = s.gens[1]
     x2 = s.gens[2]

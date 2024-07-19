@@ -414,6 +414,75 @@ class PowerSeriesRing(AbstractRing):
             self.gens.append(self._unflatten(generator))
 
     def __call__(self, data):
+        if self._polynomial_ring._special:
+            self._polynomial_ring = self._polynomial_ring.to_generic()
+            # if isinstance(data, int):
+            #     if data == 0:
+            #         return Series(self, SeriesData(self.base_ring, [], self.precision_cap))
+            #     else:
+            #         return Series(
+            #             self,
+            #             SeriesData(
+            #                 self.base_ring,
+            #                 [
+            #                     (
+            #                         0,
+            #                         self._polynomial_ring.element_class.data_class(
+            #                             data,
+            #                             self._polynomial_ring.ctx
+            #                         ),
+            #                     ),
+            #                 ],
+            #                 self.precision_cap,
+            #             ),
+            #         )
+
+            # if isinstance(data, self.base_ring.element_class):
+            #     return Series(
+            #         self,
+            #         SeriesData(
+            #             self.base_ring,
+            #             [
+            #                 (
+            #                     0,
+            #                     self._polynomial_ring.element_class.data_class(
+            #                         self.base_ring,
+            #                         {
+            #                             self._polynomial_ring._monomial_class.from_sparse_tuple(
+            #                                 tuple()
+            #                             ): data.data
+            #                         },
+            #                     ),
+            #                 ),
+            #             ],
+            #             self.precision_cap,
+            #         ),
+            #     )
+
+            # if isinstance(data, self.base_ring.element_class.data_class):
+            #     return Series(
+            #         self,
+            #         SeriesData(
+            #             self.base_ring,
+            #             [
+            #                 (
+            #                     0,
+            #                     self._polynomial_ring.element_class.data_class(
+            #                         self.base_ring,
+            #                         {
+            #                             self._polynomial_ring._monomial_class.from_sparse_tuple(
+            #                                 tuple()
+            #                             ): data
+            #                         },
+            #                     ),
+            #                 ),
+            #             ],
+            #             self.precision_cap,
+            #         ),
+            #     )
+
+            # return Series(self, data)
+
         if isinstance(data, int):
             if data == 0:
                 return Series(self, SeriesData(self.base_ring, [], self.precision_cap))

@@ -29,6 +29,7 @@ import nuthatch.rings.cpoly as cpoly
 from nuthatch.rings.elements import AbstractRingElement
 from nuthatch.rings.rings import AbstractRing
 from nuthatch.rings.integers import ZZ
+from nuthatch.rings.rationals import QQ
 from nuthatch.rings.morphisms import AbstractRingMorphism
 from nuthatch.constants import PACKING_BOUND
 # The following constant controls the maximum allowed weight of a power x^n in a
@@ -170,36 +171,6 @@ class SparseMonomialData(MonomialData):
 
     def __mul__(self, other):
         return cpoly.c_sparse_mul(self, other)
-        new_list = []
-        self_index: int = 0
-        other_index: int = 0
-        self_len: int = len(self.degrees)
-        other_len: int = len(other.degrees)
-        while self_index < self_len and other_index < other_len:
-            if self.degrees[self_index] < other.degrees[other_index]:
-                new_list.extend(self.degrees[self_index : self_index + 2])
-                self_index += 2
-            elif self.degrees[self_index] == other.degrees[other_index]:
-                x = self.degrees[self_index + 1] + other.degrees[other_index + 1]
-                if x != 0:
-                    new_list.append(self.degrees[self_index])
-                    new_list.append(x)
-                self_index += 2
-                other_index += 2
-            else:
-                new_list.extend(other.degrees[other_index : other_index + 2])
-                other_index += 2
-
-        # Now that we've reached the end of at least one list, we add
-        # everything from the other list.
-        while self_index < self_len:
-            new_list.extend(self.degrees[self_index : self_index + 2])
-            self_index += 2
-        while other_index < other_len:
-            new_list.extend(other.degrees[other_index : other_index + 2])
-            other_index += 2
-
-        return other.__class__(tuple(new_list))
 
     def __eq__(self, other):
         return self.degrees == other.degrees
@@ -459,11 +430,16 @@ class SpecialPolynomial(AbstractRingElement):
 
     def __init__(self, ring, data):
         self.base_ring = ring.base_ring
+        # self.data_class = flint.fmpz_mpoly
+        # if self.base_ring == QQ:
+        #     self.data_class = flint.fmpq_mpoly
+
         AbstractRingElement.__init__(
             self,
             ring,
             data,
         )
+
 
     def term_data(self):
         """Returns the items of the underlying monomial dictionary."""
@@ -473,7 +449,12 @@ class SpecialPolynomial(AbstractRingElement):
         if self.ring == other.ring:
             return other.__class__(other.ring, self.data * other.data)
         # Else, coerce self into the other's ring and multiply.
-        return other.ring(self) * other
+        if self.ring.ctx == other.ring.ctx:
+            return other.ring(self) * other
+        raise ValueError(
+            f'Polynomials exist in different contexts. {self.ring.ctx} != {other.ring.ctx}'
+        )
+        
 
     def __call__(self, *args):
         """
@@ -525,11 +506,18 @@ class PolynomialRing(AbstractRing):
         prefix,
         weights=None,
         packed=True,
-        special=False
+        special=True
     ):  
         # Choose constructuion method: fmpz_mpoly works only for ZZ as of now
-        if base_ring == ZZ:
-            self._special = True and special
+        if base_ring == ZZ and special:
+            self._special = True
+            self._data_class = flint.fmpz_mpoly
+            self._context_class = flint.fmpz_mpoly_ctx
+        # elif base_ring == QQ and special:
+        #     self._special = True
+        #     self._data_class = flint.fmpq_mpoly
+        #     self._context_class = flint.fmpq_mpoly_ctx
+
         else:
             self._special = False
 
@@ -555,13 +543,13 @@ class PolynomialRing(AbstractRing):
                 self.weights = weights
 
             self.gens = []
-            ctx = flint.fmpz_mpoly_ctx(self.ngens, flint.Ordering.lex, [f'{self._prefix}{x}' for x in range(self.ngens)])
+            ctx = self._context_class(self.ngens, flint.Ordering.lex, [f'{self._prefix}{x}' for x in range(self.ngens)])
             self.ctx = ctx
             for i in range(self.ngens):
                 self.gens.append(
                     SpecialPolynomial(
                         self,
-                        flint.fmpz_mpoly(
+                        self._data_class(
                             {
                                 tuple(int(x == i) for x in range(self.ngens))
                                 : self.base_ring.one.data
@@ -634,7 +622,7 @@ class PolynomialRing(AbstractRing):
             if isinstance(data, int):
                 return SpecialPolynomial(
                         self,
-                        flint.fmpz_mpoly(
+                        self._data_class(
                             data,
                             self.ctx
                         ),
@@ -645,24 +633,24 @@ class PolynomialRing(AbstractRing):
                     new_dict[key] = value.data
                 return SpecialPolynomial(
                         self,
-                        flint.fmpz_mpoly(
+                        self._data_class(
                             new_dict,
                             self.ctx
                         ),
                     )
-            # if isinstance(data, self.element_class):
-            #     print("l")
-            #     if data.ring == self:
-            #         # Create a new element with the same data.
-            #         return self.element_class(self, flint.fmpz_mpoly(data.data, self.ctx))
-            #     return self.element_class(self, flint.fmpz_mpoly(data.data, data.ring.ctx))
+            if isinstance(data, self.element_class):
+                print("l")
+                if data.ring == self:
+                    # Create a new element with the same data.
+                    return self.element_class(self, self._data_class(data.data, self.ctx))
+                return self.element_class(self, self._data_class(data.data, data.ring.ctx))
             if isinstance(data, self.element_class.data_class):
                 return self.element_class(self, data)
             if isinstance(data, self.base_ring.element_class):
                 if data.ring == self.base_ring:
                     return SpecialPolynomial(
                         self,
-                        flint.fmpz_mpoly(
+                        self._data_class(
                             data.data,
                             self.ctx
                         ),

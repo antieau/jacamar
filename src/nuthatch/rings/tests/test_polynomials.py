@@ -195,7 +195,7 @@ class TestPolynomialDataClass:
 class TestPolynomialRing:
     """Tests for the PolynomialRing class."""
 
-    r = PolynomialRing(base_ring=ZZ, ngens=3, prefix="x", packed=False)
+    r = PolynomialRing(base_ring=ZZ, ngens=3, prefix="x", packed=False).to_generic()
     x0 = r.gens[0]
     x1 = r.gens[1]
     x2 = r.gens[2]
@@ -288,13 +288,13 @@ class TestPolynomialRing:
 
 
 class TestSpecialPolynomialRing:
-    s = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x', special=True)
+    s = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x')
     x0 = s.gens[0]
     x1 = s.gens[1]
     x2 = s.gens[2]
     a = s(3) + x0 + x1 + x2
     b = s(1) + x0 ** ZZ(3) * x2 + x1
-    u = PolynomialRing(base_ring=ZZ, ngens=5, prefix='y', special=True)
+    u = PolynomialRing(base_ring=ZZ, ngens=5, prefix='y')
     y0 = u.gens[0]
     y1 = u.gens[1]
     y2 = u.gens[2]
@@ -364,9 +364,11 @@ class TestSpecialPolynomialRing:
         with pytest.raises(ValueError):
             self.a ** ZZ(-5)
     
-    def test_mul(self):
-        assert self.a * self.v
-
+    def test_context_error(self):
+        """Tests that incompatible context operations fail."""
+        with pytest.raises(ValueError):
+            self.a * self.v
+    
     def test_zero_power(self):
         """Tests that powering by zero returns one."""
         assert self.a ** ZZ(0) == self.s.one
@@ -380,6 +382,7 @@ class TestSpecialPolynomialRing:
 
     def test_to_generic(self):
         assert self.s
+    
     
 class TestLayers:
     """Tests polynomial rings over polynomial rings."""
@@ -408,7 +411,7 @@ class TestLayers:
 class TestCalls:
     """Test evaluation of polynomials."""
 
-    s = PolynomialRing(base_ring=ZZ, ngens=4, prefix="x", packed=False)
+    s = PolynomialRing(base_ring=ZZ, ngens=4, prefix="x", packed=False).to_generic()
     x0, x1, x2, x3 = s.gens
     f = x0 + ZZ(2) * x1 * x2 + x3
 
@@ -418,6 +421,7 @@ class TestCalls:
 
     def test_evaluation_at_monomial(self):
         """Tests evaluation at a SparseMonomialData instance."""
+        
         assert self.f(SparseMonomialData((1, 1, 2, 1))) == ZZ(2)
         assert self.f(SparseMonomialData(1, 1, 2, 1)) == ZZ(2)
 
@@ -499,7 +503,7 @@ class TestWeights:
 class TestMorphism:
     """Tests PolynomialRingMorphisms."""
 
-    r = PolynomialRing(base_ring=ZZ, ngens=2, prefix="x", special=True).to_generic()
+    r = PolynomialRing(base_ring=ZZ, ngens=2, prefix="x").to_generic()
     x0, x1 = r.gens
 
     s = PolynomialRing(base_ring=ZZ, ngens=2, prefix="y").to_generic()
@@ -602,4 +606,3 @@ class TestCoercion:
         assert self.f(self.x) == self.f0
 
 
-# class TestFlintMPoly:
