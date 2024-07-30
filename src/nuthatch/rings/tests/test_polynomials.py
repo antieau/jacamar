@@ -202,6 +202,7 @@ class TestPolynomialRing:
     a = r(-5) + x0 + x1 + x2
 
     def test_special_poly(self):
+        """Tests construction of QQ and ZZ special polynomials"""
         # ctx = flint.fmpz_mpoly_ctx(2, flint.Ordering.lex, ['x0','x1'])
         # m = flint.fmpz_mpoly({(1,0):2, (1,1):3, (0,1):1}, ctx)
         s = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x')
@@ -210,6 +211,11 @@ class TestPolynomialRing:
         x2 = s.gens[2]
         
         a = s(3) + x0 + x1 + x2
+        q = PolynomialRing(base_ring=QQ, ngens=3, prefix='x')
+        x0 = s.gens[0]
+        x1 = s.gens[1]
+        x2 = s.gens[2]
+
         # print(timeit.timeit(lambda: a*a, number=1000000))
         # print(timeit.timeit(lambda: self.a*self.a, number=1000000))
 
@@ -324,6 +330,9 @@ class TestSpecialPolynomialRing:
 
     def test_square(self):
         """Tests that (x0+x1)**2 == x0**2 + 2*x0x1 + x1**2."""
+        s = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x')
+
+        print(self.x0.data_class, self.x1.data_class, self.y1.data_class)
         assert (self.x0 + self.x1) ** ZZ(2) == (
             self.x0 ** ZZ(2) + ZZ(2) * self.x0 * self.x1 + self.x1 ** ZZ(2)
         )
@@ -337,9 +346,12 @@ class TestSpecialPolynomialRing:
         assert str(self.s(ZZ(5))) == "5"
 
     def test_constructor_from_element(self):
+        s = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x')
         assert self.s(self.a) == self.a
 
     def test_constructor_from_element_data(self):
+        s = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x')
+
         assert self.s(self.a.data) == self.a
 
     # def test_constructor_from_dict(self):
@@ -357,6 +369,8 @@ class TestSpecialPolynomialRing:
 
     def test_sub(self):
         """Tests the sub method."""
+        s = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x')
+
         assert self.a - self.a == self.s.zero
 
     def test_negative_power(self):
@@ -387,7 +401,7 @@ class TestSpecialPolynomialRing:
 class TestLayers:
     """Tests polynomial rings over polynomial rings."""
 
-    r = PolynomialRing(base_ring=ZZ, ngens=2, prefix="x", packed=True)
+    r = PolynomialRing(base_ring=ZZ, ngens=2, prefix="x", packed=True).to_generic()
     s = PolynomialRing(base_ring=r, ngens=2, prefix="y", packed=True)
     x0, x1 = r.gens
     y0, y1 = s.gens
@@ -443,11 +457,11 @@ class TestCalls:
 class TestPrinting:
     """Test printing in various situations."""
 
-    r = PolynomialRing(base_ring=ZZ, ngens=2, prefix="x")
+    r = PolynomialRing(base_ring=ZZ, ngens=2, prefix="x").to_generic()
     x0, x1 = r.gens
     f = r(-5) * x0 - ZZ(9) * x0 ** ZZ(5) * x1 ** ZZ(2)
 
-    s = PolynomialRing(base_ring=r, ngens=2, prefix="y")
+    s = PolynomialRing(base_ring=r, ngens=2, prefix="y").to_generic()
     y0, y1 = s.gens
     g = s(x0 + x1) * (y0 + y1)
 
@@ -582,7 +596,7 @@ class TestCoercion:
         base_ring=QQ,
         ngens=1,
         prefix="y",
-    )
+    ).to_generic()
     y = s.gens[0]
 
     class ZZpyQQMorphism(AbstractRingMorphism):

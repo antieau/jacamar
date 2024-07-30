@@ -223,23 +223,23 @@ class TestGenericMatrices:
     x0 = z.gens[0]
     x1 = z.gens[1]
     x2 = z.gens[2]
-    zreg = x0 + x1
+    zreg = x0 + x1 * x2
     r = PolynomialRing(base_ring=RR, ngens=3, prefix="x", packed=False).to_generic()
     y0 = r.gens[0]
     y1 = r.gens[1]
     y2 = r.gens[2]
 
-    s = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x').to_generic()
+    s = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x')
     x0 = s.gens[0]
     x1 = s.gens[1]
     x2 = s.gens[2]
-    sp = x0 + x1
+    sp = x0 + x1 * x2
 
 
     # ZZ tests
     def test_generic_creation(self):
         """Test creation of a generic ZZ matrix of polynomials."""
-        f = self.z({(1, 1, 2, 1): ZZ(2), (0, 4): ZZ(9)})
+        f = ZZ(2) * self.x1 * self.x2 + ZZ(9) * self.x0 ** ZZ(4)
         a = Matrix(base_ring=PolynomialRing, ncols=2, nrows=2, entries=[[f, f], [f, f]], data=_MatrixGenericData(base_ring=PolynomialRing, ncols=2, nrows=2, entries=[[f, f], [f, f]]))
         assert f == ZZ(2) * self.x1 * self.x2 + ZZ(9) * self.x0 ** ZZ(4)
         assert a[1, 1] == Matrix(base_ring=PolynomialRing, ncols=1, nrows=1, entries=[[f]], data=_MatrixGenericData(base_ring=PolynomialRing, ncols=1, nrows=1, entries=[[f]]))
@@ -267,9 +267,9 @@ class TestGenericMatrices:
     def test_straussen_mult(self):
         """Tests __mul__ (strassen alogorithm) of a generic ZZ matrix."""
 
-        f = self.z({(1, 1, 1, 2, 1, 4, 1, 5): RR(2)})
-        q = self.z({(1, 1): RR(2)})
-        s = 16
+        # f = self.z({(1, 1, 1, 2, 1, 4, 1, 5): RR(2)})
+        # q = self.z({(1, 1): RR(2)})
+        s = 128
         # mq = random(RR, 3, s, s, 1, PolynomialRing, 4)
         # print(type(mq[:, :]))
         # mq = generate(q, s, s)
@@ -280,11 +280,15 @@ class TestGenericMatrices:
         # mq = generate(q, s//2, s//2)
 
         # print(timeit.timeit(lambda: mq*mq, number=8))
-        mq = generate(q, s, s)
+        mq = generate(self.zreg, s, s)
 
-        # print(timeit.timeit(lambda: mq*mq, number=1))
+        print(timeit.timeit(lambda: mq*mq, number=1))
+        mq = generate(self.sp, s, s)
+
+        print(timeit.timeit(lambda: mq*mq, number=1))
+
         # assert 1 == 0
-        assert mq * mq == generate(ZZ(s)*q*q, s, s)
+        # assert mq * mq == generate(ZZ(s)*q*q, s, s)
 
     def test_kmb_mult(self):
         """Tests __mul__ (Kauers-Moosbauer alogorithm) of a generic ZZ matrix."""

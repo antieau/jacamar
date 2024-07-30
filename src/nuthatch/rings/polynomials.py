@@ -426,13 +426,10 @@ class SpecialPolynomial(AbstractRingElement):
     The ring of coefficients is `self.base_ring` while the ambient polynomial
     ring is `self.ring`.
     """
-    data_class = flint.fmpz_mpoly
+    # data_class = flint.fmpz_mpoly
 
     def __init__(self, ring, data):
         self.base_ring = ring.base_ring
-        # self.data_class = flint.fmpz_mpoly
-        # if self.base_ring == QQ:
-        #     self.data_class = flint.fmpq_mpoly
 
         AbstractRingElement.__init__(
             self,
@@ -449,6 +446,8 @@ class SpecialPolynomial(AbstractRingElement):
         if self.ring == other.ring:
             return other.__class__(other.ring, self.data * other.data)
         # Else, coerce self into the other's ring and multiply.
+        # if isinstance(other.ring, PolynomialRing):
+        #     raise TypeError
         if self.ring.ctx == other.ring.ctx:
             return other.ring(self) * other
         raise ValueError(
@@ -510,20 +509,25 @@ class PolynomialRing(AbstractRing):
     ):  
         # Choose constructuion method: fmpz_mpoly works only for ZZ as of now
         if base_ring == ZZ and special:
+            self.element_class = SpecialPolynomial
             self._special = True
             self._data_class = flint.fmpz_mpoly
             self._context_class = flint.fmpz_mpoly_ctx
-        # elif base_ring == QQ and special:
-        #     self._special = True
-        #     self._data_class = flint.fmpq_mpoly
-        #     self._context_class = flint.fmpq_mpoly_ctx
+            self.element_class.data_class = flint.fmpz_mpoly
+
+        elif base_ring == QQ and special:
+            self.element_class = SpecialPolynomial
+            self._special = True
+            self._data_class = flint.fmpq_mpoly
+            self._context_class = flint.fmpq_mpoly_ctx
+            self.element_class.data_class = flint.fmpq_mpoly
 
         else:
             self._special = False
+        print("DC", self.element_class.data_class)
 
         # Special construction
         if self._special:
-            self.element_class = SpecialPolynomial
             self.base_ring = base_ring
             self.ngens = ngens
             if packed:
@@ -546,6 +550,17 @@ class PolynomialRing(AbstractRing):
             ctx = self._context_class(self.ngens, flint.Ordering.lex, [f'{self._prefix}{x}' for x in range(self.ngens)])
             self.ctx = ctx
             for i in range(self.ngens):
+                print(                    SpecialPolynomial(
+                        self,
+                        self._data_class(
+                            {
+                                tuple(int(x == i) for x in range(self.ngens))
+                                : self.base_ring.one.data
+                            },
+                            ctx
+                        ),
+                    )
+)
                 self.gens.append(
                     SpecialPolynomial(
                         self,
@@ -639,7 +654,6 @@ class PolynomialRing(AbstractRing):
                         ),
                     )
             if isinstance(data, self.element_class):
-                print("l")
                 if data.ring == self:
                     # Create a new element with the same data.
                     return self.element_class(self, self._data_class(data.data, self.ctx))
