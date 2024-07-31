@@ -21,8 +21,6 @@ AUTHORS:
 
 import functools
 import flint
-import cython
-import time
 import pyximport 
 pyximport.install()
 import nuthatch.rings.cpoly as cpoly
@@ -236,7 +234,7 @@ class PolynomialData:
         for m, c in new_dict.items():
             new_dict[m] = -c
         return self.__class__(self.base_ring, new_dict)
-    
+
     def __mul__(self, other):
         new_dict = {}
 
@@ -249,7 +247,7 @@ class PolynomialData:
                 else:
                     new_dict[k] = e
         return other.__class__(other.base_ring, new_dict)
-    
+
     def __rmul__(self, other):
         """
         We just try to multiply the coefficients of self with other.
@@ -317,7 +315,7 @@ class Polynomial(AbstractRingElement):
     def __init__(self, ring, data):
         self.base_ring = ring.base_ring
         self.data = data
-        
+
         AbstractRingElement.__init__(
             self,
             ring,
@@ -446,39 +444,27 @@ class SpecialPolynomial(AbstractRingElement):
         if self.ring == other.ring:
             return other.__class__(other.ring, self.data * other.data)
         # Else, coerce self into the other's ring and multiply.
-        # if isinstance(other.ring, PolynomialRing):
-        #     raise TypeError
         if self.ring.ctx == other.ring.ctx:
             return other.ring(self) * other
         raise ValueError(
             f'Polynomials exist in different contexts. {self.ring.ctx} != {other.ring.ctx}'
         )
-        
+
 
     def __call__(self, *args):
         """
         Evaluate self at x. If x is an instance of MonomialData, returns the
         coefficient. If x is a tuple of elements, then evaluate on these.
         """
-        # if len(args) == 1:
-        #     if isinstance(args[0], MonomialData):
-        #         return self.base_ring(self.data(args[0]))
         if len(args) == self.ring.ngens:
             return self.base_ring(self.data(*tuple(x.data for x in args)))
-            # except AttributeError:
-            #     pass
-
-            # Fall back on making it into a monomial and accessing its
-            # coefficient.
-            # m = self.ring._monomial_class.from_tuple(tuple(args))
-            # return self.base_ring(self.data(m))
 
         return NotImplemented
 
     def __str__(self):
         """String representation."""
         return str(self.data)
-        
+
     def __repr__(self):
         """String representation."""
         return str(self)
@@ -506,7 +492,7 @@ class PolynomialRing(AbstractRing):
         weights=None,
         packed=True,
         special=True
-    ):  
+    ):
         # Choose constructuion method: fmpz_mpoly works only for ZZ as of now
         if base_ring == ZZ and special:
             self.element_class = SpecialPolynomial
@@ -524,7 +510,6 @@ class PolynomialRing(AbstractRing):
 
         else:
             self._special = False
-        print("DC", self.element_class.data_class)
 
         # Special construction
         if self._special:
@@ -550,17 +535,6 @@ class PolynomialRing(AbstractRing):
             ctx = self._context_class(self.ngens, flint.Ordering.lex, [f'{self._prefix}{x}' for x in range(self.ngens)])
             self.ctx = ctx
             for i in range(self.ngens):
-                print(                    SpecialPolynomial(
-                        self,
-                        self._data_class(
-                            {
-                                tuple(int(x == i) for x in range(self.ngens))
-                                : self.base_ring.one.data
-                            },
-                            ctx
-                        ),
-                    )
-)
                 self.gens.append(
                     SpecialPolynomial(
                         self,
@@ -580,7 +554,7 @@ class PolynomialRing(AbstractRing):
             self.one = self(1)
             self.zero = self(0)
 
-        # Generic construction  
+        # Generic construction
         else:
             self.base_ring = base_ring
             self.ngens = ngens
@@ -721,8 +695,7 @@ class PolynomialRing(AbstractRing):
                             weights=self.weights,
                             packed=self.packed,
                             special=False)
-    
-    
+
 
 class PolynomialRingMorphism(AbstractRingMorphism):
     """

@@ -58,7 +58,6 @@ class TestSparseMonomial:
         m = SparseMonomialData((1, 2, 4, 7))
         n = SparseMonomialData((0, 3, 3, 3, 4, 1))
         j = SparseMonomialData((1, 1, 1, 2, 2, 4, 2, 5))
-        print(timeit.timeit(lambda: m * n, number=1000000))
 
         assert n * m == SparseMonomialData((0, 3, 1, 2, 3, 3, 4, 8))
         assert m * SparseMonomialData(()) == m
@@ -111,7 +110,6 @@ class TestPackedMonomial:
         """Tests the __mul__ method."""
         m = PackedMonomialData.from_sparse_tuple((1, 2, 4, 7))
         n = PackedMonomialData.from_sparse_tuple((0, 3, 3, 3, 4, 1))
-        print(timeit.timeit(lambda: m * n, number=1000000))
         
         assert m * n == PackedMonomialData.from_sparse_tuple((0, 3, 1, 2, 3, 3, 4, 8))
 
@@ -156,7 +154,6 @@ class TestPolynomialDataClass:
     def test_mul(self):
         """Tests for the __mul__ method."""
         # (x+y)^2 == x^2 + 2xy + y^2
-        print(timeit.timeit(lambda: self.p*self.p, number=1000000))
         
         assert self.p * self.p == PolynomialData(
             ZZ,
@@ -203,8 +200,6 @@ class TestPolynomialRing:
 
     def test_special_poly(self):
         """Tests construction of QQ and ZZ special polynomials"""
-        # ctx = flint.fmpz_mpoly_ctx(2, flint.Ordering.lex, ['x0','x1'])
-        # m = flint.fmpz_mpoly({(1,0):2, (1,1):3, (0,1):1}, ctx)
         s = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x')
         x0 = s.gens[0]
         x1 = s.gens[1]
@@ -216,15 +211,11 @@ class TestPolynomialRing:
         x1 = s.gens[1]
         x2 = s.gens[2]
 
-        # print(timeit.timeit(lambda: a*a, number=1000000))
-        # print(timeit.timeit(lambda: self.a*self.a, number=1000000))
-
     def test_gens_data(self):
         """Tests the correct creation of the generators."""
         assert self.r.gens[0].data == PolynomialData(
             ZZ, {SparseMonomialData((0, 1)): flint.fmpz(1)}
         )
-
 
     def test_square(self):
         """Tests that (x0+x1)**2 == x0**2 + 2*x0x1 + x1**2."""
@@ -242,21 +233,19 @@ class TestPolynomialRing:
 
         ctx = flint.fmpq_mpoly_ctx(3, flint.Ordering.lex, ['x','y', 'z'])
         m = flint.fmpq_mpoly({(1,0,1):2, (1,1,2):3, (0,1,3):1}, ctx)
-        print(timeit.timeit(lambda: m*m, number=1000000))
-        print(m(2, 4, 3))
-        
         assert str(self.r(5)) == "5"
 
     def test_constructor_from_base_ring(self):
         """Tests r(ZZ(5))."""
-        print(type(self.x0))
         
         assert str(self.r(ZZ(5))) == "5"
 
     def test_constructor_from_element(self):
+        """Tests constructor from element."""
         assert self.r(self.a) == self.a
 
     def test_constructor_from_element_data(self):
+        """Tests constructor from element data."""
         assert self.r(self.a.data) == self.a
 
     def test_constructor_from_dict(self):
@@ -267,10 +256,10 @@ class TestPolynomialRing:
     def test_packed_sparse_str(self):
         """Tests that sparse and packed versions print the same."""
         m = str(self.a * self.a)
-        s = PolynomialRing(base_ring=ZZ, ngens=3, prefix="x", packed=True)
+        s = PolynomialRing(base_ring=ZZ, ngens=3, prefix="x", packed=True).to_generic()
         x0, x1, x2 = s.gens
         b = s(-5) + x0 + x1 + x2
-        m == str(b * b)
+        assert m == str(b * b)
 
     def test_sub(self):
         """Tests the sub method."""
@@ -294,6 +283,7 @@ class TestPolynomialRing:
 
 
 class TestSpecialPolynomialRing:
+    """Tests for Special Polynomials."""
     s = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x')
     x0 = s.gens[0]
     x1 = s.gens[1]
@@ -311,9 +301,11 @@ class TestSpecialPolynomialRing:
 
 
     def test_eval(self):
+        """Tests evaluation at a point."""
         assert self.b(ZZ(1), ZZ(1), ZZ(1)) == ZZ(3)
     
     def test_special_poly(self):
+        """Tests normal construction."""
         assert self.a
 
     def test_gens_data(self):
@@ -332,7 +324,6 @@ class TestSpecialPolynomialRing:
         """Tests that (x0+x1)**2 == x0**2 + 2*x0x1 + x1**2."""
         s = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x')
 
-        print(self.x0.data_class, self.x1.data_class, self.y1.data_class)
         assert (self.x0 + self.x1) ** ZZ(2) == (
             self.x0 ** ZZ(2) + ZZ(2) * self.x0 * self.x1 + self.x1 ** ZZ(2)
         )
@@ -346,18 +337,15 @@ class TestSpecialPolynomialRing:
         assert str(self.s(ZZ(5))) == "5"
 
     def test_constructor_from_element(self):
+        """Tests constructor from a SpecialPolynomial element."""
         s = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x')
         assert self.s(self.a) == self.a
 
     def test_constructor_from_element_data(self):
+        """Tests constructor from a SpecialPolynomial element data (fmpz_mpoly)."""
         s = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x')
 
         assert self.s(self.a.data) == self.a
-
-    # def test_constructor_from_dict(self):
-    #     """Tests dictionary constructor."""
-    #     f = self.s({(1, 1, 2, 1): ZZ(2), (0, 4): ZZ(9)})
-    #     assert f == ZZ(2) * self.x1 * self.x2 + ZZ(9) * self.x0 ** ZZ(4)
 
     def test_packed_sparse_str(self):
         """Tests that sparse and packed versions print the same."""
@@ -395,9 +383,10 @@ class TestSpecialPolynomialRing:
             self.a**self.a
 
     def test_to_generic(self):
-        assert self.s
-    
-    
+        """Tests the to_generic() method."""
+        assert self.s.to_generic()
+
+
 class TestLayers:
     """Tests polynomial rings over polynomial rings."""
 
@@ -410,11 +399,10 @@ class TestLayers:
 
     def test_evaluation(self):
         """Tests evaluation."""
-        print(type(self.a.data))
-        print(self.s(self.a)(0, 0))
         assert self.s(self.a)(0, 0) == self.a
 
     def test_multiplication(self):
+        """Tests multiplication of polynomials."""
         with pytest.raises(TypeError):
             self.b * self.a
         
@@ -618,5 +606,3 @@ class TestCoercion:
 
     def test_call(self):
         assert self.f(self.x) == self.f0
-
-

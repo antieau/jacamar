@@ -595,7 +595,7 @@ class Matrix:
         if self._is_python and other._is_python:
             return self.data.all() == other.data.all()
         return self.data == other.data
-    
+
 
     def __getitem__(self, args):
         if not isinstance(args, tuple):
