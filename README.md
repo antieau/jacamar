@@ -92,3 +92,74 @@ index in lists, etc.
 from art import *
 tprint("NUTHATCH", font="bigchief")
 ```
+
+# Example Use.
+
+Number rings behave similarly to those in `Python-FLINT`. 
+The real and complex rings in nuthatch are balls, with a number and a radius for precision. 
+This radius can be declared and/or will be automatically updated based on any operations performed with the number.
+
+Number ring basic usage:
+
+Reals and complexes:
+
+```
+> RR(7.3) + RR("2.7 +/- 0.1") == RR(10.05)
+True
+> RR(1.5) + CC(2 + 1j)
+CC(3.5 + 1j)
+> RR(2) * CC(1 + 1j)
+CC(2 + 2j)
+```
+
+Integers and rationals:
+
+```
+> ZZ(2) + ZZ(4)
+ZZ(6)
+> ZZ(3) ** ZZ(2)
+ZZ(9)
+> QQ((1, 2)) + QQ((1, 4))
+QQ((3, 4))
+> ZZ(1) + QQ((3, 5))
+QQ((8, 5))
+```
+
+Matrices in `Nuthatch` can be constructed in different ways, depending on the type of object in the matrix.
+If the object is a ZZ, QQ, RR, or CC, the matrix will use the `Python-FLINT` mat framework.
+If the object is a python wrapper (ZZ_py, QQ_py, RR_py, or CC_py), the matrix will use the `numpy.array` framework.
+If the object is something else (polynomial, series, etc...), the matrix will be generic and use `Nuthatch` methods.
+
+Matrix construction:
+
+```
+> Matrix(base_ring=ZZ, entries=[[1, 2], [3, 4]])
+[[ZZ(1), ZZ(2)],
+[ZZ(3), ZZ(4)]]
+> random(ZZ_py, 10, 1000, 1000)
+1000 x 1000 matrix of random integers on the interval [0, 10)
+> poly_ring = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x')
+> x0, x1, x2 = poly_ring.gens
+> p = x0 + ZZ(2) * x1 * x2 ** ZZ(2)
+> Matrix(base_ring=PolynomialRing, ncols=2, nrows=2, entries=[[p, p], [p, p]], data=_MatrixGenericData(base_ring=PolynomialRing, ncols=2, nrows=2, entries=[[p, p], [p, p]]))
+[[x0 + 2x1*x2^2, x0 + 2x1*x2^2],
+[x0 + 2x1*x2^2, x0 + 2x1*x2^2]]
+```
+
+Matrix operations:
+
+```
+> m = Matrix(base_ring=ZZ, entries=[[1, 2], [3, 4]])
+> m + m
+[[2, 4],
+[6, 8]]
+> m - m
+[[0, 0],
+[0, 0]]
+> m * m
+[[5, 10],
+[15, 18]]
+> m * ZZ(2)
+[[2, 4],
+[6, 8]]
+```
