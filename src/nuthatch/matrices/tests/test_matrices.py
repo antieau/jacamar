@@ -159,7 +159,6 @@ class TestMatrix:
 
     def test_index(self):
         """Tests modified __get_index__."""
-
         a = Matrix(base_ring=RR, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
         b = Matrix(base_ring=RR, entries=[[5]])
         c = Matrix(base_ring=RR, entries=[[3], [6], [9]])
@@ -172,7 +171,6 @@ class TestMatrix:
         assert a_py[1, 1] == b_py
         assert a_py[:, 2] == c_py
         assert a_py[1, 0:2] == d_py
-
         assert a[:, :] == a
         assert a[1, 1] == b
         assert a[:, 2] == c
