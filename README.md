@@ -125,10 +125,56 @@ QQ((3, 4))
 QQ((8, 5))
 ```
 
-Matrices in `Nuthatch` can be constructed in different ways, depending on the type of object in the matrix.
-If the object is a ZZ, QQ, RR, or CC, the matrix will use the `Python-FLINT` mat framework.
-If the object is a python wrapper (ZZ_py, QQ_py, RR_py, or CC_py), the matrix will use the `numpy.array` framework.
-If the object is something else (polynomial, series, etc...), the matrix will be generic and use `Nuthatch` methods.
+Polynomials in `Nuthatch`
+
+Classes for generic polynomial rings.
+
+Currently, there are two supported exponent types: PackedMonomialData and
+SparseMonomialData.
+
+The former are packed into a Python `int`. The largest power supported is given
+by the module-level constant PACKING_BOUND.
+
+The latter are designed based on the `ETuple` class from `SAGE`. In particular,
+they are sparse. In a polynomial ring on x0, x1, x2, x3, a monomial
+x0*x2^3*x3^7 would be encoded as (0,1,2,3,3,7), where the even indices indicate
+the present variables and the odd indices indicate their powers. The empty
+tuple () represents the monomial of 1.
+
+Polynomial construction:
+
+```
+> poly_ring = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x')
+> x0, x1, x2 = poly_ring.gens
+> p = x0 + ZZ(2) * x1 * x2 ** ZZ(2)
+> p
+"x0 + 2x1*x2^2"
+> poly_ring(p)
+"x0 + 2x1*x2^2"
+> poly_ring(ZZ(4))
+"4"
+```
+
+Polynomial operations:
+
+```
+> p((ZZ(1), ZZ(1), ZZ(1)))
+ZZ(3)
+> p + p
+"2x0 + 4x1*x2^2"
+> p * ZZ(2)
+"2x0 + 4x1*x2^2"
+> p ** ZZ(2)
+"x0^2 + 4x0*x1*x2^2 + 4x1^2*x2^4"
+```
+
+Matrices in `Nuthatch`:
+
+A module for dense matrices. We create a single abstract matrix class which
+holds a `data` attribute. We assume that this points to a class on which all
+matrix operations can be performed and we overload matrices in that way. We
+provide a generic implementation of these operations as `_MatrixGeneric`. Special
+examples are provided by `FLINT`.
 
 Matrix construction:
 
@@ -138,12 +184,9 @@ Matrix construction:
 [ZZ(3), ZZ(4)]]
 > random(ZZ_py, 10, 1000, 1000)
 1000 x 1000 matrix of random integers on the interval [0, 10)
-> poly_ring = PolynomialRing(base_ring=ZZ, ngens=3, prefix='x')
-> x0, x1, x2 = poly_ring.gens
-> p = x0 + ZZ(2) * x1 * x2 ** ZZ(2)
 > Matrix(base_ring=PolynomialRing, ncols=2, nrows=2, entries=[[p, p], [p, p]], data=_MatrixGenericData(base_ring=PolynomialRing, ncols=2, nrows=2, entries=[[p, p], [p, p]]))
-[[x0 + 2x1*x2^2, x0 + 2x1*x2^2],
-[x0 + 2x1*x2^2, x0 + 2x1*x2^2]]
+[["x0 + 2x1*x2^2", "x0 + 2x1*x2^2"],
+["x0 + 2x1*x2^2", "x0 + 2x1*x2^2"]]
 ```
 
 Matrix operations:
@@ -162,4 +205,18 @@ Matrix operations:
 > m * ZZ(2)
 [[2, 4],
 [6, 8]]
+```
+
+Matrix methods:
+
+```
+> m.determinant()
+ZZ(-2)
+> m.transpose()
+[[1, 3],
+[2, 4]]
+> m.size()
+(2, 2)
+> m[1, 1]
+ZZ(4)
 ```
