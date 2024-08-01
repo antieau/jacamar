@@ -66,6 +66,7 @@ class TestMatrix:
     def test_add(self):
         """Tests __add__."""
         assert self.m + self.m == Matrix(base_ring=ZZ, entries=[[2, 4], [6, 8]])
+        assert self.m * ZZ(2)
         assert self.m_py + self.m_py == Matrix(
             base_ring=ZZ_py, entries=[[2, 4], [6, 8]]
         )
