@@ -11,6 +11,8 @@ classifiers = ["License :: OSI Approved :: GNU General Public License v3 or late
 dynamic = ["version", "description"]
 dependencies = [
     "python-flint >=0.6.0",
+    "ray >=2.34.0",
+    "cython >=3.0.10",
 ]
 
 [project.urls]
