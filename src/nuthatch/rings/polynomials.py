@@ -21,15 +21,17 @@ AUTHORS:
 
 import functools
 import flint
+import pyximport 
+pyximport.install()
+import nuthatch.rings.cpoly as cpoly
 from nuthatch.rings.elements import AbstractRingElement
 from nuthatch.rings.rings import AbstractRing
 from nuthatch.rings.integers import ZZ
+from nuthatch.rings.rationals import QQ
 from nuthatch.rings.morphisms import AbstractRingMorphism
-
+from nuthatch.constants import PACKING_BOUND
 # The following constant controls the maximum allowed weight of a power x^n in a
-# monomial.
-PACKING_BOUND = 2**16
-
+# monomial: PACKING_BOUND = 2 ** 16.
 
 class MonomialData:
     """Abstract class for monomials."""
@@ -108,7 +110,7 @@ class PackedMonomialData(MonomialData):
         encountered. Ensure that no variable is powered to more than the
         module-level constant PACKING_BOUND.
         """
-        return other.__class__(self.weight + other.weight)
+        return other.__class__(cpoly.c_packed_mul(self.weight, other.weight))
 
     def __str__(self):
         return str(self.weight)
@@ -124,8 +126,9 @@ class SparseMonomialData(MonomialData):
     INPUT:
     - `t`     -- a tuple of Python integers
     """
-
+    
     def __init__(self, *t):
+        t: tuple
         if len(t) == 1 & isinstance(t, tuple):
             self.degrees = t[0]
         else:
@@ -165,37 +168,7 @@ class SparseMonomialData(MonomialData):
         return str(self)
 
     def __mul__(self, other):
-        new_list = []
-        self_index = 0
-        other_index = 0
-        self_len = len(self.degrees)
-        other_len = len(other.degrees)
-        while self_index < self_len and other_index < other_len:
-            if self.degrees[self_index] < other.degrees[other_index]:
-                new_list.extend(self.degrees[self_index : self_index + 2])
-                self_index += 2
-            elif self.degrees[self_index] == other.degrees[other_index]:
-                x = self.degrees[self_index + 1] + other.degrees[other_index + 1]
-                if x != 0:
-                    new_list.append(self.degrees[self_index])
-                    new_list.append(x)
-                self_index += 2
-                other_index += 2
-            else:
-                new_list.extend(other.degrees[other_index : other_index + 2])
-                other_index += 2
-
-        # Now that we've reached the end of at least one list, we add
-        # everything from the other list.
-        while self_index < self_len:
-            new_list.extend(self.degrees[self_index : self_index + 2])
-            self_index += 2
-
-        while other_index < other_len:
-            new_list.extend(other.degrees[other_index : other_index + 2])
-            other_index += 2
-
-        return other.__class__(tuple(new_list))
+        return cpoly.c_sparse_mul(self, other)
 
     def __eq__(self, other):
         return self.degrees == other.degrees
@@ -264,13 +237,14 @@ class PolynomialData:
 
     def __mul__(self, other):
         new_dict = {}
+
         for m, c in self.monomial_dictionary.items():
             for n, d in other.monomial_dictionary.items():
                 k = m * n
                 e = c * d
-                try:
+                if k in new_dict:
                     new_dict[k] += e
-                except KeyError:
+                else:
                     new_dict[k] = e
         return other.__class__(other.base_ring, new_dict)
 
@@ -330,16 +304,18 @@ class PolynomialData:
         return x
 
 
+
 class Polynomial(AbstractRingElement):
     """
     The ring of coefficients is `self.base_ring` while the ambient polynomial
     ring is `self.ring`.
     """
-
     data_class = PolynomialData
 
     def __init__(self, ring, data):
         self.base_ring = ring.base_ring
+        self.data = data
+
         AbstractRingElement.__init__(
             self,
             ring,
@@ -443,6 +419,57 @@ class Polynomial(AbstractRingElement):
         return str(self)
 
 
+class SpecialPolynomial(AbstractRingElement):
+    """
+    The ring of coefficients is `self.base_ring` while the ambient polynomial
+    ring is `self.ring`.
+    """
+    # data_class = flint.fmpz_mpoly
+
+    def __init__(self, ring, data):
+        self.base_ring = ring.base_ring
+
+        AbstractRingElement.__init__(
+            self,
+            ring,
+            data,
+        )
+
+
+    def term_data(self):
+        """Returns the items of the underlying monomial dictionary."""
+        return self.data.to_dict().items()
+
+    def __mul__(self, other):
+        if self.ring == other.ring:
+            return other.__class__(other.ring, self.data * other.data)
+        # Else, coerce self into the other's ring and multiply.
+        if self.ring.ctx == other.ring.ctx:
+            return other.ring(self) * other
+        raise ValueError(
+            f'Polynomials exist in different contexts. {self.ring.ctx} != {other.ring.ctx}'
+        )
+
+
+    def __call__(self, *args):
+        """
+        Evaluate self at x. If x is an instance of MonomialData, returns the
+        coefficient. If x is a tuple of elements, then evaluate on these.
+        """
+        if len(args) == self.ring.ngens:
+            return self.base_ring(self.data(*tuple(x.data for x in args)))
+
+        return NotImplemented
+
+    def __str__(self):
+        """String representation."""
+        return str(self.data)
+
+    def __repr__(self):
+        """String representation."""
+        return str(self)
+
+
 class PolynomialRing(AbstractRing):
     """
     Class for generic (multivariable) polynomial rings.
@@ -464,46 +491,110 @@ class PolynomialRing(AbstractRing):
         prefix,
         weights=None,
         packed=True,
+        special=True
     ):
-        self.base_ring = base_ring
-        self.ngens = ngens
-        if packed:
-            self._monomial_class = PackedMonomialData
+        # Choose constructuion method: fmpz_mpoly works only for ZZ as of now
+        if base_ring == ZZ and special:
+            self.element_class = SpecialPolynomial
+            self._special = True
+            self._data_class = flint.fmpz_mpoly
+            self._context_class = flint.fmpz_mpoly_ctx
+            self.element_class.data_class = flint.fmpz_mpoly
+
+        elif base_ring == QQ and special:
+            self.element_class = SpecialPolynomial
+            self._special = True
+            self._data_class = flint.fmpq_mpoly
+            self._context_class = flint.fmpq_mpoly_ctx
+            self.element_class.data_class = flint.fmpq_mpoly
+
         else:
-            self._monomial_class = SparseMonomialData
-        self.packed = packed
-        self._prefix = prefix
-        self._names = [prefix + str(i) for i in range(ngens)]
-        if weights is None:
-            self.weights = [1 for i in range(ngens)]
+            self._special = False
+
+        # Special construction
+        if self._special:
+            self.base_ring = base_ring
+            self.ngens = ngens
+            if packed:
+                self._monomial_class = PackedMonomialData
+            else:
+                self._monomial_class = SparseMonomialData
+            self.packed = packed
+            self._prefix = prefix
+            self._names = [prefix + str(i) for i in range(ngens)]
+            if weights is None:
+                self.weights = [1 for i in range(ngens)]
+            else:
+                if len(weights) != ngens:
+                    raise ValueError(
+                        f"The number {len(weights)} is not equal to the number of generators {ngens}."
+                    )
+                self.weights = weights
+
+            self.gens = []
+            ctx = self._context_class(self.ngens, flint.Ordering.lex, [f'{self._prefix}{x}' for x in range(self.ngens)])
+            self.ctx = ctx
+            for i in range(self.ngens):
+                self.gens.append(
+                    SpecialPolynomial(
+                        self,
+                        self._data_class(
+                            {
+                                tuple(int(x == i) for x in range(self.ngens))
+                                : self.base_ring.one.data
+                            },
+                            ctx
+                        ),
+                    )
+                )
+
+            AbstractRing.__init__(self, SpecialPolynomial, exact=base_ring.exact)
+
+            # Initialize one and zero since these are used so often.
+            self.one = self(1)
+            self.zero = self(0)
+
+        # Generic construction
         else:
-            if len(weights) != ngens:
-                raise ValueError(
-                    f"The number {len(weights)} is not equal to the number of generators {ngens}."
+            self.base_ring = base_ring
+            self.ngens = ngens
+            if packed:
+                self._monomial_class = PackedMonomialData
+            else:
+                self._monomial_class = SparseMonomialData
+            self.packed = packed
+            self._prefix = prefix
+            self._names = [prefix + str(i) for i in range(ngens)]
+            if weights is None:
+                self.weights = [1 for i in range(ngens)]
+            else:
+                if len(weights) != ngens:
+                    raise ValueError(
+                        f"The number {len(weights)} is not equal to the number of generators {ngens}."
+                    )
+                self.weights = weights
+
+            self.gens = []
+            for i in range(self.ngens):
+                self.gens.append(
+                    Polynomial(
+                        self,
+                        PolynomialData(
+                            self.base_ring,
+                            {
+                                self._monomial_class.from_sparse_tuple(
+                                    (i, 1)
+                                ): self.base_ring.one.data
+                            },
+                        ),
+                    )
                 )
-            self.weights = weights
 
-        self.gens = []
-        for i in range(self.ngens):
-            self.gens.append(
-                Polynomial(
-                    self,
-                    PolynomialData(
-                        self.base_ring,
-                        {
-                            self._monomial_class.from_sparse_tuple(
-                                (i, 1)
-                            ): self.base_ring.one.data
-                        },
-                    ),
-                )
-            )
+            AbstractRing.__init__(self, Polynomial, exact=base_ring.exact)
 
-        AbstractRing.__init__(self, Polynomial, exact=base_ring.exact)
-
-        # Initialize one and zero since these are used so often.
-        self.one = self(1)
-        self.zero = self(0)
+            # Initialize one and zero since these are used so often.
+            self.one = self(1)
+            self.zero = self(0)
 
     def __str__(self):
         """String representation."""
@@ -515,6 +606,46 @@ class PolynomialRing(AbstractRing):
 
     def __call__(self, data):
         """Create a new polynomial from data, if possible."""
+        # Special calls
+        if self._special:
+            if isinstance(data, int):
+                return SpecialPolynomial(
+                        self,
+                        self._data_class(
+                            data,
+                            self.ctx
+                        ),
+                    )
+            if isinstance(data, dict):
+                new_dict = {}
+                for key, value in data.items():
+                    new_dict[key] = value.data
+                return SpecialPolynomial(
+                        self,
+                        self._data_class(
+                            new_dict,
+                            self.ctx
+                        ),
+                    )
+            if isinstance(data, self.element_class):
+                if data.ring == self:
+                    # Create a new element with the same data.
+                    return self.element_class(self, self._data_class(data.data, self.ctx))
+                return self.element_class(self, self._data_class(data.data, data.ring.ctx))
+            if isinstance(data, self.element_class.data_class):
+                return self.element_class(self, data)
+            if isinstance(data, self.base_ring.element_class):
+                if data.ring == self.base_ring:
+                    return SpecialPolynomial(
+                        self,
+                        self._data_class(
+                            data.data,
+                            self.ctx
+                        ),
+                    )
+
+            raise TypeError(f"No known constructor for input data of type {type(data)}.")
+
         if isinstance(data, int):
             return Polynomial(
                 self,
@@ -553,6 +684,17 @@ class PolynomialRing(AbstractRing):
                     ),
                 )
         raise TypeError(f"No known constructor for input data of type {type(data)}.")
+
+    def to_generic(self):
+        """Creates a generic copy of a special polynomial"""
+        if not self._special:
+            return self
+        return self.__class__(base_ring=self.base_ring,
+                            ngens=self.ngens,
+                            prefix=self._prefix,
+                            weights=self.weights,
+                            packed=self.packed,
+                            special=False)
 
 
 class PolynomialRingMorphism(AbstractRingMorphism):

@@ -35,11 +35,12 @@ class RealNumber(AbstractRingElement):
         return self.__str__()
     
     def __eq__(self, other):
-        if self.ring(self.data.abs_lower()) >= other.ring(other.data.abs_lower()):
-            return self.ring(self.data.abs_lower()) <= other.ring(other.data.abs_upper())
-        else:
-            return self.ring(self.data.abs_upper()) >= other.ring(other.data.abs_lower())
-
+        if isinstance(other, RealNumber):
+            if self.ring(self.data.abs_lower()) >= other.ring(other.data.abs_lower()):
+                return self.ring(self.data.abs_lower()) <= other.ring(other.data.abs_upper())
+            else:
+                return self.ring(self.data.abs_upper()) >= other.ring(other.data.abs_lower())
+        return self.data == other.data
 
 class RealNumberPython(AbstractRingElement):
     """
