@@ -33,3 +33,4 @@ Contents
 .. toctree::
 
    usage
+   api
