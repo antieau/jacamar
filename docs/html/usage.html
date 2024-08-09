@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>USAGE &#8212; nuthatch 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=2709fde1"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-nuthatch">
+<span id="usage"></span><h1>USAGE<a class="headerlink" href="#module-nuthatch" title="Link to this heading">¶</a></h1>
+<p># NUTHATCH</p>
+<p>A tiny Python computer algebra system.</p>
+<p>NUTHATCH provides three basic sets of functionality:
+- a high-level interface to FLINT, via the PythonFLINT project;
+- generic code for matrices;
+- generic code for multivariable Polynomials, LaurentPolynomials, and PowerSeries.
+Where possible, we follow the conventions of SAGE for the creation of objects.</p>
+<p># Philosophy</p>
+<p>NUTHATCH favors explicit, user-imposed coercion when it makes sense. In
+particular, Python <cite>int</cite> instances are not mathematical objects and must typically be
+coerced mannualy into NUTHATCH objects.</p>
+<p>Several base commutative rings are provided. At the moment, these are ZZ, ZZ_py, and QQ.
+The rings ZZ and QQ wrap FLINT classes <cite>fmpz</cite> and <cite>fmpq</cite>, while ZZ_py wraps Python’s <cite>int</cite> class.
+We will be adding RR and CC in the coming days and then later integers modulo
+N, finite fields, and q-adics.</p>
+<p>New commutative rings are constructed by building PolynomialRings, LaurentPolynomialRings,
+or PowerSeries rings. These rings each refer to a class of element objects. For
+example, <cite>Polynomial</cite> is the generic element class of a PolynomialRing. The class
+<cite>Polynomial</cite> itself is a wrapper for a lower-level _Polynomial class.</p>
+<p>However, for those rings provided by FLINT, the data class will be the
+corresponding FLINT polynomial class.</p>
+<p>The goal is to provide a very thin, familiar interface which the user can
+easily abstract and customize for their own purposes.</p>
+</section>
+<section id="module-nuthatch.matrices.matrices">
+<span id="matrices"></span><h1>Matrices<a class="headerlink" href="#module-nuthatch.matrices.matrices" title="Link to this heading">¶</a></h1>
+<p>MATRICES</p>
+<p>A module for dense matrices. We create a single abstract matrix class which
+holds a <cite>data</cite> attribute. We assume that this points to a class on which all
+matrix operations can be performed and we overload matrices in that way. We
+provide a generic implementation of these operations as <cite>_MatrixGeneric</cite>. Special
+examples are provided by <cite>FLINT</cite>.</p>
+<p>AUTHORS:
+- Benjamin Antieau (2024): initial version.
+- Luca Zerega (2024): major revisions.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.matrices.matrices.Matrix">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.matrices.matrices.</span></span><span class="sig-name descname"><span class="pre">Matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_ring</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nrows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.matrices.matrices.Matrix" title="Link to this definition">¶</a></dt>
+<dd><p>Base class for matrices of numbers or polynomials.
+Numerical matrices are built off of flint mat objects
+while generic (polynomial) matrices use the 
+_GenericMatrixData format.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.matrices.matrices.Matrix.T">
+<span class="sig-name descname"><span class="pre">T</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.matrices.matrices.Matrix.T" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for the transpose() method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.matrices.matrices.Matrix.det">
+<span class="sig-name descname"><span class="pre">det</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.matrices.matrices.Matrix.det" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for <cite>determinenant</cite> method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.matrices.matrices.Matrix.determinant">
+<span class="sig-name descname"><span class="pre">determinant</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.matrices.matrices.Matrix.determinant" title="Link to this definition">¶</a></dt>
+<dd><p>Determinant method for matrices.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.matrices.matrices.Matrix.size">
+<span class="sig-name descname"><span class="pre">size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.matrices.matrices.Matrix.size" title="Link to this definition">¶</a></dt>
+<dd><p>Returns size of a matrix as a tuple (rows, cols).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.matrices.matrices.Matrix.transpose">
+<span class="sig-name descname"><span class="pre">transpose</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.matrices.matrices.Matrix.transpose" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a transposed copy of self.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.matrices.matrices.generate">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.matrices.matrices.</span></span><span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nrows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncols</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.matrices.matrices.generate" title="Link to this definition">¶</a></dt>
+<dd><p>Generates a repeating matrix of size (rows, cols). Can be generic or not.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.matrices.matrices.random">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.matrices.matrices.</span></span><span class="sig-name descname"><span class="pre">random</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_ring</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nrows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poly_ring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ngens</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.matrices.matrices.random" title="Link to this definition">¶</a></dt>
+<dd><p>Generates a random matrix of size nrows x ncols using np.random.
+Values go from [0, max_val]. 
+Polynomials are of form n0*x0**r0 + n1*x1**r1 ….</p>
+</dd></dl>
+
+</section>
+<section id="module-nuthatch.rings.elements">
+<span id="commutative-rings"></span><h1>Commutative Rings<a class="headerlink" href="#module-nuthatch.rings.elements" title="Link to this heading">¶</a></h1>
+<p>ELEMENTS</p>
+<p>Base classes for elements in commutative rings. The abstract class stores a
+concrete <cite>data</cite> attribute, on which it is assumed that the standard arithmetic
+operations are implemented.</p>
+<p>AUTHORS:
+- Benjamin Antieau (2024).</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.elements.AbstractRingElement">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.elements.</span></span><span class="sig-name descname"><span class="pre">AbstractRingElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ring</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.elements.AbstractRingElement" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p id="module-nuthatch.rings.rings">RINGS</p>
+<p>A module for commutative rings.</p>
+<p>AUTHORS:
+- Benjamin Antieau (2024).</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.rings.AbstractRing">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.rings.</span></span><span class="sig-name descname"><span class="pre">AbstractRing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.rings.AbstractRing" title="Link to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.rings.AbstractRing.identity_morphism">
+<span class="sig-name descname"><span class="pre">identity_morphism</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.rings.AbstractRing.identity_morphism" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<p id="module-nuthatch.rings.intmod">INTEGERS MODULO N</p>
+<p>Base class for ZN.</p>
+<p>AUTHORS:
+- Joseph Grantham (2024).</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.intmod.IntegerModN">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.intmod.</span></span><span class="sig-name descname"><span class="pre">IntegerModN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ring</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.intmod.IntegerModN" title="Link to this definition">¶</a></dt>
+<dd><p>Element representing an integer modulo N</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nuthatch.rings.intmod.IntegerModN.data_class">
+<span class="sig-name descname"><span class="pre">data_class</span></span><a class="headerlink" href="#nuthatch.rings.intmod.IntegerModN.data_class" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">nmod</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.intmod.IntegerModNRing">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.intmod.</span></span><span class="sig-name descname"><span class="pre">IntegerModNRing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modulus</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.intmod.IntegerModNRing" title="Link to this definition">¶</a></dt>
+<dd><p>Ring of integers modulo N</p>
+</dd></dl>
+
+<p id="module-nuthatch.rings.integers">INTEGERS</p>
+<p>Base classes for ZZ and ZZ_py.</p>
+<p>AUTHORS:
+- Benjamin Antieau (2024).</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.integers.Integer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.integers.</span></span><span class="sig-name descname"><span class="pre">Integer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ring</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.integers.Integer" title="Link to this definition">¶</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="nuthatch.rings.integers.Integer.data_class">
+<span class="sig-name descname"><span class="pre">data_class</span></span><a class="headerlink" href="#nuthatch.rings.integers.Integer.data_class" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fmpz</span></code></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.integers.Integer.is_prime">
+<span class="sig-name descname"><span class="pre">is_prime</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.integers.Integer.is_prime" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.integers.IntegerPython">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.integers.</span></span><span class="sig-name descname"><span class="pre">IntegerPython</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ring</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.integers.IntegerPython" title="Link to this definition">¶</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="nuthatch.rings.integers.IntegerPython.data_class">
+<span class="sig-name descname"><span class="pre">data_class</span></span><a class="headerlink" href="#nuthatch.rings.integers.IntegerPython.data_class" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.integers.IntegerRing">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.integers.</span></span><span class="sig-name descname"><span class="pre">IntegerRing</span></span><a class="headerlink" href="#nuthatch.rings.integers.IntegerRing" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.integers.IntegerRingPython">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.integers.</span></span><span class="sig-name descname"><span class="pre">IntegerRingPython</span></span><a class="headerlink" href="#nuthatch.rings.integers.IntegerRingPython" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="nuthatch.rings.integers.ZZ_py">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.integers.</span></span><span class="sig-name descname"><span class="pre">ZZ_py</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">The</span> <span class="pre">ring</span> <span class="pre">of</span> <span class="pre">Integers</span> <span class="pre">(via</span> <span class="pre">Python's</span> <span class="pre">int).</span></em><a class="headerlink" href="#nuthatch.rings.integers.ZZ_py" title="Link to this definition">¶</a></dt>
+<dd><p>Select functions of ZZ’s based on flint.fmpz attributes. (<a class="reference external" href="https://fredrikj.net/python-flint/fmpz.html">https://fredrikj.net/python-flint/fmpz.html</a>)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.integers.factor">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.integers.</span></span><span class="sig-name descname"><span class="pre">factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.integers.factor" title="Link to this definition">¶</a></dt>
+<dd><p>Factors of x in polynomial form.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.integers.factorial">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.integers.</span></span><span class="sig-name descname"><span class="pre">factorial</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.integers.factorial" title="Link to this definition">¶</a></dt>
+<dd><p>Integer factorial of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.integers.gcd">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.integers.</span></span><span class="sig-name descname"><span class="pre">gcd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.integers.gcd" title="Link to this definition">¶</a></dt>
+<dd><p>Greatest common factor of x and y.</p>
+</dd></dl>
+
+<p id="module-nuthatch.rings.rationals">RATIONALS</p>
+<p>Base class for QQ.</p>
+<p>AUTHORS:
+- Benjamin Antieau (2024).</p>
+<dl class="py data">
+<dt class="sig sig-object py" id="nuthatch.rings.rationals.QQ">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.rationals.</span></span><span class="sig-name descname"><span class="pre">QQ</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">The</span> <span class="pre">ring</span> <span class="pre">of</span> <span class="pre">Rational</span> <span class="pre">numbers</span> <span class="pre">(via</span> <span class="pre">flint.fmpq).</span></em><a class="headerlink" href="#nuthatch.rings.rationals.QQ" title="Link to this definition">¶</a></dt>
+<dd><p>Select functions of QQ’s based on flint.fmpq attributes. (<a class="reference external" href="https://fredrikj.net/python-flint/fmpq.html">https://fredrikj.net/python-flint/fmpq.html</a>)</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.rationals.Rational">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.rationals.</span></span><span class="sig-name descname"><span class="pre">Rational</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.rationals.Rational" title="Link to this definition">¶</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="nuthatch.rings.rationals.Rational.data_class">
+<span class="sig-name descname"><span class="pre">data_class</span></span><a class="headerlink" href="#nuthatch.rings.rationals.Rational.data_class" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fmpq</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.rationals.RationalRing">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.rationals.</span></span><span class="sig-name descname"><span class="pre">RationalRing</span></span><a class="headerlink" href="#nuthatch.rings.rationals.RationalRing" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.rationals.p">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.rationals.</span></span><span class="sig-name descname"><span class="pre">p</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.rationals.p" title="Link to this definition">¶</a></dt>
+<dd><p>Returns numerator of x as ZZ.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.rationals.q">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.rationals.</span></span><span class="sig-name descname"><span class="pre">q</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.rationals.q" title="Link to this definition">¶</a></dt>
+<dd><p>Returns denominator of x as ZZ.</p>
+</dd></dl>
+
+<p id="module-nuthatch.rings.reals">REALS</p>
+<p>Base class for RR.</p>
+<dl class="py data">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.RR_py">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.reals.</span></span><span class="sig-name descname"><span class="pre">RR_py</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">The</span> <span class="pre">ring</span> <span class="pre">of</span> <span class="pre">real</span> <span class="pre">numbers</span> <span class="pre">(via</span> <span class="pre">flint.arb).</span></em><a class="headerlink" href="#nuthatch.rings.reals.RR_py" title="Link to this definition">¶</a></dt>
+<dd><p>Select functions of RR’s based on flint.arb attributes. (<a class="reference external" href="https://fredrikj.net/python-flint/arb.html">https://fredrikj.net/python-flint/arb.html</a>)</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.RealNumber">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.reals.</span></span><span class="sig-name descname"><span class="pre">RealNumber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ring</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.reals.RealNumber" title="Link to this definition">¶</a></dt>
+<dd><p>Base class for real numbers, built on AbstractRingElement.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.RealNumber.data_class">
+<span class="sig-name descname"><span class="pre">data_class</span></span><a class="headerlink" href="#nuthatch.rings.reals.RealNumber.data_class" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">arb</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.RealNumberPython">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.reals.</span></span><span class="sig-name descname"><span class="pre">RealNumberPython</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ring</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.reals.RealNumberPython" title="Link to this definition">¶</a></dt>
+<dd><p>Base class for real numbers, built on AbstractRingElement. Interfaces with python.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.RealNumberPython.data_class">
+<span class="sig-name descname"><span class="pre">data_class</span></span><a class="headerlink" href="#nuthatch.rings.reals.RealNumberPython.data_class" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.RealRing">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.reals.</span></span><span class="sig-name descname"><span class="pre">RealRing</span></span><a class="headerlink" href="#nuthatch.rings.reals.RealRing" title="Link to this definition">¶</a></dt>
+<dd><p>Base class for real rings, built on AbstractRing.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.RealRingPython">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.reals.</span></span><span class="sig-name descname"><span class="pre">RealRingPython</span></span><a class="headerlink" href="#nuthatch.rings.reals.RealRingPython" title="Link to this definition">¶</a></dt>
+<dd><p>Base class for real rings, built on AbstractRing. Interfaces with python.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.abs_lower">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.reals.</span></span><span class="sig-name descname"><span class="pre">abs_lower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.reals.abs_lower" title="Link to this definition">¶</a></dt>
+<dd><p>The absolute value of the lower bound of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.abs_upper">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.reals.</span></span><span class="sig-name descname"><span class="pre">abs_upper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.reals.abs_upper" title="Link to this definition">¶</a></dt>
+<dd><p>The absolute value of the upper bound of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.acos">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.reals.</span></span><span class="sig-name descname"><span class="pre">acos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.reals.acos" title="Link to this definition">¶</a></dt>
+<dd><p>Inverse cosine of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.asin">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.reals.</span></span><span class="sig-name descname"><span class="pre">asin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.reals.asin" title="Link to this definition">¶</a></dt>
+<dd><p>Inverse sine of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.atan">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.reals.</span></span><span class="sig-name descname"><span class="pre">atan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.reals.atan" title="Link to this definition">¶</a></dt>
+<dd><p>Inverse tanget of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.cos">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.reals.</span></span><span class="sig-name descname"><span class="pre">cos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.reals.cos" title="Link to this definition">¶</a></dt>
+<dd><p>Cosine of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.cot">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.reals.</span></span><span class="sig-name descname"><span class="pre">cot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.reals.cot" title="Link to this definition">¶</a></dt>
+<dd><p>Cotanget of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.csc">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.reals.</span></span><span class="sig-name descname"><span class="pre">csc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.reals.csc" title="Link to this definition">¶</a></dt>
+<dd><p>Cosecant of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.exp">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.reals.</span></span><span class="sig-name descname"><span class="pre">exp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.reals.exp" title="Link to this definition">¶</a></dt>
+<dd><p>The constat e raised to the power of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.factorial">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.reals.</span></span><span class="sig-name descname"><span class="pre">factorial</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.reals.factorial" title="Link to this definition">¶</a></dt>
+<dd><p>Factorial, using the gamma function of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.log">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.reals.</span></span><span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.reals.log" title="Link to this definition">¶</a></dt>
+<dd><p>Natural logarithm of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.root">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.reals.</span></span><span class="sig-name descname"><span class="pre">root</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.reals.root" title="Link to this definition">¶</a></dt>
+<dd><p>nth root of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.sec">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.reals.</span></span><span class="sig-name descname"><span class="pre">sec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.reals.sec" title="Link to this definition">¶</a></dt>
+<dd><p>Secant of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.sin">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.reals.</span></span><span class="sig-name descname"><span class="pre">sin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.reals.sin" title="Link to this definition">¶</a></dt>
+<dd><p>Sine of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.sqrt">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.reals.</span></span><span class="sig-name descname"><span class="pre">sqrt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.reals.sqrt" title="Link to this definition">¶</a></dt>
+<dd><p>Square root of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.reals.tan">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.reals.</span></span><span class="sig-name descname"><span class="pre">tan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.reals.tan" title="Link to this definition">¶</a></dt>
+<dd><p>Tangent of x.</p>
+</dd></dl>
+
+<p id="module-nuthatch.rings.complexes">COMPLEXES</p>
+<p>Base class for CC.</p>
+<dl class="py data">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.CC">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">CC</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">The</span> <span class="pre">ring</span> <span class="pre">of</span> <span class="pre">complex</span> <span class="pre">numbers</span> <span class="pre">(via</span> <span class="pre">flint.acb).</span></em><a class="headerlink" href="#nuthatch.rings.complexes.CC" title="Link to this definition">¶</a></dt>
+<dd><p>Select functions of CC’s based on flint.acb attributes. (<a class="reference external" href="https://fredrikj.net/python-flint/acb.html">https://fredrikj.net/python-flint/acb.html</a>)</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.ComplexNumber">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">ComplexNumber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.complexes.ComplexNumber" title="Link to this definition">¶</a></dt>
+<dd><p>Base class for complex numbers, built on AbstractRingElement.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.ComplexNumber.data_class">
+<span class="sig-name descname"><span class="pre">data_class</span></span><a class="headerlink" href="#nuthatch.rings.complexes.ComplexNumber.data_class" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">acb</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.ComplexRing">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">ComplexRing</span></span><a class="headerlink" href="#nuthatch.rings.complexes.ComplexRing" title="Link to this definition">¶</a></dt>
+<dd><p>Base class for complex rings, built on AbstractRing.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.abs_lower">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">abs_lower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.complexes.abs_lower" title="Link to this definition">¶</a></dt>
+<dd><p>The absolute value of the lower bound of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.abs_upper">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">abs_upper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.complexes.abs_upper" title="Link to this definition">¶</a></dt>
+<dd><p>The absolute value of the upper bound of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.acos">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">acos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.complexes.acos" title="Link to this definition">¶</a></dt>
+<dd><p>Inverse cosine of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.acot">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">acot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.complexes.acot" title="Link to this definition">¶</a></dt>
+<dd><p>Inverse cotanget of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.acsc">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">acsc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.complexes.acsc" title="Link to this definition">¶</a></dt>
+<dd><p>Inverse cosecant of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.asec">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">asec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.complexes.asec" title="Link to this definition">¶</a></dt>
+<dd><p>Inverse secant of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.asin">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">asin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.complexes.asin" title="Link to this definition">¶</a></dt>
+<dd><p>Inverse sine of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.atan">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">atan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.complexes.atan" title="Link to this definition">¶</a></dt>
+<dd><p>Inverse tanget of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.cos">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">cos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.complexes.cos" title="Link to this definition">¶</a></dt>
+<dd><p>Cosine of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.cot">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">cot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.complexes.cot" title="Link to this definition">¶</a></dt>
+<dd><p>Cotanget of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.csc">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">csc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.complexes.csc" title="Link to this definition">¶</a></dt>
+<dd><p>Cosecant of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.exp">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">exp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.complexes.exp" title="Link to this definition">¶</a></dt>
+<dd><p>The constat e raised to the power of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.imag">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">imag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.complexes.imag" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the imaginary component of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.log">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.complexes.log" title="Link to this definition">¶</a></dt>
+<dd><p>Natural logarithm of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.real">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">real</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.complexes.real" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the real component of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.root">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">root</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.complexes.root" title="Link to this definition">¶</a></dt>
+<dd><p>nth root of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.sec">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">sec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.complexes.sec" title="Link to this definition">¶</a></dt>
+<dd><p>Secant of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.sin">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">sin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.complexes.sin" title="Link to this definition">¶</a></dt>
+<dd><p>Sine of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.sqrt">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">sqrt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.complexes.sqrt" title="Link to this definition">¶</a></dt>
+<dd><p>Square root of x.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nuthatch.rings.complexes.tan">
+<span class="sig-prename descclassname"><span class="pre">nuthatch.rings.complexes.</span></span><span class="sig-name descname"><span class="pre">tan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.complexes.tan" title="Link to this definition">¶</a></dt>
+<dd><p>Tangent of x.</p>
+</dd></dl>
+
+</section>
+<section id="module-nuthatch.rings.polynomials">
+<span id="polynomials"></span><h1>Polynomials<a class="headerlink" href="#module-nuthatch.rings.polynomials" title="Link to this heading">¶</a></h1>
+<p>POLYNOMIALS</p>
+<p>Classes for generic polynomial rings.</p>
+<p>Currently, there are two supported exponent types: PackedMonomialData and
+SparseMonomialData.</p>
+<p>The former are packed into a Python <cite>int</cite>. The largest power supported is given
+by the module-level constant PACKING_BOUND.</p>
+<p>The latter are designed based on the <cite>ETuple</cite> class from <cite>SAGE</cite>. In particular,
+they are sparse. In a polynomial ring on x0, x1, x2, x3, a monomial
+x0*x2^3*x3^7 would be encoded as (0,1,2,3,3,7), where the even indices indicate
+the present variables and the odd indices indicate their powers. The empty
+tuple () represents the monomial of 1.</p>
+<p>AUTHORS:
+- Benjamin Antieau (2024): initial version.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.MonomialData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.polynomials.</span></span><span class="sig-name descname"><span class="pre">MonomialData</span></span><a class="headerlink" href="#nuthatch.rings.polynomials.MonomialData" title="Link to this definition">¶</a></dt>
+<dd><p>Abstract class for monomials.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.MonomialData.from_packed_integer">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_packed_integer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.MonomialData.from_packed_integer" title="Link to this definition">¶</a></dt>
+<dd><p>Construct from an integer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.MonomialData.from_sparse_tuple">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_sparse_tuple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.MonomialData.from_sparse_tuple" title="Link to this definition">¶</a></dt>
+<dd><p>Construct from a sparse tuple.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.MonomialData.from_tuple">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_tuple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.MonomialData.from_tuple" title="Link to this definition">¶</a></dt>
+<dd><p>Construct from a tuple.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.PackedMonomialData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.polynomials.</span></span><span class="sig-name descname"><span class="pre">PackedMonomialData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.PackedMonomialData" title="Link to this definition">¶</a></dt>
+<dd><p>A class for packing monomial data into a single integer.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.PackedMonomialData.degrees">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">degrees</span></span><a class="headerlink" href="#nuthatch.rings.polynomials.PackedMonomialData.degrees" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the sparse tuple representation of self.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.PackedMonomialData.from_packed_integer">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_packed_integer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.PackedMonomialData.from_packed_integer" title="Link to this definition">¶</a></dt>
+<dd><p>Construct from an integer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.PackedMonomialData.from_sparse_tuple">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_sparse_tuple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.PackedMonomialData.from_sparse_tuple" title="Link to this definition">¶</a></dt>
+<dd><p>Construct from a sparse tuple.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.PackedMonomialData.from_tuple">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_tuple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.PackedMonomialData.from_tuple" title="Link to this definition">¶</a></dt>
+<dd><p>Construct from a tuple.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.Polynomial">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.polynomials.</span></span><span class="sig-name descname"><span class="pre">Polynomial</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ring</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.Polynomial" title="Link to this definition">¶</a></dt>
+<dd><p>The ring of coefficients is <cite>self.base_ring</cite> while the ambient polynomial
+ring is <cite>self.ring</cite>.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.Polynomial.data_class">
+<span class="sig-name descname"><span class="pre">data_class</span></span><a class="headerlink" href="#nuthatch.rings.polynomials.Polynomial.data_class" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#nuthatch.rings.polynomials.PolynomialData" title="nuthatch.rings.polynomials.PolynomialData"><code class="xref py py-class docutils literal notranslate"><span class="pre">PolynomialData</span></code></a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.Polynomial.term_data">
+<span class="sig-name descname"><span class="pre">term_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.Polynomial.term_data" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the items of the underlying monomial dictionary.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.PolynomialData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.polynomials.</span></span><span class="sig-name descname"><span class="pre">PolynomialData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_ring</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monomial_dictionary</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.PolynomialData" title="Link to this definition">¶</a></dt>
+<dd><p>The underlying data class of polynomials.
+The <cite>data</cite> input should be a dictionary <cite>{m:c}</cite> where <cite>m</cite> is a <cite>MonomialData</cite>
+and <cite>c</cite> is an element of the data_class of the element_class of the <cite>base_ring</cite>.
+Each operation returns a PolynomialData class with no terms with
+coefficient equal to zero if the inputs have this property.</p>
+<p>In practice, the methods in this class work only under the assumption that
+the keys are of a fixed type of MonomialData. It is not designed so that
+the types can be mixed.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.PolynomialData.evaluate">
+<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.PolynomialData.evaluate" title="Link to this definition">¶</a></dt>
+<dd><p>Returns f(a_1,…,a_n) where arguments=[a_1,…,a_n].</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.PolynomialData.is_zero">
+<span class="sig-name descname"><span class="pre">is_zero</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.PolynomialData.is_zero" title="Link to this definition">¶</a></dt>
+<dd><p>Tests if self is zero.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.PolynomialData.term_data">
+<span class="sig-name descname"><span class="pre">term_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.PolynomialData.term_data" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the iterator over the items {m:c} in self.monomial_dictionary.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.PolynomialRing">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.polynomials.</span></span><span class="sig-name descname"><span class="pre">PolynomialRing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_ring</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ngens</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">packed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">special</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.PolynomialRing" title="Link to this definition">¶</a></dt>
+<dd><p>Class for generic (multivariable) polynomial rings.</p>
+<p>INPUT:
+- <cite>base_ring</cite>   – the FLINT ring from which the coefficients are taken
+- <cite>ngens</cite>       – the numberg of generators
+- <cite>prefix</cite>      – a string such as ‘x’ from which the generators x0,x1,… are named
+- <cite>weights</cite>     – a list of <cite>ngens</cite> weights; if <cite>None</cite>, these default to 1; they are Python integers</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.PolynomialRing.element_class">
+<span class="sig-name descname"><span class="pre">element_class</span></span><a class="headerlink" href="#nuthatch.rings.polynomials.PolynomialRing.element_class" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#nuthatch.rings.polynomials.Polynomial" title="nuthatch.rings.polynomials.Polynomial"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polynomial</span></code></a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.PolynomialRing.to_generic">
+<span class="sig-name descname"><span class="pre">to_generic</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.PolynomialRing.to_generic" title="Link to this definition">¶</a></dt>
+<dd><p>Creates a generic copy of a special polynomial</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.PolynomialRingMorphism">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.polynomials.</span></span><span class="sig-name descname"><span class="pre">PolynomialRingMorphism</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">domain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">codomain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coefficient_morphism</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_on_generators</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.PolynomialRingMorphism" title="Link to this definition">¶</a></dt>
+<dd><p>Homomorphisms of polynomial rings.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.SparseMonomialData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.polynomials.</span></span><span class="sig-name descname"><span class="pre">SparseMonomialData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.SparseMonomialData" title="Link to this definition">¶</a></dt>
+<dd><p>The class of a monomial in a PolynomialData.</p>
+<p>INPUT:
+- <cite>t</cite>     – a tuple of Python integers</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.SparseMonomialData.from_packed_integer">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_packed_integer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.SparseMonomialData.from_packed_integer" title="Link to this definition">¶</a></dt>
+<dd><p>Construct from an integer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.SparseMonomialData.from_sparse_tuple">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_sparse_tuple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.SparseMonomialData.from_sparse_tuple" title="Link to this definition">¶</a></dt>
+<dd><p>Construct from a sparse tuple.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.SparseMonomialData.from_tuple">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_tuple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.SparseMonomialData.from_tuple" title="Link to this definition">¶</a></dt>
+<dd><p>Construct from a tuple.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.SpecialPolynomial">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.polynomials.</span></span><span class="sig-name descname"><span class="pre">SpecialPolynomial</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ring</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.SpecialPolynomial" title="Link to this definition">¶</a></dt>
+<dd><p>The ring of coefficients is <cite>self.base_ring</cite> while the ambient polynomial
+ring is <cite>self.ring</cite>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.polynomials.SpecialPolynomial.term_data">
+<span class="sig-name descname"><span class="pre">term_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.polynomials.SpecialPolynomial.term_data" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the items of the underlying monomial dictionary.</p>
+</dd></dl>
+
+</dd></dl>
+
+<p id="module-nuthatch.rings.morphisms">MORPHISMS</p>
+<p>Base classes for morphisms of commutative rings.</p>
+<p>AUTHORS:
+- Benjamin Antieau (2024).</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.morphisms.AbstractRingMorphism">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.morphisms.</span></span><span class="sig-name descname"><span class="pre">AbstractRingMorphism</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">codomain</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.morphisms.AbstractRingMorphism" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.morphisms.IdentityRingMorphism">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.morphisms.</span></span><span class="sig-name descname"><span class="pre">IdentityRingMorphism</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ring</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.morphisms.IdentityRingMorphism" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-nuthatch.rings.series">
+<span id="series"></span><h1>Series<a class="headerlink" href="#module-nuthatch.rings.series" title="Link to this heading">¶</a></h1>
+<p>SERIES</p>
+<p>This is a module for absolutely capped precision power series in multiple variables with arbitrary
+positive integer weights.</p>
+<p>To model k[[x_1,…,x_n]] we include it into k[y_1,…,y_n][[T]] x_i maps to y_i*T^w_i
+where w_i is the weight of x_i. Under this inclusion, the power series ring is closed under all
+arithmetic operations in the ambient ring.</p>
+<dl class="simple">
+<dt>Exposed classes:</dt><dd><ul class="simple">
+<li><p>PowerSeriesRing,</p></li>
+<li><p>PowerSeriesRingHomomorphism, and</p></li>
+<li><p>Series.</p></li>
+</ul>
+</dd>
+</dl>
+<p>AUTHORS:
+- Benjamin Antieau (2024): initial version.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.series.PowerSeriesRing">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.series.</span></span><span class="sig-name descname"><span class="pre">PowerSeriesRing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_ring</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ngens</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision_cap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.series.PowerSeriesRing" title="Link to this definition">¶</a></dt>
+<dd><p>Weighted power series ring.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nuthatch.rings.series.PowerSeriesRing.element_class">
+<span class="sig-name descname"><span class="pre">element_class</span></span><a class="headerlink" href="#nuthatch.rings.series.PowerSeriesRing.element_class" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#nuthatch.rings.series.Series" title="nuthatch.rings.series.Series"><code class="xref py py-class docutils literal notranslate"><span class="pre">Series</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.series.PowerSeriesRingMorphism">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.series.</span></span><span class="sig-name descname"><span class="pre">PowerSeriesRingMorphism</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">domain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">codomain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coefficient_morphism</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_on_generators</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.series.PowerSeriesRingMorphism" title="Link to this definition">¶</a></dt>
+<dd><p>Homomorphisms of weighted power series ring.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.series.Series">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.series.</span></span><span class="sig-name descname"><span class="pre">Series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ring</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.series.Series" title="Link to this definition">¶</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="nuthatch.rings.series.Series.data_class">
+<span class="sig-name descname"><span class="pre">data_class</span></span><a class="headerlink" href="#nuthatch.rings.series.Series.data_class" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#nuthatch.rings.series.SeriesData" title="nuthatch.rings.series.SeriesData"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeriesData</span></code></a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.series.Series.term_data">
+<span class="sig-name descname"><span class="pre">term_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.series.Series.term_data" title="Link to this definition">¶</a></dt>
+<dd><p>An iterator returning the terms of the series, packaged as tuples (m,c)
+where m is a MonomialData and c is an element of the base_ring.</p>
+<p>If a and b are provided, return only those terms of total degree
+between a and b.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nuthatch.rings.series.SeriesData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nuthatch.rings.series.</span></span><span class="sig-name descname"><span class="pre">SeriesData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_ring</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">term_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.series.SeriesData" title="Link to this definition">¶</a></dt>
+<dd><p>Data class for elements of weighted power series ring.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.series.SeriesData.degree">
+<span class="sig-name descname"><span class="pre">degree</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.series.SeriesData.degree" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.series.SeriesData.filtration_weight">
+<span class="sig-name descname"><span class="pre">filtration_weight</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.series.SeriesData.filtration_weight" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.series.SeriesData.inverse">
+<span class="sig-name descname"><span class="pre">inverse</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.series.SeriesData.inverse" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.series.SeriesData.is_generator">
+<span class="sig-name descname"><span class="pre">is_generator</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.series.SeriesData.is_generator" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.series.SeriesData.is_homogeneous">
+<span class="sig-name descname"><span class="pre">is_homogeneous</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.series.SeriesData.is_homogeneous" title="Link to this definition">¶</a></dt>
+<dd><p>Constants and zero count as homogeneous.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.series.SeriesData.is_unit">
+<span class="sig-name descname"><span class="pre">is_unit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.series.SeriesData.is_unit" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.series.SeriesData.monomial_coefficient">
+<span class="sig-name descname"><span class="pre">monomial_coefficient</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.series.SeriesData.monomial_coefficient" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the coefficient of a given monomial.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nuthatch.rings.series.SeriesData.monomials">
+<span class="sig-name descname"><span class="pre">monomials</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nuthatch.rings.series.SeriesData.monomials" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the monomials of self as elements of the power series ring.</p>
+</dd></dl>
+
+</dd></dl>
+
+<p>Nuthatch Constants
+.. automodule:: nuthatch.constants</p>
+<blockquote>
+<div><dl class="field-list simple">
+<dt class="field-odd">members<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p></dd>
+<dt class="field-even">undoc-members<span class="colon">:</span></dt>
+<dd class="field-even"><p></p></dd>
+</dl>
+</div></blockquote>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">nuthatch</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Benjamin Antieau.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/usage.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
