@@ -158,8 +158,23 @@ class TestMatrix:
         assert a * a == b
         assert a + a == c
 
+    def test_call(self):
+        """Tests __call__."""
+        a = Matrix(base_ring=RR, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        b = Matrix(base_ring=RR, entries=[[5]])
+        c = Matrix(base_ring=RR, entries=[[3], [6], [9]])
+        d = Matrix(base_ring=RR, entries=[[4, 5]])
+        a_py = Matrix(base_ring=RR_py, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        b_py = Matrix(base_ring=RR_py, entries=[[5]])
+        c_py = Matrix(base_ring=RR_py, entries=[[3], [6], [9]])
+        d_py = Matrix(base_ring=RR_py, entries=[[4, 5]])
+        assert a(1,2) == RR(6)
+        assert b(0,0) == RR(5)
+        assert a_py(1,2) == RR_py(6)
+        assert b_py(0,0) == RR_py(5)
+
     def test_index(self):
-        """Tests modified __get_index__."""
+        """Tests __getitem__."""
         a = Matrix(base_ring=RR, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
         b = Matrix(base_ring=RR, entries=[[5]])
         c = Matrix(base_ring=RR, entries=[[3], [6], [9]])
@@ -202,6 +217,7 @@ class TestMatrix:
         assert a_py.transpose() == b_py
         assert a.T() == b
 
+    @pytest.mark.slow
     def test_np_construction(self):
         """Tests numpy construction for RR_py and ZZ_py."""
         a = Matrix(base_ring=ZZ_py, entries=[[1, 2], [3, 4]])
@@ -263,6 +279,7 @@ class TestGenericMatrices:
         a = Matrix(base_ring=PolynomialRing, ncols=2, nrows=2, entries=[[f, f], [f, f]], data=_MatrixGenericData(base_ring=PolynomialRing, ncols=2, nrows=2, entries=[[f, f], [f, f]]))
         assert a + a - a == a
 
+    @pytest.mark.slow
     def test_straussen_mult(self):
         """Tests __mul__ (strassen alogorithm) of a generic ZZ matrix."""
 
@@ -341,7 +358,6 @@ class TestGenericMatrices:
         """Tests generate fuinction, which creates a matrix of size (r, c) with a specific entry."""
         f = self.r({(1, 1, 2, 1): RR(2), (0, 4): RR(9)})
 
-    
     def test_random(self):
         """Tests random matrix generation function."""
         f = random(RR, 10, 5, 5, 1, PolynomialRing, 3)

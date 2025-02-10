@@ -307,6 +307,12 @@ class _MatrixGenericData:
             return self.base_ring == other.base_ring
         return self.entries == other.entries
 
+    def __call__(self,i,j):
+        """
+        Returns the entry in the jth column of the ith row. Both entries are indexed to begin at 0.
+        """
+        return self.entries[i][j]
+
     def __getitem__(self, args):
         r, c = args
         entries = self.entries
@@ -351,7 +357,7 @@ class Matrix:
     Base class for matrices of numbers or polynomials.
     Numerical matrices are built off of flint mat objects
     while generic (polynomial) matrices use the 
-    _GenericMatrixData format.
+    _MatrixGenericData format.
     """
     def __init__(
         self,
@@ -408,8 +414,6 @@ class Matrix:
                 self.data = np.ndarray([self.nrows, self.ncols])
             elif self.base_ring == RR_py:
                 self.data = np.ndarray([self.nrows, self.ncols])
-
-
             else:
                 self.data = _MatrixGenericData(
                     base_ring=self.base_ring,
@@ -596,6 +600,11 @@ class Matrix:
             return self.data.all() == other.data.all()
         return self.data == other.data
 
+    def __call__(self,i,j): 
+        if self._is_generic:
+            return self.base_ring(self.data(i,j))
+        else:
+            return self.base_ring(self.data[i,j])
 
     def __getitem__(self, args):
         if not isinstance(args, tuple):
