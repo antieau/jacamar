@@ -86,6 +86,7 @@ class _MatrixGenericData:
         """Returns size of a matrix as a tuple (rows, cols)."""
         return (self.nrows, self.ncols)
 
+
     def __add__(self, other):
         if self.nrows != other.nrows or self.ncols != other.ncols:
             raise ValueError(
@@ -197,7 +198,7 @@ class _MatrixGenericData:
                     entries=C
                 )
             
-            # Set up paralleization
+            # Set up parallelization
             mid = self.nrows // 2
             A11 = self[:mid, :mid]
             A12 = self[:mid, mid:]
@@ -307,40 +308,54 @@ class _MatrixGenericData:
             return self.base_ring == other.base_ring
         return self.entries == other.entries
 
-    def __call__(self,i,j):
+    def __call__(self, other):
         """
-        Returns the entry in the jth column of the ith row. Both entries are indexed to begin at 0.
+        RESERVED for eventual evaluation of matrices on vectors.
         """
-        return self.entries[i][j]
+        raise NotImplementedError
 
     def __getitem__(self, args):
-        r, c = args
-        entries = self.entries
-        new_entries = entries[r]
-        new_data = []
+        """
+        If i=args[0] and j=args[1], returns the jth entry of the ith row.
+        """
+        for idx in args:
+            if isinstance(idx,slice):
+                # Parse with submatrix.
+                r, c = args
+                entries = self.entries
+                new_entries = entries[r]
+                new_data = []
 
-        if not isinstance(new_entries[0], list):
-            new_data = [new_entries[c]]
-            if not isinstance(new_data[0], list):
-                new_data = [new_data]
-        else:
-            for i in new_entries:
-                if not isinstance(i[c], list):
-                    new_data.append([i[c]])
+                if not isinstance(new_entries[0], list):
+                    new_data = [new_entries[c]]
+                    if not isinstance(new_data[0], list):
+                        new_data = [new_data]
                 else:
-                    new_data.append(i[c])
+                    for i in new_entries:
+                        if not isinstance(i[c], list):
+                            new_data.append([i[c]])
+                        else:
+                            new_data.append(i[c])
 
-        ncols = len(new_data[0])
-        nrows = len(new_data)
-        if nrows == 1 and ncols == 1:
-            return entries[0][0]
-        
-        return self.__class__(
-            base_ring=self.base_ring,
-            nrows=nrows,
-            ncols=ncols,
-            entries=new_data,
-        )
+                ncols = len(new_data[0])
+                nrows = len(new_data)
+                if nrows == 1 and ncols == 1:
+                    return entries[0][0]
+                
+                return self.__class__(
+                    base_ring=self.base_ring,
+                    nrows=nrows,
+                    ncols=ncols,
+                    entries=new_data,
+                )
+
+        return self.entries[args[0]][args[1]]
+
+    def __setitem__(self, args, val):
+        """
+        If i=args[0] and j=args[1], sets the jth entry of the ith row to be val.
+        """
+        self.entries[args[0]][args[1]] = val
 
 
 
@@ -391,7 +406,6 @@ class Matrix:
                     self.nrows = data.shape[0]
                     self.ncols = data.shape[1]
                 else:
-
                     self.nrows = data.nrows()
                     self.ncols = data.ncols()
         # Else, if the rows or columns are zero, construct an empty matrix of
@@ -523,6 +537,11 @@ class Matrix:
             return self.base_ring(self.data.det())
         return self.data.det()
 
+    def size(self):
+        """Returns size of a matrix as a tuple (rows, cols)."""
+        return (self.nrows, self.ncols)
+
+
     def T(self):
         """Alias for the transpose() method."""
         return self.transpose()
@@ -533,10 +552,6 @@ class Matrix:
                       nrows=self.ncols,
                       ncols=self.nrows,
                       data=self.data.transpose())
-
-    def size(self):
-        """Returns size of a matrix as a tuple (rows, cols)."""
-        return (self.nrows, self.ncols)
 
     def __add__(self, other):
         """Returns self + other with base ring that of other."""
@@ -600,67 +615,71 @@ class Matrix:
             return self.data.all() == other.data.all()
         return self.data == other.data
 
-    def __call__(self,i,j): 
-        if self._is_generic:
-            return self.base_ring(self.data(i,j))
-        else:
-            return self.base_ring(self.data[i,j])
+    def __call__(self,i,j):
+        """
+        RESERVED for future use in evaluation on vectors.
+        """
+        raise NotImplementedError
 
-    def __getitem__(self, args):
-        if not isinstance(args, tuple):
-            return ValueError (
-                'The matrix slice method takes 2 args [rows, columns], but 1 were given.'
-            )
-
-        elif len(args) == 2:
-            r, c = args
-            if not self._is_generic:
-                r, c = args
-                entries = self.data.tolist()
-            else:
-                entries = self.data.entries
-            new_entries = entries[r]
-            new_data = []
-
-            if not isinstance(new_entries[0], list):
-                new_data = [new_entries[c]]
-                if not isinstance(new_data[0], list):
-                    new_data = [new_data]
-            else:
-                for i in new_entries:
-                    if not isinstance(i[c], list):
-                        new_data.append([i[c]])
-                    else:
-                        new_data.append(i[c])
-
-            ncols = len(new_data[0])
-            nrows = len(new_data)
-            if not self._is_generic:
-                r, c = args
-                entries = self.data.tolist()
-                return self.__class__(
-                base_ring=self.base_ring,
-                nrows=nrows,
-                ncols=ncols,
-                entries=new_data,
-                )
-
-            return self.__class__(
-                base_ring=self.base_ring,
-                nrows=nrows,
-                ncols=ncols,
-                entries=new_data,
-                data=_MatrixGenericData(
-                    base_ring=self.base_ring,
-                    nrows=nrows,
-                    ncols=ncols,
-                    entries=new_data,
+    def __getitem__(self,args):
+        for idx in args:
+            if isinstance(idx,slice):
+                if not isinstance(args, tuple):
+                    return ValueError (
+                        'The matrix slice method takes 2 args [rows, columns], but 1 were given.'
                     )
-                )
 
-        return ValueError (
-            f'The matrix slice method takes 2 args [rows, columns], but {len(args)} were given.'
-        )
+                elif len(args) == 2:
+                    r, c = args
+                    if not self._is_generic:
+                        r, c = args
+                        entries = self.data.tolist()
+                    else:
+                        entries = self.data.entries
+                    new_entries = entries[r]
+                    new_data = []
+
+                    if not isinstance(new_entries[0], list):
+                        new_data = [new_entries[c]]
+                        if not isinstance(new_data[0], list):
+                            new_data = [new_data]
+                    else:
+                        for i in new_entries:
+                            if not isinstance(i[c], list):
+                                new_data.append([i[c]])
+                            else:
+                                new_data.append(i[c])
+
+                    ncols = len(new_data[0])
+                    nrows = len(new_data)
+                    if not self._is_generic:
+                        r, c = args
+                        entries = self.data.tolist()
+                        return self.__class__(
+                        base_ring=self.base_ring,
+                        nrows=nrows,
+                        ncols=ncols,
+                        entries=new_data,
+                        )
+
+                    return self.__class__(
+                        base_ring=self.base_ring,
+                        nrows=nrows,
+                        ncols=ncols,
+                        entries=new_data,
+                        data=_MatrixGenericData(
+                            base_ring=self.base_ring,
+                            nrows=nrows,
+                            ncols=ncols,
+                            entries=new_data,
+                            )
+                        )
+
+        return self.base_ring(self.data[args])
+
+    def __setitem__(self,args,val):
+        self.data[args]=val
+
 
 
 # Functions for matricies

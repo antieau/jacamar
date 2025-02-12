@@ -40,6 +40,7 @@ from nuthatch.rings.elements import *
 from nuthatch.rings.rings import *
 from nuthatch.rings.morphisms import *
 from nuthatch.rings.integers import *
+from nuthatch.rings.intmod import *
 from nuthatch.rings.polynomials import *
 from nuthatch.rings.rationals import *
 from nuthatch.rings.series import *
