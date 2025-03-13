@@ -60,7 +60,7 @@ class AbstractRingElement:
         """Returns self ** n with type that of self."""
         if n == n.ring.zero:
             return self.ring.one
-        return self.__class__(self.ring, self.data**n.data)
+        return self.__class__(self.ring, self.data ** n.data)
 
     # Comparison functions.
     def __abs__(self):

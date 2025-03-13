@@ -532,7 +532,7 @@ class PolynomialRing(AbstractRing):
                 self.weights = weights
 
             self.gens = []
-            ctx = self._context_class(self.ngens, flint.Ordering.lex, [f'{self._prefix}{x}' for x in range(self.ngens)])
+            ctx = self._context_class.get([f'{self._prefix}{x}' for x in range(self.ngens)], flint.Ordering.lex)
             self.ctx = ctx
             for i in range(self.ngens):
                 self.gens.append(
