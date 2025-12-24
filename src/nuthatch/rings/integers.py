@@ -25,6 +25,17 @@ class Integer(AbstractRingElement):
     def is_prime(self):
         return bool(self.data.is_prime())
 
+    def is_unit(self):
+        return self.data == flint.fmpz(1) or self.data == flint.fmpz(-1)
+
+    def inverse(self):
+        if self.data == flint.fmpz(1):
+            return self
+        elif self.data == flint.fmpz(-1):
+            return self
+        else:
+            raise ValueError("Is not invertible.")
+
     def __str__(self):
         return self.data.__str__()
 
@@ -41,6 +52,9 @@ class IntegerPython(AbstractRingElement):
             ring,
             n,
         )
+
+    def is_unit(self):
+        return self.data == -1 or self.data == 1
 
     def __str__(self):
         return self.data.__str__()

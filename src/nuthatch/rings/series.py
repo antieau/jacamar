@@ -39,7 +39,7 @@ class SeriesData:
 
     def __init__(self, base_ring, term_list, precision):
         """
-        The argument term_list is a list [(N,coefficient)] representing g*T^N
+        The argument term_list is an ordered list [(N,coefficient)] representing g*T^N
         where N is a Python integer and g is a PolynomialData of degree N.
         """
         self.base_ring = base_ring
@@ -96,40 +96,6 @@ class SeriesData:
             return False
         else:
             return True
-
-    def inverse(self):
-        newton_approximation_inverse = self.__class__(
-            self.parent(),
-            [
-                (
-                    0,
-                    self.parent()._polynomial_ring(
-                        self.term_list[0][1].constant_coefficient().inverse()
-                    ),
-                )
-            ],
-        )
-        N = 1
-        while N < self.precision:
-            N = 2 * N
-            newton_approximation_inverse = (
-                newton_approximation_inverse
-                + newton_approximation_inverse
-                * (self.parent().one() - self * newton_approximation_inverse)
-            )
-        return newton_approximation_inverse
-
-    def __truediv__(self, other):
-        """
-        Divide self/other by an invertible power series using Newton's method.
-
-        TODO: rewrite to work in the noncommutative case.
-        """
-        if not other.is_unit():
-            raise ValueError("Constant term of denominator must be a unit.")
-        if self == self.parent().zero():
-            return self.parent().zero()
-        return self * other.inverse()
 
     def __rmul__(self, other):
         # TODO: this could result in zero terms.
@@ -200,12 +166,6 @@ class SeriesData:
                 return False
         return True
 
-    def filtration_weight(self):
-        for deg, coeff in self.term_list:
-            if coeff != self.parent()._polynomial_ring.zero():
-                return deg
-        return self.parent()._precision
-
     def degree(self):
         degree = -1
         for deg, coeff in self.term_list:
@@ -213,95 +173,6 @@ class SeriesData:
                 degree = deg
         return degree
 
-    def _underlying_polynomial(self):
-        return self.parent()._flatten(self)
-
-    def monomials(self):
-        """
-        Returns the monomials of self as elements of the power series ring.
-        """
-        monomial_list = []
-        for deg, coeff in self.term_list:
-            for mnml in coeff.monomials():
-                if (
-                    coeff.monomial_coefficient(mnml)
-                    != self.parent()._polynomial_ring.zero()
-                ):
-                    monomial_list.append(
-                        self.parent()._element_class(
-                            self.parent(),
-                            [(deg, coeff.monomial_coefficient(mnml) * mnml)],
-                        )
-                    )
-        return monomial_list
-
-    def monomial_coefficient(self):
-        """
-        Returns the coefficient of a given monomial.
-        """
-
-    def __call__(self, other_list):
-        """
-        Evaluates self at a list of inputs.
-        """
-        if len(other_list) != self.parent()._ngens:
-            raise TypeError("Incorrect number of input variables.")
-        other_parent = other_list[0].parent()
-        if self.parent().base_ring != other_parent.base_ring:
-            raise ValueError("Coefficient rings must be the same.")
-        out = other_parent.zero()
-        for _, coeff in self.term_list:
-            for m in coeff.monomials():
-                new = other_parent._element_class(
-                    other_parent,
-                    [(0, other_parent._polynomial_ring(coeff.monomial_coefficient(m)))],
-                )
-                degs = m.degrees()
-                for x in range(len(degs)):
-                    new *= other_list[x] ** degs[x]
-                out += new
-        return out
-
-    def _homogeneous_part(self, weight):
-        """
-        Returns the pure weight part of a power series as a power series.
-        """
-        for deg, coeff in self.term_list:
-            if deg == weight:
-                return self.__class__(self._parent, [(deg, coeff)])
-            elif deg > weight:
-                return self.parent().zero()
-
-    def __getitem__(self, degs):
-        """
-        Takes a tuple and returns the coefficient of the corresponding monomial.
-        """
-        assert len(degs) == len(self.parent()._weights)
-        target_weight = sum(a * b for a, b in zip(degs, self.parent()._weights))
-        for deg, coeff in self.term_list:
-            if deg == target_weight:
-                return coeff[degs]
-            elif deg > target_weight:
-                break
-        return self._parent.base_ring.zero()
-
-    def is_generator(self):
-        for g in self._parent.gens():
-            if self == g:
-                return True
-        return False
-
-    def _generator_terms(self):
-        l = []
-        for g in self._parent.gens():
-            for _, coeff in g.term_list:
-                if self[coeff.degrees()] != self._parent.base_ring.zero():
-                    l.append(g)
-        return l
-
-    def _eliminates_generator(self, g):
-        assert g._parent == self._parent
-        assert g.is_generator()
 
 
 class Series(AbstractRingElement):
@@ -328,6 +199,32 @@ class Series(AbstractRingElement):
             if a <= n <= b:
                 iterators.append(g.term_data())
         return itertools.chain.from_iterable(iterators)
+
+    def constant_coefficient(self):
+        if self.data.term_list[0][0] != 0:
+            return self.base_ring.zero
+        else:
+            for m,c in self.data.term_list[0][1].monomial_dictionary.items():
+                return self.base_ring(c)
+
+    def is_unit(self):
+        if self.data.term_list[0][0] == 0:
+            for m,c in self.data.term_list[0][1].monomial_dictionary.items():
+                if self.base_ring(c).is_unit():
+                    return True
+        return False
+
+    def inverse(self):
+        newton_approximation_inverse = self.ring(self.constant_coefficient())
+        N = 1
+        while N < self.ring.precision_cap:
+            N = 2 * N
+            newton_approximation_inverse = (
+                newton_approximation_inverse
+                + newton_approximation_inverse
+                * (self.ring.one - self * newton_approximation_inverse)
+            )
+        return newton_approximation_inverse
 
     def __rmul__(self, other):
         return other.__class__(other.ring, self.data * other.data)

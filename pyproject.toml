@@ -11,7 +11,7 @@ classifiers = ["License :: OSI Approved :: GNU General Public License v3 or late
 dynamic = ["version", "description"]
 dependencies = [
     "cython >=3.0.10",
-    "python-flint >=0.7.0a4",
+    "python-flint >=0.8.0",
     "ray >=2.34.0",
     "setuptools >=72.1.0",
 ]
