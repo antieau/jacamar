@@ -59,6 +59,23 @@ class TestSeriesData:
         assert not self.f + self.g != self.h
         assert self.f != self.h
 
+    def test_mul(self):
+        """Tests __mul__."""
+        assert self.f*self.g == SeriesData(ZZ,[(13,self.a*self.b)], 20)
+        assert self.g*self.g*self.g == SeriesData(ZZ, [], 20)
+
+        x = PolynomialData(ZZ, {SparseMonomialData((0,1)): ZZ(1).data})
+        y = PolynomialData(ZZ, {SparseMonomialData((1,1)): ZZ(1).data})
+        w = SeriesData(ZZ, [(0, PolynomialData(ZZ, {SparseMonomialData(()): ZZ(1).data})), (1,x)], 20)
+        z = SeriesData(ZZ, [(0, PolynomialData(ZZ, {SparseMonomialData(()): ZZ(1).data})), (1,y)], 20)
+        f = w+z
+        assert f**2 == SeriesData(
+            ZZ,
+            [(0,PolynomialData(ZZ, {SparseMonomialData(()): ZZ(4).data})),
+             (1,ZZ(4).data*(x+y)),  (2, x*x+ZZ(2).data*x*y+y*y)],
+            20,
+        )
+
 
 
 class TestSeries:
