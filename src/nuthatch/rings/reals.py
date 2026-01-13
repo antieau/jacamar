@@ -16,6 +16,15 @@ class RealNumber(AbstractRingElement):
 
     data_class = flint.arb  # type: ignore
 
+    def is_unit(self):
+        return self != self.ring.zero
+
+    def inverse(self):
+        if self.is_unit():
+            return self.ring.one/self
+        else:
+            raise ValueError("Is not invertible.")
+
     def __init__(self, ring, x=0):
         AbstractRingElement.__init__(self, ring, x)
 
@@ -48,6 +57,15 @@ class RealNumberPython(AbstractRingElement):
     """
 
     data_class = float
+
+    def is_unit(self):
+        return self != self.ring.zero
+
+    def inverse(self):
+        if self.is_unit():
+            return self.ring.one/self
+        else:
+            raise ValueError("Is not invertible.")
 
     def __init__(self, ring, x=0):
         AbstractRingElement.__init__(self, ring, self.data_class(x))
