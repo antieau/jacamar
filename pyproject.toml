@@ -13,7 +13,6 @@ dependencies = [
     "cython >=3.0.10",
     "numpy >=1.26.0",
     "python-flint >=0.8.0",
-    "ray >=2.53.0",
     "setuptools >=72.1.0",
 ]
 
