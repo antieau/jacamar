@@ -14,7 +14,6 @@ AUTHORS:
 
 import flint
 import numpy as np
-import ray
 
 from nuthatch.rings.integers import ZZ, ZZ_py
 from nuthatch.rings.reals import RR, RR_py
@@ -150,7 +149,7 @@ class _MatrixGenericData:
               and other.nrows % 2 == 0
               and self.size() == other.size()
               and self.size()[0] > MATRIX_SWITCH):
-            @ray.remote
+
             def strassen(A, B):
                 n = len(A.entries)
                 if n <= 2:  # Base case
@@ -210,23 +209,23 @@ class _MatrixGenericData:
             B22 = other[mid:, mid:]
             # Recursions (parallel)
             
-            futures = [
-                strassen.remote(A11, B12 - B22),
-                strassen.remote(A11 + A12, B22),
-                strassen.remote(A21 + A22, B11),
-                strassen.remote(A22, B21 - B11),
-                strassen.remote(A11 + A22, B11 + B22),
-                strassen.remote(A12 - A22, B21 + B22),
-                strassen.remote(A11 - A21, B11 + B12)
+            sub_strassen = [
+                strassen(A11, B12 - B22),
+                strassen(A11 + A12, B22),
+                strassen(A21 + A22, B11),
+                strassen(A22, B21 - B11),
+                strassen(A11 + A22, B11 + B22),
+                strassen(A12 - A22, B21 + B22),
+                strassen(A11 - A21, B11 + B12)
                 ]
             
-            P1 = futures[0]
-            P2 = futures[1]
-            P3 = futures[2]
-            P4 = futures[3]
-            P5 = futures[4]
-            P6 = futures[5]
-            P7 = futures[6]
+            P1 = sub_strassen[0]
+            P2 = sub_strassen[1]
+            P3 = sub_strassen[2]
+            P4 = sub_strassen[3]
+            P5 = sub_strassen[4]
+            P6 = sub_strassen[5]
+            P7 = sub_strassen[6]
 
             # Combine results to form C
             C11 = (P5 + P4 - P2 + P6).entries
@@ -682,7 +681,7 @@ class Matrix:
 
 
 
-# Functions for matricies
+# Functions for matrices
 
 def generate(value, nrows, ncols):
     """
