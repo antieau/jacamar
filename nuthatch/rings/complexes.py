@@ -9,6 +9,7 @@ from nuthatch.rings.elements import AbstractRingElement
 from nuthatch.rings.rings import AbstractRing
 from nuthatch.rings.reals import RR
 
+
 class ComplexNumber(AbstractRingElement):
     """
     Base class for complex numbers, built on AbstractRingElement.
@@ -72,7 +73,6 @@ class ComplexRing(AbstractRing):
 
 # Create a global version of the complex ring.
 CC = ComplexRing()
-
 
 
 """
@@ -202,6 +202,7 @@ def sqrt(x):
     Square root of x.
     """
     return x.ring(x.data.sqrt())
+
 
 def real(x):
     """

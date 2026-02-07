@@ -21,7 +21,7 @@ class RealNumber(AbstractRingElement):
 
     def inverse(self):
         if self.is_unit():
-            return self.ring.one/self
+            return self.ring.one / self
         else:
             raise ValueError("Is not invertible.")
 
@@ -42,14 +42,19 @@ class RealNumber(AbstractRingElement):
 
     def __repr__(self):
         return self.__str__()
-    
+
     def __eq__(self, other):
         if isinstance(other, RealNumber):
             if self.ring(self.data.abs_lower()) >= other.ring(other.data.abs_lower()):
-                return self.ring(self.data.abs_lower()) <= other.ring(other.data.abs_upper())
+                return self.ring(self.data.abs_lower()) <= other.ring(
+                    other.data.abs_upper()
+                )
             else:
-                return self.ring(self.data.abs_upper()) >= other.ring(other.data.abs_lower())
+                return self.ring(self.data.abs_upper()) >= other.ring(
+                    other.data.abs_lower()
+                )
         return self.data == other.data
+
 
 class RealNumberPython(AbstractRingElement):
     """
@@ -63,7 +68,7 @@ class RealNumberPython(AbstractRingElement):
 
     def inverse(self):
         if self.is_unit():
-            return self.ring.one/self
+            return self.ring.one / self
         else:
             raise ValueError("Is not invertible.")
 
@@ -120,7 +125,6 @@ class RealRingPython(AbstractRing):
 # Create a global version of the real ring.
 RR = RealRing()
 RR_py = RealRingPython()
-
 
 
 """

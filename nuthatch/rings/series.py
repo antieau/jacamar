@@ -174,7 +174,6 @@ class SeriesData:
         return degree
 
 
-
 class Series(AbstractRingElement):
     data_class = SeriesData
 
@@ -204,12 +203,12 @@ class Series(AbstractRingElement):
         if self.data.term_list[0][0] != 0:
             return self.base_ring.zero
         else:
-            for m,c in self.data.term_list[0][1].monomial_dictionary.items():
+            for m, c in self.data.term_list[0][1].monomial_dictionary.items():
                 return self.base_ring(c)
 
     def is_unit(self):
         if self.data.term_list[0][0] == 0:
-            for m,c in self.data.term_list[0][1].monomial_dictionary.items():
+            for m, c in self.data.term_list[0][1].monomial_dictionary.items():
                 if self.base_ring(c).is_unit():
                     return True
         return False

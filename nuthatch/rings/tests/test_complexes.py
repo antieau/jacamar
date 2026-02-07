@@ -7,9 +7,24 @@ Tests for the RealNumber and RealRing classes.
 import pytest
 import flint
 from nuthatch.rings.complexes import (
-    CC, sin, cos, tan, asin, imag, real,
-    acos, atan, csc, sec, cot, abs_lower,
-    abs_upper, exp, log, root, sqrt
+    CC,
+    sin,
+    cos,
+    tan,
+    asin,
+    imag,
+    real,
+    acos,
+    atan,
+    csc,
+    sec,
+    cot,
+    abs_lower,
+    abs_upper,
+    exp,
+    log,
+    root,
+    sqrt,
 )
 from nuthatch.rings.reals import RR, RR_py
 from nuthatch.rings.integers import ZZ, ZZ_py
@@ -66,7 +81,11 @@ class TestComplexNumber:
     def test_mult_with_polynomial(self):
         """Tests __mult__ with a polynomial."""
         poly = PolynomialData(
-            CC, {SparseMonomialData((0, 1)): flint.fmpz(1), SparseMonomialData((1, 1)): flint.fmpz(1)}
+            CC,
+            {
+                SparseMonomialData((0, 1)): flint.fmpz(1),
+                SparseMonomialData((1, 1)): flint.fmpz(1),
+            },
         )
 
     def test_add_with_integer(self):
@@ -96,9 +115,10 @@ class TestComplexNumber:
 
 class TestComplexNumberFunctions:
     """Tests flint CC functions."""
+
     def test_sin(self):
         """Tests the sin global function."""
-        assert str(sin(CC(1))) == '[0.841470984807897 +/- 6.08e-16]'
+        assert str(sin(CC(1))) == "[0.841470984807897 +/- 6.08e-16]"
 
     def test_cos(self):
         """Tests the cos global function."""
@@ -131,7 +151,7 @@ class TestComplexNumberFunctions:
     def test_cot(self):
         """Tests the cot function."""
         assert str(cot(CC(1))) == str(flint.acb(1).cot())
-        
+
     def test_abs_upper(self):
         """Tests the abs_upper global function."""
         assert str(abs_upper(CC("1.5+/-1"))) == str(flint.acb("1.5+/-1").abs_upper())
@@ -139,10 +159,10 @@ class TestComplexNumberFunctions:
     def test_abs_lower(self):
         """Tests the abs_lower function."""
         assert str(abs_lower(CC("1.5+/-1"))) == str(flint.acb("1.5+/-1").abs_lower())
-        
+
     def test_exp(self):
         """Tests the exp global function."""
-        assert str(exp(CC(2+1j))) == str(flint.acb(2+1j).exp())
+        assert str(exp(CC(2 + 1j))) == str(flint.acb(2 + 1j).exp())
 
     def test_log(self):
         """Tests the log function."""
@@ -150,7 +170,7 @@ class TestComplexNumberFunctions:
 
     def test_root(self):
         """Tests the root function."""
-        assert str(root(CC(7+2j), 3)) == str(flint.acb(7+2j).root(3))
+        assert str(root(CC(7 + 2j), 3)) == str(flint.acb(7 + 2j).root(3))
 
     def test_sqrt(self):
         """Tests the sqrt function."""
@@ -158,10 +178,10 @@ class TestComplexNumberFunctions:
 
     def test_imag(self):
         """Tests the sqrt function."""
-        assert str(imag(CC(4+3j))) == str(flint.acb(4+3j).imag)
-        assert type(imag(CC(4+3j))) == type(RR(3))
-    
+        assert str(imag(CC(4 + 3j))) == str(flint.acb(4 + 3j).imag)
+        assert type(imag(CC(4 + 3j))) == type(RR(3))
+
     def test_real(self):
         """Tests the sqrt function."""
-        assert str(real(CC(4+3j))) == str(flint.acb(4+3j).real)
-        assert type(real(CC(4+3j))) == type(RR(4))
+        assert str(real(CC(4 + 3j))) == str(flint.acb(4 + 3j).real)
+        assert type(real(CC(4 + 3j))) == type(RR(4))

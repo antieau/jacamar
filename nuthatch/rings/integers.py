@@ -94,7 +94,6 @@ ZZ = IntegerRing()
 ZZ_py = IntegerRingPython()
 
 
-
 """
 Select functions of ZZ's based on flint.fmpz attributes. (https://fredrikj.net/python-flint/fmpz.html)
 """
@@ -121,5 +120,5 @@ def factor(x):
     ret = []
     factors = x.data.factor()
     for f in factors:
-        ret.append((x.ring(f[0]),x.ring(f[1])))
+        ret.append((x.ring(f[0]), x.ring(f[1])))
     return ret

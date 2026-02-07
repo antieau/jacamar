@@ -21,6 +21,7 @@ from nuthatch.rings.complexes import CC
 from nuthatch.rings.rationals import QQ
 from nuthatch.constants import MATRIX_SWITCH
 
+
 class _MatrixGenericData:
     """
     This class must be called with all arguments. It is assumed, but not
@@ -46,23 +47,26 @@ class _MatrixGenericData:
         if self.nrows == 1:
             return self.entries[0][0]
         entries = self.entries
-        def minor(array,i,j):
+
+        def minor(array, i, j):
             c = array
-            c = c[:i] + c[i+1:]
-            for k in range(0,len(c)):
-                c[k] = c[k][:j]+c[k][j+1:]
+            c = c[:i] + c[i + 1 :]
+            for k in range(0, len(c)):
+                c[k] = c[k][:j] + c[k][j + 1 :]
             return c
-        def det(array,n):
-            if n == 1 :
+
+        def det(array, n):
+            if n == 1:
                 return array[0][0]
-            if n == 2 :
-                return array[0][0]*array[1][1] - array[0][1]*array[1][0]
+            if n == 2:
+                return array[0][0] * array[1][1] - array[0][1] * array[1][0]
             det = self.base_ring(base_ring=RR, ngens=3, prefix="x", packed=False)
             det = det.zero
-            for i in range(0,n):
-                m = minor(array,0,i)
-                det = det + RR((-1)**i) * array[0][i] * det(m,n-1)
+            for i in range(0, n):
+                m = minor(array, 0, i)
+                det = det + RR((-1) ** i) * array[0][i] * det(m, n - 1)
             return det
+
         return det(entries, self.nrows)
 
     def transpose(self):
@@ -78,13 +82,12 @@ class _MatrixGenericData:
             base_ring=self.base_ring,
             nrows=self.ncols,
             ncols=self.nrows,
-            entries=new_entries
+            entries=new_entries,
         )
-    
+
     def size(self):
         """Returns size of a matrix as a tuple (rows, cols)."""
         return (self.nrows, self.ncols)
-
 
     def __add__(self, other):
         if self.nrows != other.nrows or self.ncols != other.ncols:
@@ -112,10 +115,12 @@ class _MatrixGenericData:
         )
 
     def __mul__(self, other):
-        if (str(type(other)) == "<class 'nuthatch.rings.reals.RealNumber'>"
+        if (
+            str(type(other)) == "<class 'nuthatch.rings.reals.RealNumber'>"
             or str(type(other)) == "<class 'nuthatch.rings.complexes.ComplexNumber'>"
             or str(type(other)) == "<class 'nuthatch.rings.integers.Integer'>"
-            or str(type(other)) == "<class 'nuthatch.rings.rationals.Rational'>"):
+            or str(type(other)) == "<class 'nuthatch.rings.rationals.Rational'>"
+        ):
             new_entries = []
             for i in self.entries:
                 new_entries.append([])
@@ -124,9 +129,9 @@ class _MatrixGenericData:
 
             return self.__class__(
                 base_ring=self.base_ring,
-                nrows=self.nrows, 
+                nrows=self.nrows,
                 ncols=self.ncols,
-                entries=new_entries
+                entries=new_entries,
             )
         if self.ncols != other.nrows:
             raise ValueError(
@@ -143,12 +148,14 @@ class _MatrixGenericData:
             )
 
         # STRASSEN
-        elif (self.ncols % 2 == 0
-              and self.nrows % 2 == 0
-              and other.ncols % 2 == 0
-              and other.nrows % 2 == 0
-              and self.size() == other.size()
-              and self.size()[0] > MATRIX_SWITCH):
+        elif (
+            self.ncols % 2 == 0
+            and self.nrows % 2 == 0
+            and other.ncols % 2 == 0
+            and other.nrows % 2 == 0
+            and self.size() == other.size()
+            and self.size()[0] > MATRIX_SWITCH
+        ):
 
             def strassen(A, B):
                 n = len(A.entries)
@@ -191,12 +198,9 @@ class _MatrixGenericData:
 
                 # Combine quadrants to form C
                 return _MatrixGenericData(
-                    base_ring=A.base_ring,
-                    nrows=len(C),
-                    ncols=len(C[0]),
-                    entries=C
+                    base_ring=A.base_ring, nrows=len(C), ncols=len(C[0]), entries=C
                 )
-            
+
             # Set up parallelization
             mid = self.nrows // 2
             A11 = self[:mid, :mid]
@@ -208,7 +212,7 @@ class _MatrixGenericData:
             B21 = other[mid:, :mid]
             B22 = other[mid:, mid:]
             # Recursions (parallel)
-            
+
             sub_strassen = [
                 strassen(A11, B12 - B22),
                 strassen(A11 + A12, B22),
@@ -216,9 +220,9 @@ class _MatrixGenericData:
                 strassen(A22, B21 - B11),
                 strassen(A11 + A22, B11 + B22),
                 strassen(A12 - A22, B21 + B22),
-                strassen(A11 - A21, B11 + B12)
-                ]
-            
+                strassen(A11 - A21, B11 + B12),
+            ]
+
             P1 = sub_strassen[0]
             P2 = sub_strassen[1]
             P3 = sub_strassen[2]
@@ -239,10 +243,7 @@ class _MatrixGenericData:
 
             # Combine quadrants to form C
             return _MatrixGenericData(
-                base_ring=other.base_ring,
-                nrows=len(C),
-                ncols=len(C[0]),
-                entries=C
+                base_ring=other.base_ring, nrows=len(C), ncols=len(C[0]), entries=C
             )
 
         # standard matrix multiplication
@@ -259,7 +260,6 @@ class _MatrixGenericData:
                     for k in range(1, self.ncols):
                         new_entry += se[i][k] * oe[k][j]
                     new_entries[i].append(new_entry)
-
 
         return other.__class__(
             base_ring=other.base_ring,
@@ -318,7 +318,7 @@ class _MatrixGenericData:
         If i=args[0] and j=args[1], returns the jth entry of the ith row.
         """
         for idx in args:
-            if isinstance(idx,slice):
+            if isinstance(idx, slice):
                 # Parse with submatrix.
                 r, c = args
                 entries = self.entries
@@ -340,7 +340,7 @@ class _MatrixGenericData:
                 nrows = len(new_data)
                 if nrows == 1 and ncols == 1:
                     return entries[0][0]
-                
+
                 return self.__class__(
                     base_ring=self.base_ring,
                     nrows=nrows,
@@ -357,7 +357,6 @@ class _MatrixGenericData:
         self.entries[args[0]][args[1]] = val
 
 
-
 class _MatrixPythonData:
     def __init__(self, *, base_ring, shape, entries):
         self.base_ring = base_ring
@@ -365,14 +364,14 @@ class _MatrixPythonData:
         self.entries = entries
 
 
-
 class Matrix:
     """
     Base class for matrices of numbers or polynomials.
     Numerical matrices are built off of flint mat objects
-    while generic (polynomial) matrices use the 
+    while generic (polynomial) matrices use the
     _MatrixGenericData format.
     """
+
     def __init__(
         self,
         *,
@@ -382,7 +381,7 @@ class Matrix:
         entries=None,
         data=None,
     ):
-        
+
         self.base_ring = base_ring
         if self.base_ring in {ZZ, QQ, RR, CC, RR_py, ZZ_py}:
             self._is_generic = False
@@ -540,17 +539,18 @@ class Matrix:
         """Returns size of a matrix as a tuple (rows, cols)."""
         return (self.nrows, self.ncols)
 
-
     def T(self):
         """Alias for the transpose() method."""
         return self.transpose()
 
     def transpose(self):
         """Returns a transposed copy of self."""
-        return Matrix(base_ring=self.base_ring,
-                      nrows=self.ncols,
-                      ncols=self.nrows,
-                      data=self.data.transpose())
+        return Matrix(
+            base_ring=self.base_ring,
+            nrows=self.ncols,
+            ncols=self.nrows,
+            data=self.data.transpose(),
+        )
 
     def __add__(self, other):
         """Returns self + other with base ring that of other."""
@@ -567,23 +567,28 @@ class Matrix:
         )
 
     def __mul__(self, other):
-        if (str(type(other)) == "<class 'nuthatch.rings.reals.RealNumber'>"
+        if (
+            str(type(other)) == "<class 'nuthatch.rings.reals.RealNumber'>"
             or str(type(other)) == "<class 'nuthatch.rings.complexes.ComplexNumber'>"
             or str(type(other)) == "<class 'nuthatch.rings.integers.Integer'>"
-            or str(type(other)) == "<class 'nuthatch.rings.rationals.Rational'>"):
-            if str(self.base_ring) == "<class 'nuthatch.rings.polynomials.PolynomialRing'>":
+            or str(type(other)) == "<class 'nuthatch.rings.rationals.Rational'>"
+        ):
+            if (
+                str(self.base_ring)
+                == "<class 'nuthatch.rings.polynomials.PolynomialRing'>"
+            ):
                 return self.__class__(
                     base_ring=self.base_ring,
                     nrows=self.nrows,
                     ncols=self.ncols,
-                    data=self.data * other
+                    data=self.data * other,
                 )
 
             return self.__class__(
                 base_ring=self.base_ring,
                 nrows=self.nrows,
                 ncols=self.ncols,
-                data=self.data * other.data
+                data=self.data * other.data,
             )
 
         if self.ncols != other.nrows:
@@ -614,18 +619,18 @@ class Matrix:
             return self.data.all() == other.data.all()
         return self.data == other.data
 
-    def __call__(self,i,j):
+    def __call__(self, i, j):
         """
         RESERVED for future use in evaluation on vectors.
         """
         raise NotImplementedError
 
-    def __getitem__(self,args):
+    def __getitem__(self, args):
         for idx in args:
-            if isinstance(idx,slice):
+            if isinstance(idx, slice):
                 if not isinstance(args, tuple):
-                    return ValueError (
-                        'The matrix slice method takes 2 args [rows, columns], but 1 were given.'
+                    return ValueError(
+                        "The matrix slice method takes 2 args [rows, columns], but 1 were given."
                     )
 
                 elif len(args) == 2:
@@ -655,10 +660,10 @@ class Matrix:
                         r, c = args
                         entries = self.data.tolist()
                         return self.__class__(
-                        base_ring=self.base_ring,
-                        nrows=nrows,
-                        ncols=ncols,
-                        entries=new_data,
+                            base_ring=self.base_ring,
+                            nrows=nrows,
+                            ncols=ncols,
+                            entries=new_data,
                         )
 
                     return self.__class__(
@@ -671,17 +676,17 @@ class Matrix:
                             nrows=nrows,
                             ncols=ncols,
                             entries=new_data,
-                            )
-                        )
+                        ),
+                    )
 
         return self.base_ring(self.data[args])
 
-    def __setitem__(self,args,val):
-        self.data[args]=val
-
+    def __setitem__(self, args, val):
+        self.data[args] = val
 
 
 # Functions for matrices
+
 
 def generate(value, nrows, ncols):
     """
@@ -694,22 +699,23 @@ def generate(value, nrows, ncols):
             entries[-1].append(value)
 
     return Matrix(
-                base_ring=value.ring,
-                nrows=nrows,
-                ncols=ncols,
-                entries=entries,
-                data=_MatrixGenericData(
-                    base_ring=value.ring,
-                    nrows=nrows,
-                    ncols=ncols,
-                    entries=entries,
-                    )
-                )
+        base_ring=value.ring,
+        nrows=nrows,
+        ncols=ncols,
+        entries=entries,
+        data=_MatrixGenericData(
+            base_ring=value.ring,
+            nrows=nrows,
+            ncols=ncols,
+            entries=entries,
+        ),
+    )
+
 
 def random(base_ring, max_val, nrows, ncols, poly=0, poly_ring=0, ngens=1):
     """
     Generates a random matrix of size nrows x ncols using np.random.
-    Values go from [0, max_val]. 
+    Values go from [0, max_val].
     Polynomials are of form n0*x0**r0 + n1*x1**r1 ....
     """
     entries = []
@@ -722,25 +728,28 @@ def random(base_ring, max_val, nrows, ncols, poly=0, poly_ring=0, ngens=1):
                 val = p(0)
                 for k in range(ngens):
                     if base_ring == RR:
-                        val = val + base_ring(np.random.random() * max_val) * p.gens[k] ** ZZ(int(np.random.random() * max_val))
+                        val = val + base_ring(np.random.random() * max_val) * p.gens[
+                            k
+                        ] ** ZZ(int(np.random.random() * max_val))
                     elif base_ring == ZZ:
-                        val = val + base_ring(int(np.random.random() * max_val)) * p.gens[k] ** ZZ(int(np.random.random() * max_val))
+                        val = val + base_ring(
+                            int(np.random.random() * max_val)
+                        ) * p.gens[k] ** ZZ(int(np.random.random() * max_val))
 
                 entries[-1].append(val)
 
-
         return Matrix(
+            base_ring=poly_ring,
+            nrows=nrows,
+            ncols=ncols,
+            entries=entries,
+            data=_MatrixGenericData(
                 base_ring=poly_ring,
                 nrows=nrows,
                 ncols=ncols,
                 entries=entries,
-                data=_MatrixGenericData(
-                    base_ring=poly_ring,
-                    nrows=nrows,
-                    ncols=ncols,
-                    entries=entries,
-                    )
-                )
+            ),
+        )
     if base_ring == RR:
         vals = np.random.random(nrows * ncols) * max_val
         for i in range(nrows):
@@ -763,9 +772,9 @@ def random(base_ring, max_val, nrows, ncols, poly=0, poly_ring=0, ngens=1):
                 entries[-1].append(vals[(i + 1) * (j)])
 
         return Matrix(
-                    base_ring=base_ring,
-                    entries=entries,
-                    )
+            base_ring=base_ring,
+            entries=entries,
+        )
     elif base_ring == ZZ_py:
         vals = np.random.randint(max_val, size=nrows * ncols)
         for i in range(nrows):
@@ -774,13 +783,13 @@ def random(base_ring, max_val, nrows, ncols, poly=0, poly_ring=0, ngens=1):
                 entries[-1].append(int(vals[(i + 1) * (j)]))
 
         return Matrix(
-                    base_ring=base_ring,
-                    entries=entries,
-                    )
+            base_ring=base_ring,
+            entries=entries,
+        )
 
     return Matrix(
-                base_ring=base_ring,
-                nrows=nrows,
-                ncols=ncols,
-                entries=entries,
-                )
+        base_ring=base_ring,
+        nrows=nrows,
+        ncols=ncols,
+        entries=entries,
+    )

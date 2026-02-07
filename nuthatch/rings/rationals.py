@@ -81,7 +81,6 @@ class RationalRing(AbstractRing):
 QQ = RationalRing()
 
 
-
 """
 Select functions of QQ's based on flint.fmpq attributes. (https://fredrikj.net/python-flint/fmpq.html)
 """

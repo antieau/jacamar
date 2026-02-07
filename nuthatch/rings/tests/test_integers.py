@@ -8,7 +8,15 @@ classes.
 import pytest
 from flint import fmpz
 from flint.utils.flint_exceptions import DomainError
-from nuthatch.rings.integers import ZZ, ZZ_py, Integer, IntegerPython, gcd, factor, factorial
+from nuthatch.rings.integers import (
+    ZZ,
+    ZZ_py,
+    Integer,
+    IntegerPython,
+    gcd,
+    factor,
+    factorial,
+)
 
 
 class TestInteger:
@@ -266,12 +274,12 @@ class TestIntegerFunctions:
 
     def test_gcd(self):
         """Tests the gcd global function."""
-        assert gcd(ZZ(15),ZZ(6))==ZZ(3)
+        assert gcd(ZZ(15), ZZ(6)) == ZZ(3)
 
     def test_factor(self):
         """Tests the factor function."""
-        assert factor(ZZ(12)) == [(ZZ(2),ZZ(2)),(ZZ(3),ZZ(1))]
+        assert factor(ZZ(12)) == [(ZZ(2), ZZ(2)), (ZZ(3), ZZ(1))]
 
     def test_factorial(self):
         """Tests the factorial function."""
-        assert factorial(ZZ(5))==ZZ(120)
+        assert factorial(ZZ(5)) == ZZ(120)

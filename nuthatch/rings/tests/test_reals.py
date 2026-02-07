@@ -7,9 +7,24 @@ Tests for the RealNumber and RealRing classes.
 import pytest
 import flint
 from nuthatch.rings.reals import (
-    RR, RR_py, sin, cos, tan, asin, 
-    acos, atan, csc, sec, cot, abs_lower,
-    abs_upper, exp, factorial, log, root, sqrt
+    RR,
+    RR_py,
+    sin,
+    cos,
+    tan,
+    asin,
+    acos,
+    atan,
+    csc,
+    sec,
+    cot,
+    abs_lower,
+    abs_upper,
+    exp,
+    factorial,
+    log,
+    root,
+    sqrt,
 )
 from nuthatch.rings.integers import ZZ, ZZ_py
 from nuthatch.rings.polynomials import (
@@ -76,7 +91,7 @@ class TestRealNumber:
         """Tests __eq__ with RR and ZZ."""
         assert RR("0 +/- 0.5") == RR(0.4)
         assert RR(0) == ZZ(0)
-        
+
     def test_mult_with_integer(self):
         """Tests ___mul__ with an integer."""
         assert ZZ(1) * RR(6.765) == RR(6.765)
@@ -85,22 +100,23 @@ class TestRealNumber:
 
     def test_polynomial(self):
         """Tests creation of real polynomials."""
-        r = PolynomialRing(base_ring=RR,ngens=2,prefix='x')
-        x0,x1=r.gens
-        f=x0+x1
-        assert f**ZZ(2)==x0**ZZ(2) + ZZ(2)*x0*x1+x1**ZZ(2)
+        r = PolynomialRing(base_ring=RR, ngens=2, prefix="x")
+        x0, x1 = r.gens
+        f = x0 + x1
+        assert f ** ZZ(2) == x0 ** ZZ(2) + ZZ(2) * x0 * x1 + x1 ** ZZ(2)
 
-        r = PolynomialRing(base_ring=RR_py,ngens=2,prefix='x')
-        x0,x1=r.gens
-        f=x0+x1
-        assert f**ZZ_py(2)==x0**ZZ_py(2) + ZZ_py(2)*x0*x1+x1**ZZ_py(2)
+        r = PolynomialRing(base_ring=RR_py, ngens=2, prefix="x")
+        x0, x1 = r.gens
+        f = x0 + x1
+        assert f ** ZZ_py(2) == x0 ** ZZ_py(2) + ZZ_py(2) * x0 * x1 + x1 ** ZZ_py(2)
 
 
 class TestRealNumberFunctions:
     """Tests flint RR functions."""
+
     def test_sin(self):
         """Tests the sin global function."""
-        assert str(sin(RR(1))) == '[0.841470984807897 +/- 6.08e-16]'
+        assert str(sin(RR(1))) == "[0.841470984807897 +/- 6.08e-16]"
 
     def test_cos(self):
         """Tests the cos global function."""
@@ -133,7 +149,7 @@ class TestRealNumberFunctions:
     def test_cot(self):
         """Tests the cot function."""
         assert str(cot(RR(1))) == str(flint.arb(1).cot())
-        
+
     def test_abs_upper(self):
         """Tests the abs_upper global function."""
         assert str(abs_upper(RR("1.5+/-1"))) == str(flint.arb("1.5+/-1").abs_upper())
@@ -144,8 +160,8 @@ class TestRealNumberFunctions:
 
     def test_factorial(self):
         """Tests the factorial function."""
-        assert factorial(RR(5))==RR(120)
-        
+        assert factorial(RR(5)) == RR(120)
+
     def test_exp(self):
         """Tests the exp global function."""
         assert str(exp(RR(2))) == str(flint.arb(2).exp())

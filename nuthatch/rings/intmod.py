@@ -7,13 +7,15 @@ AUTHORS:
 - Joseph Grantham (2024).
 """
 
-from flint import nmod # pylint: disable=no-name-in-module
+from flint import nmod  # pylint: disable=no-name-in-module
 from nuthatch.rings.elements import AbstractRingElement
 from nuthatch.rings.rings import AbstractRing
 from nuthatch.rings.integers import ZZ
 
+
 class IntegerModN(AbstractRingElement):
     """Element representing an integer modulo N"""
+
     data_class = nmod
 
     def __init__(self, ring, data):
@@ -63,6 +65,7 @@ class IntegerModN(AbstractRingElement):
 
 class IntegerModNRing(AbstractRing):
     """Ring of integers modulo N"""
+
     def __init__(self, modulus):
         AbstractRing.__init__(self, IntegerModN, exact=True)
         if isinstance(modulus, AbstractRingElement):

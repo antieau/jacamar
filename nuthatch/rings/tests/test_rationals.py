@@ -54,6 +54,7 @@ class TestRational:
 
 class TestRationalFunction:
     """Tests for functions in the Rational class."""
+
     def test_p(self):
         """Tests the p global function."""
         assert p(QQ(7, 3)) == ZZ(7)
