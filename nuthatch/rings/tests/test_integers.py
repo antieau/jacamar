@@ -269,6 +269,16 @@ class TestInteger:
             ZZ(5) != 5
 
 
+class test_combinations:
+    """Tests the IntegerRing.combinations class method."""
+    assert ZZ.combinations(10,3) == ZZ(120)
+    assert ZZ.binomial(10,3) == ZZ(120)
+    assert ZZ.binomial(10,0) == ZZ(1)
+    assert ZZ.binomial(10,11) == ZZ(0)
+    with pytest.raises(OverflowError):
+        ZZ.binomial(10,-3)
+
+
 class TestIntegerFunctions:
     """Tests FLINT ZZ functions."""
 

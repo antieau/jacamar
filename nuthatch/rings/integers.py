@@ -75,6 +75,11 @@ class IntegerRing(AbstractRing):
     def __repr__(self):
         return self.__str__()
 
+    def combinations(self, n, k):
+        return self.element_class(ring=self,n=flint.fmpz.bin_uiui(n,k))
+
+    binomial = combinations
+
 
 class IntegerRingPython(AbstractRing):
     def __init__(self):
