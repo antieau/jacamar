@@ -10,7 +10,6 @@ authors = [
     {name = "Luca Zerega"}
 ]
 maintainers = [{name = "Benjamin Antieau", email = "antieau@northwestern.edu"}]
-
 description = "A tiny computer algebra system for Python."
 readme = "README.md"
 classifiers = [
