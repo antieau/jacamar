@@ -4,16 +4,22 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "jacamar"
-version = "0.1.0"
-authors = [{name = "Benjamin Antieau", email = "antieau@northwestern.edu"}]
+authors = [
+    {name = "Benjamin Antieau", email = "antieau@northwestern.edu"},
+    {name = "Joseph Grantham"},
+    {name = "Luca Zerega"}
+]
+maintainers = [{name = "Benjamin Antieau", email = "antieau@northwestern.edu"}]
+
+description = "A tiny computer algebra system for Python."
 readme = "README.md"
 classifiers = [
+    "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
 ]
-license = {"MIT"}
-license-file = {"LICENSE"}
-dynamic = ["version", "description"]
+license = {"file" = "LICENSE"}
+dynamic = ["version"]
 dependencies = [
     "cython >=3.0.10",
     "numpy >=1.26.0",
@@ -22,7 +28,7 @@ dependencies = [
 ]
 
 [project.urls]
-Home = "https://github.com/antieau/jacamar"
+homepage = "https://github.com/antieau/jacamar"
 
 [tool.pylint."MESSAGES CONTROL"]
 disable = [ "import-error"]

@@ -47,4 +47,4 @@ from jacamar.rings.series import *
 from jacamar.rings.reals import *
 from jacamar.rings.complexes import *
 
-__version__ = "0.0"
+__version__ = "0.1.0"
