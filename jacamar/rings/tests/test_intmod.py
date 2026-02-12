@@ -6,9 +6,9 @@ Tests for the IntegerModN and IntegerModNRing classes.
 
 import pytest
 from flint import fmpz, nmod  # pylint: disable=no-name-in-module
-from nuthatch.rings.integers import ZZ, ZZ_py
-from nuthatch.rings.intmod import IntegerModN, IntegerModNRing
-from nuthatch.rings.polynomials import PolynomialRing
+from jacamar.rings.integers import ZZ, ZZ_py
+from jacamar.rings.intmod import IntegerModN, IntegerModNRing
+from jacamar.rings.polynomials import PolynomialRing
 
 r1 = IntegerModNRing(ZZ(24))
 r2 = IntegerModNRing(ZZ(173))

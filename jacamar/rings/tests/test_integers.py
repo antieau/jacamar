@@ -8,7 +8,7 @@ classes.
 import pytest
 from flint import fmpz
 from flint.utils.flint_exceptions import DomainError
-from nuthatch.rings.integers import (
+from jacamar.rings.integers import (
     ZZ,
     ZZ_py,
     Integer,

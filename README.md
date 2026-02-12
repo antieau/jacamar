@@ -1,22 +1,17 @@
 ```
-______________________________________________________________________________
-    _     _    _     _  ______    _     _    __    ______      __      _     _
-    /|   /     /    /     /       /    /     / |     /       /    )    /    / 
----/-| -/-----/----/-----/-------/___ /-----/__|----/-------/---------/___ /--
-  /  | /     /    /     /       /    /     /   |   /       /         /    /   
-_/___|/_____(____/_____/_______/____/_____/____|__/_______(____/____/____/____
+░░█ ▄▀█ █▀▀ ▄▀█ █▀▄▀█ ▄▀█ █▀█ 
+█▄█ █▀█ █▄▄ █▀█ █░▀░█ █▀█ █▀▄
 ```
 
-# Nuthatch.
+# Jacamar.
 
-A lightweight framework for computer algebra using `FLINT` and `Python-FLINT`
-at its core.
+A lightweight framework for computer algebra using `FLINT` and `Python-FLINT`.
 
 
 
 # What it is.
 
-- `Nuthatch` is designed to provide a minimal layer of abstraction, giving a
+- `Jacamar` is designed to provide a minimal layer of abstraction, giving a
 `SAGE`-like feel to `Python-FLINT`. The goal is for parity to `Python-FLINT` in
 terms of speed.
 - Its audience is mathematicians and computer scientists who need to use
@@ -41,7 +36,7 @@ practice, this corresponds to pretending like all such operations correspond to
 a left action of the ring of `self` on the ring or module of `other`.
 
 We try for this to fail whenever something non-obvious is happening.
-In particular, all arithmetic operations should fail when mixing `Nuthatch`
+In particular, all arithmetic operations should fail when mixing `Jacamar`
 classes with bare `Python` classes.
 
 Python integers are not automatically coerced. Thus, if `n` is an `int` and `x`
@@ -53,9 +48,10 @@ Powering by rational numbers or real numbers might eventually be well-defined
 in certain Puiseux or power series rings.
 
 
+
 # What it is not.
 
-- `Nuthatch` is not meant to be a replacement for `SAGE` or `SymPy`. It has
+- `Jacamar` is not meant to be a replacement for `SAGE` or `SymPy`. It has
 a tiny fraction of the capabilities of `SAGE`, a tiny fraction of the lifetime
 of tests that `SAGE` has passed, and none of the printing and display options.
 
@@ -75,6 +71,7 @@ the Python prompt will always still produce an `int`, so it can be used as an
 index in lists, etc.
 
 
+
 # Tools.
 
 - pygount
@@ -85,12 +82,13 @@ index in lists, etc.
 - python environments
 
 
+
 # Style.
 
 
 ```
 from art import *
-tprint("NUTHATCH", font="bigchief")
+tprint("JACAMAR", font="tarty2")
 ```
 
 

@@ -5,8 +5,8 @@ Base class for RR.
 """
 
 import flint
-from nuthatch.rings.elements import AbstractRingElement  # type: ignore
-from nuthatch.rings.rings import AbstractRing  # type: ignore
+from jacamar.rings.elements import AbstractRingElement  # type: ignore
+from jacamar.rings.rings import AbstractRing  # type: ignore
 
 
 class RealNumber(AbstractRingElement):

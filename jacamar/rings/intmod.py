@@ -8,9 +8,9 @@ AUTHORS:
 """
 
 from flint import nmod  # pylint: disable=no-name-in-module
-from nuthatch.rings.elements import AbstractRingElement
-from nuthatch.rings.rings import AbstractRing
-from nuthatch.rings.integers import ZZ
+from jacamar.rings.elements import AbstractRingElement
+from jacamar.rings.rings import AbstractRing
+from jacamar.rings.integers import ZZ
 
 
 class IntegerModN(AbstractRingElement):

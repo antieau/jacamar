@@ -6,19 +6,19 @@ Tests for the SeriesData, Series, and PowerSeriesRing classes.
 
 import pytest
 import flint
-from nuthatch.rings.polynomials import (
+from jacamar.rings.polynomials import (
     PackedMonomialData,
     SparseMonomialData,
     PolynomialData,
     Polynomial,
     PolynomialRing,
 )
-from nuthatch.rings.series import (
+from jacamar.rings.series import (
     SeriesData,
     Series,
     PowerSeriesRing,
 )
-from nuthatch.rings.integers import ZZ
+from jacamar.rings.integers import ZZ
 
 
 class TestSeriesData:

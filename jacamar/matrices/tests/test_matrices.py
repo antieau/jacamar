@@ -8,12 +8,12 @@ classes.
 import pytest
 import timeit
 import numpy as np
-from nuthatch.rings.integers import ZZ, ZZ_py
-from nuthatch.rings.rationals import QQ
-from nuthatch.rings.reals import RR, RR_py
-from nuthatch.rings.complexes import CC
-from nuthatch.rings.polynomials import PolynomialRing
-from nuthatch.matrices.matrices import Matrix, _MatrixGenericData, generate, random
+from jacamar.rings.integers import ZZ, ZZ_py
+from jacamar.rings.rationals import QQ
+from jacamar.rings.reals import RR, RR_py
+from jacamar.rings.complexes import CC
+from jacamar.rings.polynomials import PolynomialRing
+from jacamar.matrices.matrices import Matrix, _MatrixGenericData, generate, random
 
 
 class TestMatrix:
@@ -32,8 +32,8 @@ class TestMatrix:
     thin_py = Matrix(base_ring=ZZ_py, nrows=3, ncols=0)
     flat_py = Matrix(base_ring=ZZ_py, nrows=0, ncols=2)
 
-    def test_construction_from_nuthatch(self):
-        """Tests for construction from Nuthatch elements."""
+    def test_construction_from_jacamar(self):
+        """Tests for construction from JACAMAR elements."""
         assert self.m == Matrix(base_ring=ZZ, entries=[[ZZ(1), ZZ(2)], [ZZ(3), ZZ(4)]])
         assert self.m._is_generic == False
 

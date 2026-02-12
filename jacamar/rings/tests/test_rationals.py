@@ -5,8 +5,8 @@ Tests for the Rational and RationalRing classes.
 """
 
 import pytest
-from nuthatch.rings.integers import ZZ
-from nuthatch.rings.rationals import QQ, p, q
+from jacamar.rings.integers import ZZ
+from jacamar.rings.rationals import QQ, p, q
 
 
 class TestRational:

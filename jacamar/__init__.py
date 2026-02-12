@@ -1,9 +1,9 @@
 """
-# NUTHATCH
+# JACAMAR
 
 A tiny Python computer algebra system.
 
-NUTHATCH provides three basic sets of functionality:
+JACAMAR provides three basic sets of functionality:
 - a high-level interface to FLINT, via the PythonFLINT project;
 - generic code for matrices;
 - generic code for multivariable Polynomials, LaurentPolynomials, and PowerSeries.
@@ -13,9 +13,9 @@ Where possible, we follow the conventions of SAGE for the creation of objects.
 
 # Philosophy
 
-NUTHATCH favors explicit, user-imposed coercion when it makes sense. In
+JACAMAR favors explicit, user-imposed coercion when it makes sense. In
 particular, Python `int` instances are not mathematical objects and must typically be
-coerced mannualy into NUTHATCH objects.
+coerced mannualy into JACAMAR objects.
 
 Several base commutative rings are provided. At the moment, these are ZZ, ZZ_py, and QQ.
 The rings ZZ and QQ wrap FLINT classes `fmpz` and `fmpq`, while ZZ_py wraps Python's `int` class.
@@ -34,17 +34,17 @@ The goal is to provide a very thin, familiar interface which the user can
 easily abstract and customize for their own purposes.
 """
 
-from nuthatch.matrices.matrices import *
+from jacamar.matrices.matrices import *
 
-from nuthatch.rings.elements import *
-from nuthatch.rings.rings import *
-from nuthatch.rings.morphisms import *
-from nuthatch.rings.integers import *
-from nuthatch.rings.intmod import *
-from nuthatch.rings.polynomials import *
-from nuthatch.rings.rationals import *
-from nuthatch.rings.series import *
-from nuthatch.rings.reals import *
-from nuthatch.rings.complexes import *
+from jacamar.rings.elements import *
+from jacamar.rings.rings import *
+from jacamar.rings.morphisms import *
+from jacamar.rings.integers import *
+from jacamar.rings.intmod import *
+from jacamar.rings.polynomials import *
+from jacamar.rings.rationals import *
+from jacamar.rings.series import *
+from jacamar.rings.reals import *
+from jacamar.rings.complexes import *
 
 __version__ = "0.0"

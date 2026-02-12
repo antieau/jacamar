@@ -4,9 +4,9 @@ TEST_MORPHISMS
 Tests for the IdentityRingMorphism class.
 """
 
-from nuthatch.rings.integers import ZZ, ZZ_py
-from nuthatch.rings.morphisms import AbstractRingMorphism
-from nuthatch.rings.rationals import QQ
+from jacamar.rings.integers import ZZ, ZZ_py
+from jacamar.rings.morphisms import AbstractRingMorphism
+from jacamar.rings.rationals import QQ
 
 
 class TestIdentity:

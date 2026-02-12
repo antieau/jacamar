@@ -20,16 +20,16 @@ AUTHORS:
 
 import functools
 import itertools
-from nuthatch.rings.elements import AbstractRingElement
-from nuthatch.rings.integers import ZZ
-from nuthatch.rings.rings import AbstractRing
-from nuthatch.rings.polynomials import (
+from jacamar.rings.elements import AbstractRingElement
+from jacamar.rings.integers import ZZ
+from jacamar.rings.rings import AbstractRing
+from jacamar.rings.polynomials import (
     PolynomialRing,
     PolynomialData,
     Polynomial,
     MonomialData,
 )
-from nuthatch.rings.morphisms import AbstractRingMorphism
+from jacamar.rings.morphisms import AbstractRingMorphism
 
 
 class SeriesData:

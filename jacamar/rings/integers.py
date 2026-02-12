@@ -8,8 +8,8 @@ AUTHORS:
 """
 
 import flint
-from nuthatch.rings.elements import AbstractRingElement
-from nuthatch.rings.rings import AbstractRing
+from jacamar.rings.elements import AbstractRingElement
+from jacamar.rings.rings import AbstractRing
 
 
 class Integer(AbstractRingElement):

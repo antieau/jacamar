@@ -7,7 +7,7 @@ Tests for the MonomialData, PolynomialData, Polynomial, and PolynomialRing class
 import pytest
 import timeit
 import flint
-from nuthatch.rings.polynomials import (
+from jacamar.rings.polynomials import (
     MonomialData,
     PackedMonomialData,
     SparseMonomialData,
@@ -17,10 +17,10 @@ from nuthatch.rings.polynomials import (
     PolynomialRingMorphism,
     SpecialPolynomial,
 )
-from nuthatch.rings.integers import ZZ, ZZ_py
-from nuthatch.rings.morphisms import AbstractRingMorphism
-from nuthatch.rings.rationals import QQ
-from nuthatch.rings.reals import RR
+from jacamar.rings.integers import ZZ, ZZ_py
+from jacamar.rings.morphisms import AbstractRingMorphism
+from jacamar.rings.rationals import QQ
+from jacamar.rings.reals import RR
 
 
 class TestMonomialData:
@@ -115,14 +115,14 @@ class TestPackedMonomial:
         """Tests the __hash__ method."""
         m = PackedMonomialData.from_sparse_tuple((1, 2, 4, 7))
         # This could fail if the constant PACKING_BOUND from
-        # nuthatch.rings.polynomials is changed.
+        # jacamar.rings.polynomials is changed.
         assert hash(m) == hash(129127208515966992384)
 
     def test_str_and_repr(self):
         """Tests the __str__ method."""
         m = PackedMonomialData.from_sparse_tuple((1, 2, 4, 7))
         # This could fail if the constant PACKING_BOUND from
-        # nuthatch.rings.polynomials is changed.
+        # jacamar.rings.polynomials is changed.
         assert str(m) == "129127208515966992384"
         assert repr(m) == str(m)
 

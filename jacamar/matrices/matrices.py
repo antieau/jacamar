@@ -15,11 +15,11 @@ AUTHORS:
 import flint
 import numpy as np
 
-from nuthatch.rings.integers import ZZ, ZZ_py
-from nuthatch.rings.reals import RR, RR_py
-from nuthatch.rings.complexes import CC
-from nuthatch.rings.rationals import QQ
-from nuthatch.constants import MATRIX_SWITCH
+from jacamar.rings.integers import ZZ, ZZ_py
+from jacamar.rings.reals import RR, RR_py
+from jacamar.rings.complexes import CC
+from jacamar.rings.rationals import QQ
+from jacamar.constants import MATRIX_SWITCH
 
 
 class _MatrixGenericData:
@@ -116,10 +116,10 @@ class _MatrixGenericData:
 
     def __mul__(self, other):
         if (
-            str(type(other)) == "<class 'nuthatch.rings.reals.RealNumber'>"
-            or str(type(other)) == "<class 'nuthatch.rings.complexes.ComplexNumber'>"
-            or str(type(other)) == "<class 'nuthatch.rings.integers.Integer'>"
-            or str(type(other)) == "<class 'nuthatch.rings.rationals.Rational'>"
+            str(type(other)) == "<class 'jacamar.rings.reals.RealNumber'>"
+            or str(type(other)) == "<class 'jacamar.rings.complexes.ComplexNumber'>"
+            or str(type(other)) == "<class 'jacamar.rings.integers.Integer'>"
+            or str(type(other)) == "<class 'jacamar.rings.rationals.Rational'>"
         ):
             new_entries = []
             for i in self.entries:
@@ -568,14 +568,14 @@ class Matrix:
 
     def __mul__(self, other):
         if (
-            str(type(other)) == "<class 'nuthatch.rings.reals.RealNumber'>"
-            or str(type(other)) == "<class 'nuthatch.rings.complexes.ComplexNumber'>"
-            or str(type(other)) == "<class 'nuthatch.rings.integers.Integer'>"
-            or str(type(other)) == "<class 'nuthatch.rings.rationals.Rational'>"
+            str(type(other)) == "<class 'jacamar.rings.reals.RealNumber'>"
+            or str(type(other)) == "<class 'jacamar.rings.complexes.ComplexNumber'>"
+            or str(type(other)) == "<class 'jacamar.rings.integers.Integer'>"
+            or str(type(other)) == "<class 'jacamar.rings.rationals.Rational'>"
         ):
             if (
                 str(self.base_ring)
-                == "<class 'nuthatch.rings.polynomials.PolynomialRing'>"
+                == "<class 'jacamar.rings.polynomials.PolynomialRing'>"
             ):
                 return self.__class__(
                     base_ring=self.base_ring,

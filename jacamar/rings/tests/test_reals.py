@@ -6,7 +6,7 @@ Tests for the RealNumber and RealRing classes.
 
 import pytest
 import flint
-from nuthatch.rings.reals import (
+from jacamar.rings.reals import (
     RR,
     RR_py,
     sin,
@@ -26,13 +26,13 @@ from nuthatch.rings.reals import (
     root,
     sqrt,
 )
-from nuthatch.rings.integers import ZZ, ZZ_py
-from nuthatch.rings.polynomials import (
+from jacamar.rings.integers import ZZ, ZZ_py
+from jacamar.rings.polynomials import (
     SparseMonomialData,
     PolynomialData,
     PolynomialRing,
 )
-from nuthatch.matrices.matrices import Matrix
+from jacamar.matrices.matrices import Matrix
 
 
 class TestRealNumber:

@@ -7,7 +7,7 @@ AUTHORS:
 - Benjamin Antieau (2024).
 """
 
-from nuthatch.rings.morphisms import IdentityRingMorphism
+from jacamar.rings.morphisms import IdentityRingMorphism
 
 
 class AbstractRing:

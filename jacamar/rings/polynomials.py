@@ -24,13 +24,13 @@ import flint
 import pyximport
 
 pyximport.install()
-import nuthatch.rings.cpoly as cpoly
-from nuthatch.rings.elements import AbstractRingElement
-from nuthatch.rings.rings import AbstractRing
-from nuthatch.rings.integers import ZZ
-from nuthatch.rings.rationals import QQ
-from nuthatch.rings.morphisms import AbstractRingMorphism
-from nuthatch.constants import PACKING_BOUND
+import jacamar.rings.cpoly as cpoly
+from jacamar.rings.elements import AbstractRingElement
+from jacamar.rings.rings import AbstractRing
+from jacamar.rings.integers import ZZ
+from jacamar.rings.rationals import QQ
+from jacamar.rings.morphisms import AbstractRingMorphism
+from jacamar.constants import PACKING_BOUND
 
 # The following constant controls the maximum allowed weight of a power x^n in a
 # monomial: PACKING_BOUND = 2 ** 16.
