@@ -4,10 +4,15 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "jacamar"
+version = "0.1.0"
 authors = [{name = "Benjamin Antieau", email = "antieau@northwestern.edu"}]
 readme = "README.md"
-license = {file = "LICENSE"}
-classifiers = ["License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = {"MIT"}
+license-file = {"LICENSE"}
 dynamic = ["version", "description"]
 dependencies = [
     "cython >=3.0.10",
