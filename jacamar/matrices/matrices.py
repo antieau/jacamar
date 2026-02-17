@@ -357,13 +357,6 @@ class _MatrixGenericData:
         self.entries[args[0]][args[1]] = val
 
 
-class _MatrixPythonData:
-    def __init__(self, *, base_ring, shape, entries):
-        self.base_ring = base_ring
-        self.shape = shape
-        self.entries = entries
-
-
 class Matrix:
     """
     Base class for matrices of numbers or polynomials.
