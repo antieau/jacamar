@@ -45,6 +45,6 @@ from jacamar.rings.polynomials import *
 from jacamar.rings.rationals import *
 from jacamar.rings.series import *
 from jacamar.rings.reals import *
-from jacamar.rings.complexes import *
+from jacamar.rings.complex_numbers import *
 
 __version__ = "0.1.1"

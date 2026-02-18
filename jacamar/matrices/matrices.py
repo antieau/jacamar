@@ -17,7 +17,7 @@ import numpy as np
 
 from jacamar.rings.integers import ZZ, ZZ_py
 from jacamar.rings.reals import RR, RR_py
-from jacamar.rings.complexes import CC
+from jacamar.rings.complex_numbers import CC
 from jacamar.rings.rationals import QQ
 from jacamar.constants import MATRIX_SWITCH
 

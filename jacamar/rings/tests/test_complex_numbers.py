@@ -6,7 +6,7 @@ Tests for the RealNumber and RealRing classes.
 
 import pytest
 import flint
-from jacamar.rings.complexes import (
+from jacamar.rings.complex_numbers import (
     CC,
     sin,
     cos,
