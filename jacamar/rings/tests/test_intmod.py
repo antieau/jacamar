@@ -130,7 +130,6 @@ class TestIntegerModN:
         """The floor division operator should not be implemented."""
         with pytest.raises(TypeError):
             x = r1(7) // r1(7)
-            return x
 
     def test_ifloordiv(self):
         """The floor division assignment operator should not be implemented."""
@@ -142,13 +141,11 @@ class TestIntegerModN:
         """The divmod operator should not be implemented."""
         with pytest.raises(TypeError):
             x = divmod(r1(7), r1(7))
-            return x
 
     def test_mod(self):
         """The modulo operator should not be implemented."""
         with pytest.raises(TypeError):
             x = r1(7) % r1(2)
-            return x
 
     def test_imod(self):
         """The modulo assignment operator should not be implemented."""
@@ -173,7 +170,6 @@ class TestIntegerModN:
         """The abs operator should not be implemented."""
         with pytest.raises(AttributeError):
             x = abs(r1(-7))
-            return x
 
     def test_eq(self):
         """Tests that the equality operator works correctly."""

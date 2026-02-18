@@ -41,6 +41,23 @@ class TestInteger:
             159728757 == ZZ(159728757)
         assert ZZ(159728757).data == fmpz(159728757)
 
+    def test_unit(self):
+        assert ZZ(5).is_unit() == False
+        assert ZZ(-17).is_unit() == False
+        assert ZZ(1).is_unit() == True
+        assert ZZ(-1).is_unit() == True
+
+        assert ZZ_py(5).is_unit() == False
+        assert ZZ_py(-17).is_unit() == False
+        assert ZZ_py(1).is_unit() == True
+        assert ZZ_py(-1).is_unit() == True
+
+    def test_inverse(self):
+        with pytest.raises(ValueError):
+            ZZ(5).inverse()
+        assert ZZ(1).inverse() == ZZ(1)
+        assert ZZ(-1).inverse() == ZZ(-1)
+
     def test_add(self):
         """Tests __add__."""
         assert ZZ(61146125) + ZZ(98582632) == ZZ(159728757)
