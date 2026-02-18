@@ -29,15 +29,10 @@ class _MatrixGenericData:
     `nrows==0` or `ncols==0`, one should have `entries=[]`.
     """
 
-    def __init__(self, *, base_ring, nrows, ncols, entries):
-        self.base_ring = base_ring
+    def __init__(self, *, nrows, ncols, entries):
         self.nrows = nrows
         self.ncols = ncols
         self.entries = entries
-
-    def det(self):
-        """Alias for `determinant` method."""
-        return self.determinant()
 
     def determinant(self):
         if self.nrows != self.nrows:
@@ -69,6 +64,8 @@ class _MatrixGenericData:
 
         return det(entries, self.nrows)
 
+    det = determinant
+
     def transpose(self):
         """Returns copy of the transposed matrix data."""
         entries = self.entries
@@ -79,7 +76,6 @@ class _MatrixGenericData:
                 new_entries[-1].append(entries[j][i])
 
         return _MatrixGenericData(
-            base_ring=self.base_ring,
             nrows=self.ncols,
             ncols=self.nrows,
             entries=new_entries,
@@ -97,7 +93,6 @@ class _MatrixGenericData:
 
         if self.nrows == 0 or other.nrows == 0:
             return other.__class__(
-                base_ring=other.base_ring,
                 nrows=other.nrows,
                 ncols=other.ncols,
                 entries=[],
@@ -108,7 +103,6 @@ class _MatrixGenericData:
                 new_entries[i][j] += other.entries[i][j]
 
         return other.__class__(
-            base_ring=other.base_ring,
             nrows=other.nrows,
             ncols=other.ncols,
             entries=new_entries,
@@ -128,7 +122,6 @@ class _MatrixGenericData:
                     new_entries[-1].append(other * j)
 
             return self.__class__(
-                base_ring=self.base_ring,
                 nrows=self.nrows,
                 ncols=self.ncols,
                 entries=new_entries,
@@ -141,7 +134,6 @@ class _MatrixGenericData:
         if self.nrows == 0 or other.nrows == 0:
 
             return other.__class__(
-                base_ring=other.base_ring,
                 nrows=self.nrows,
                 ncols=other.ncols,
                 entries=[],
@@ -161,7 +153,6 @@ class _MatrixGenericData:
                 n = len(A.entries)
                 if n <= 2:  # Base case
                     return B.__class__(
-                        base_ring=B.base_ring,
                         nrows=n,
                         ncols=n,
                         entries=np.dot(A.entries, B.entries),
@@ -197,9 +188,7 @@ class _MatrixGenericData:
                 C = np.vstack((C1, C2)).tolist()
 
                 # Combine quadrants to form C
-                return _MatrixGenericData(
-                    base_ring=A.base_ring, nrows=len(C), ncols=len(C[0]), entries=C
-                )
+                return _MatrixGenericData(nrows=len(C), ncols=len(C[0]), entries=C)
 
             # Set up parallelization
             mid = self.nrows // 2
@@ -242,9 +231,7 @@ class _MatrixGenericData:
             C = np.vstack((C1, C2)).tolist()
 
             # Combine quadrants to form C
-            return _MatrixGenericData(
-                base_ring=other.base_ring, nrows=len(C), ncols=len(C[0]), entries=C
-            )
+            return _MatrixGenericData(nrows=len(C), ncols=len(C[0]), entries=C)
 
         # standard matrix multiplication
         else:
@@ -262,7 +249,6 @@ class _MatrixGenericData:
                     new_entries[i].append(new_entry)
 
         return other.__class__(
-            base_ring=other.base_ring,
             nrows=self.nrows,
             ncols=other.ncols,
             entries=new_entries,
@@ -276,7 +262,6 @@ class _MatrixGenericData:
 
         if self.nrows == 0 or other.nrows == 0:
             return other.__class__(
-                base_ring=other.base_ring,
                 nrows=other.nrows,
                 ncols=other.ncols,
                 entries=[],
@@ -288,7 +273,6 @@ class _MatrixGenericData:
                 new_entries[i][j] -= other.entries[i][j]
 
         return other.__class__(
-            base_ring=other.base_ring,
             nrows=other.nrows,
             ncols=other.ncols,
             entries=new_entries,
@@ -303,8 +287,6 @@ class _MatrixGenericData:
     def __eq__(self, other):
         if self.nrows != other.nrows or self.ncols != other.ncols:
             return False
-        if self.nrows == 0 or self.ncols == 0:
-            return self.base_ring == other.base_ring
         return self.entries == other.entries
 
     def __call__(self, other):
@@ -342,7 +324,6 @@ class _MatrixGenericData:
                     return entries[0][0]
 
                 return self.__class__(
-                    base_ring=self.base_ring,
                     nrows=nrows,
                     ncols=ncols,
                     entries=new_data,
@@ -386,7 +367,7 @@ class Matrix:
             self._is_generic = True
             self._is_python = False
 
-        # If data is provided, there is a fast constructor.
+        # If data is provided, use it.
         if data is not None:
             self.data = data
             if self._is_generic:
@@ -421,7 +402,6 @@ class Matrix:
                 self.data = np.ndarray([self.nrows, self.ncols])
             else:
                 self.data = _MatrixGenericData(
-                    base_ring=self.base_ring,
                     nrows=self.nrows,
                     ncols=self.ncols,
                     entries=[],
@@ -443,13 +423,10 @@ class Matrix:
                     self.nrows = nrows
                     self.ncols = ncols
                     new_entries = self._zero_entries()
-                    # COERCE the given entries into the base ring, or it's data
+                    # COERCE the given entries into the base ring, or its data
                     # class in the non-generic case.
                     for t, e in entries.items():
-                        if self._is_generic:
-                            new_entries[t[0]][t[1]] = base_ring(e)
-                        else:
-                            new_entries[t[0]][t[1]] = base_ring(e).data
+                        new_entries[t[0]][t[1]] = base_ring(e).data
 
                 # Else, assume that it is a list of lists of base_ring elements.
                 else:
@@ -464,7 +441,9 @@ class Matrix:
                         for i in range(self.nrows):
                             new_entries.append([])
                             for j in range(self.ncols):
-                                new_entries[i].append(self.base_ring(entries[i][j]))
+                                new_entries[i].append(
+                                    self.base_ring(entries[i][j]).data
+                                )
                     # Unless, the base_ring is special, in which case we use
                     # the underlying data to later construct a FLINT matrix.
                     else:
@@ -495,7 +474,6 @@ class Matrix:
 
             else:
                 self.data = _MatrixGenericData(
-                    base_ring=self.base_ring,
                     nrows=self.nrows,
                     ncols=self.ncols,
                     entries=new_entries,
@@ -507,12 +485,20 @@ class Matrix:
         for i in range(self.nrows):
             i_row = []
             for j in range(self.ncols):
-                if self._is_generic:
-                    i_row.append(self.base_ring(0))
-                else:
-                    i_row.append(self.base_ring(0).data)
+                i_row.append(self.base_ring.zero.data)
             entries.append(i_row)
         return entries
+
+    @classmethod
+    def zero(cls, *, base_ring, nrows, ncols):
+        return cls(base_ring=base_ring, nrows=nrows, ncols=ncols)
+
+    @classmethod
+    def identity(cls, *, base_ring, dimension):
+        m = cls(base_ring=base_ring, nrows=dimension, ncols=dimension)
+        for i in range(dimension):
+            m.data[i, i] = base_ring.one.data
+        return m
 
     def det(self):
         """Alias for `determinenant` method."""
@@ -665,7 +651,6 @@ class Matrix:
                         ncols=ncols,
                         entries=new_data,
                         data=_MatrixGenericData(
-                            base_ring=self.base_ring,
                             nrows=nrows,
                             ncols=ncols,
                             entries=new_data,
@@ -697,7 +682,6 @@ def generate(value, nrows, ncols):
         ncols=ncols,
         entries=entries,
         data=_MatrixGenericData(
-            base_ring=value.ring,
             nrows=nrows,
             ncols=ncols,
             entries=entries,
@@ -737,7 +721,6 @@ def random(base_ring, max_val, nrows, ncols, poly=0, poly_ring=0, ngens=1):
             ncols=ncols,
             entries=entries,
             data=_MatrixGenericData(
-                base_ring=poly_ring,
                 nrows=nrows,
                 ncols=ncols,
                 entries=entries,
