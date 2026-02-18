@@ -11,7 +11,7 @@ import numpy as np
 from jacamar.rings.integers import ZZ, ZZ_py, IntegerRing, IntegerRingPython
 from jacamar.rings.rationals import QQ
 from jacamar.rings.reals import RR, RR_py
-from jacamar.rings.complexes import CC
+from jacamar.rings.complex_numbers import CC
 from jacamar.rings.polynomials import PolynomialRing
 from jacamar.matrices.matrices import Matrix, _MatrixGenericData, generate, random
 
