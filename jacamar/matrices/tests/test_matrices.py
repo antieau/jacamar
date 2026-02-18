@@ -211,6 +211,16 @@ class TestMatrix:
         assert b.det()
         assert a.det() == RR(-3)
 
+        R = IntegerRing()
+
+        c = Matrix(base_ring=R, entries=[[1,2,3],[4,5,6]])
+        with pytest.raises(ValueError):
+            c.det()
+        d = Matrix(base_ring=R,nrows=0,ncols=0)
+        assert d.det() == R.one
+        e = Matrix(base_ring=R,entries=[[3]])
+        assert e.det() == R(3)
+
     def test_transpose(self):
         """Tests flint transpose method."""
         a = Matrix(base_ring=RR, entries=[[1, 2], [3, 4]])

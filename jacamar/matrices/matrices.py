@@ -35,10 +35,6 @@ class _MatrixGenericData:
         self.entries = entries
 
     def determinant(self):
-        if self.nrows != self.nrows:
-            raise ValueError("Matrix must be square.")
-        if self.nrows == 0:
-            return self.base_ring(0)
         if self.nrows == 1:
             return self.entries[0][0]
         entries = self.entries
@@ -500,10 +496,6 @@ class Matrix:
             m.data[i, i] = base_ring.one.data
         return m
 
-    def det(self):
-        """Alias for `determinenant` method."""
-        return self.determinant()
-
     def determinant(self):
         """Determinant method for matrices."""
         if self.nrows != self.ncols:
@@ -512,7 +504,11 @@ class Matrix:
             if self._is_python:
                 return self.base_ring(np.linalg.det(self.data))
             return self.base_ring(self.data.det())
-        return self.data.det()
+        if self.nrows == 0:
+            return self.base_ring.one
+        return self.base_ring(self.data.det())
+
+    det = determinant
 
     def size(self):
         """Returns size of a matrix as a tuple (rows, cols)."""
