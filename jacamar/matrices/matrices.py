@@ -685,55 +685,67 @@ class Matrix:
     def __getitem__(self, args):
         for idx in args:
             if isinstance(idx, slice):
-                if not isinstance(args, tuple):
-                    return ValueError(
-                        "The matrix slice method takes 2 args [rows, columns], but 1 were given."
+                if not isinstance(args, tuple) or len(args) != 2:
+                    raise ValueError(
+                        "The matrix slice method takes 2 args [rows, columns], but 1 was given."
+                    )
+                r, c = args
+
+                # Build a flat Python list-of-lists of raw data values.
+                if self._is_generic:
+                    all_entries = self.data.entries
+                elif self._is_python:
+                    # numpy ndarray has tolist(); avoids numpy scalar types downstream.
+                    all_entries = self.data.tolist()
+                else:
+                    # FLINT matrices: iterate entry by entry.
+                    all_entries = [
+                        [self.data[i, j] for j in range(self.ncols)]
+                        for i in range(self.nrows)
+                    ]
+
+                # Apply row selection; normalise to a list of rows.
+                selected_rows = all_entries[r]
+                if not isinstance(r, slice):
+                    selected_rows = [selected_rows]
+
+                # Apply column selection to each row.
+                new_data = []
+                for row in selected_rows:
+                    col_data = row[c]
+                    if isinstance(col_data, list):
+                        new_data.append(col_data)
+                    else:
+                        new_data.append([col_data])
+
+                nrows = len(new_data)
+                if nrows > 0:
+                    ncols = len(new_data[0])
+                elif isinstance(c, slice):
+                    ncols = len(range(self.ncols)[c])
+                else:
+                    ncols = 1
+
+                if nrows == 0 or ncols == 0:
+                    return self.__class__(
+                        base_ring=self.base_ring, nrows=nrows, ncols=ncols
                     )
 
-                elif len(args) == 2:
-                    r, c = args
-                    if not self._is_generic:
-                        r, c = args
-                        entries = self.data.tolist()
-                    else:
-                        entries = self.data.entries
-                    new_entries = entries[r]
-                    new_data = []
-
-                    if not isinstance(new_entries[0], list):
-                        new_data = [new_entries[c]]
-                        if not isinstance(new_data[0], list):
-                            new_data = [new_data]
-                    else:
-                        for i in new_entries:
-                            if not isinstance(i[c], list):
-                                new_data.append([i[c]])
-                            else:
-                                new_data.append(i[c])
-
-                    ncols = len(new_data[0])
-                    nrows = len(new_data)
-                    if not self._is_generic:
-                        r, c = args
-                        entries = self.data.tolist()
-                        return self.__class__(
-                            base_ring=self.base_ring,
-                            nrows=nrows,
-                            ncols=ncols,
-                            entries=new_data,
-                        )
-
+                if self._is_generic:
                     return self.__class__(
                         base_ring=self.base_ring,
                         nrows=nrows,
                         ncols=ncols,
-                        entries=new_data,
                         data=_MatrixGenericData(
-                            nrows=nrows,
-                            ncols=ncols,
-                            entries=new_data,
+                            nrows=nrows, ncols=ncols, entries=new_data
                         ),
                     )
+                return self.__class__(
+                    base_ring=self.base_ring,
+                    nrows=nrows,
+                    ncols=ncols,
+                    entries=new_data,
+                )
 
         return self.base_ring(self.data[args])
 
