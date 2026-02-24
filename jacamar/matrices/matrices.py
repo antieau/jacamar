@@ -288,6 +288,14 @@ class _MatrixGenericData:
             entries=new_entries,
         )
 
+    def __neg__(self):
+        new_entries = [[-e for e in row] for row in self.entries]
+        return _MatrixGenericData(
+            nrows=self.nrows,
+            ncols=self.ncols,
+            entries=new_entries,
+        )
+
     def __str__(self):
         return str(self.entries)
 
@@ -595,6 +603,15 @@ class Matrix:
                         return (i,j)
         raise ValueError("Matrix is zero.")
 
+    def nonzero_positions(self):
+        """Returns the (i,j) such that self[i,j] is not zero."""
+        return_tuples = []
+        for i in range(self.nrows):
+            for j in range(self.ncols):
+                if self[i,j] != self.base_ring.zero:
+                    return_tuples.append((i,j))
+        return return_tuples
+
     def is_zero(self):
         """Returns True if every entry is zero."""
         for i in range(self.nrows):
@@ -615,6 +632,13 @@ class Matrix:
         return other.__class__(
             base_ring=other.base_ring,
             data=self.data - other.data,
+        )
+
+    def __neg__(self):
+        """Returns -self."""
+        return self.__class__(
+            base_ring=self.base_ring,
+            data=-self.data,
         )
 
     def __mul__(self, other):
@@ -765,6 +789,12 @@ class Matrix:
                 self[b,j] = backup
 
     def tensor_product(self, other):
+        if self.nrows == 0 or self.ncols == 0:
+            return Matrix.zero(
+                base_ring=other.base_ring,
+                nrows=self.nrows * other.nrows,
+                ncols=self.ncols * other.ncols,
+            )
         new_blocks = []
         for i in range(self.nrows):
             new_row = []
