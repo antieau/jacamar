@@ -538,7 +538,7 @@ class Matrix:
 
     det = determinant
 
-    def size(self):
+    def dimensions(self):
         """Returns size of a matrix as a tuple (rows, cols)."""
         return (self.nrows, self.ncols)
 

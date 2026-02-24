@@ -195,13 +195,13 @@ class TestMatrix:
         assert a[:, 2] == c
         assert a[1, 0:2] == d
 
-    def test_size(self):
-        """Tests .size()"""
+    def test_dimensions(self):
+        """Tests .dimensions()"""
         a = Matrix(base_ring=RR, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
         b = Matrix(base_ring=RR_py, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
-        assert a.size() == (3, 3)
-        assert b.size() == (3, 3)
+        assert a.dimensions() == (3, 3)
+        assert b.dimensions() == (3, 3)
 
     def test_det(self):
         """Tests flint determiant method."""
