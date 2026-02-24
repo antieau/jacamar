@@ -228,7 +228,7 @@ class TestMatrix:
         a_py = Matrix(base_ring=RR_py, entries=[[1, 2], [3, 4]])
         b_py = Matrix(base_ring=RR_py, entries=[[1, 3], [2, 4]])
         assert a_py.transpose() == b_py
-        assert a.T() == b
+        assert a.transpose() == b
 
     @pytest.mark.slow
     def test_np_construction(self):
@@ -473,3 +473,26 @@ class TestGenericMatrices:
         a = random(RR, 10, 10, 10)
         b = random(RR, 2, 10, 10)
         assert a * b, f
+
+class TestBlockMatrix:
+    """Tests the block_matrix class method."""
+    A11 = Matrix(base_ring=ZZ,entries=[[1]])
+    A12 = Matrix(base_ring=ZZ,entries=[[2]])
+    A21 = Matrix(base_ring=ZZ,entries=[[3]])
+    A22 = Matrix(base_ring=ZZ,entries=[[4]])
+    A = Matrix.block_matrix(base_ring=ZZ,blocks=[[A11,A12],[A21,A22]])
+    assert A == Matrix(base_ring=ZZ, entries=[[1,2],[3,4]])
+
+    B11 = Matrix(base_ring=ZZ,entries=[[1,2],[3,4]])
+    B12 = Matrix(base_ring=ZZ,entries=[[7],[8]])
+    B21 = Matrix(base_ring=ZZ,entries=[[13],[14],[15]])
+    B22 = Matrix(base_ring=ZZ,entries=[[10,11],[20,21],[30,31]])
+    B = Matrix.block_matrix(base_ring=ZZ,blocks=[[B11,B12],[B21,B22]])
+    assert B == Matrix(base_ring=ZZ, entries=[[1,2,7],[3,4,8],[13,10,11],[14,20,21],[15,30,31]])
+
+    C11 = Matrix(base_ring=ZZ_py,entries=[[1,2],[3,4]])
+    C12 = Matrix(base_ring=ZZ_py,entries=[[7],[8]])
+    C21 = Matrix(base_ring=ZZ_py,entries=[[13],[14],[15]])
+    C22 = Matrix(base_ring=ZZ_py,entries=[[10,11],[20,21],[30,31]])
+    C = Matrix.block_matrix(base_ring=ZZ_py,blocks=[[C11,C12],[C21,C22]])
+    assert C == Matrix(base_ring=ZZ_py, entries=[[1,2,7],[3,4,8],[13,10,11],[14,20,21],[15,30,31]])

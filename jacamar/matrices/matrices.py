@@ -496,6 +496,34 @@ class Matrix:
             m.data[i, i] = base_ring.one.data
         return m
 
+    @classmethod
+    def block_matrix(cls, *, base_ring, blocks):
+        """
+        Takes a list of lists and forms the associated block matrix.
+
+        TODO: create some sanity checks on the blocks.
+        """
+        new_nrows = 0
+        for row in blocks:
+            new_nrows += row[0].nrows
+        new_ncols = sum([x.ncols for x in blocks[0]])
+        # Create the zero matrix of the appropriate size.
+        new_matrix = cls.zero(base_ring=base_ring, nrows=new_nrows, ncols=new_ncols)
+        row_offset = 0
+        for row in blocks:
+            col_offset = 0
+            for entry in row:
+                for i in range(entry.nrows):
+                    for j in range(entry.ncols):
+                        new_matrix[i+row_offset,j+col_offset] = entry[i,j]
+                col_offset += entry.ncols
+            try:
+                row_offset += row[0].nrows
+            except IndexError:
+                pass
+        return new_matrix
+
+
     def determinant(self):
         """Determinant method for matrices."""
         if self.nrows != self.ncols:
@@ -513,10 +541,6 @@ class Matrix:
     def size(self):
         """Returns size of a matrix as a tuple (rows, cols)."""
         return (self.nrows, self.ncols)
-
-    def T(self):
-        """Alias for the transpose() method."""
-        return self.transpose()
 
     def transpose(self):
         """Returns a transposed copy of self."""
@@ -656,7 +680,7 @@ class Matrix:
         return self.base_ring(self.data[args])
 
     def __setitem__(self, args, val):
-        self.data[args] = val
+        self.data[args] = val.data
 
 
 # Functions for matrices
