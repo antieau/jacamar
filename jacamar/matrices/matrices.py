@@ -552,8 +552,8 @@ class Matrix:
 
     def is_zero(self):
         """Returns True if every entry is zero."""
-        for i in self.nrows:
-            for j in self.ncols:
+        for i in range(self.nrows):
+            for j in range(self.ncols):
                 if self[i,j] != self.base_ring.zero:
                     return False
         return True
