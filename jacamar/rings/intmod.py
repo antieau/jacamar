@@ -7,7 +7,7 @@ AUTHORS:
 - Joseph Grantham (2024).
 """
 
-from flint import nmod  # pylint: disable=no-name-in-module
+from flint import nmod # pylint: disable=no-name-in-module
 from jacamar.rings.elements import AbstractRingElement
 from jacamar.rings.rings import AbstractRing
 from jacamar.rings.integers import ZZ
@@ -28,6 +28,19 @@ class IntegerModN(AbstractRingElement):
             ring,
             data,
         )
+
+    def is_unit(self):
+        try:
+            1/self.data
+            return True
+        except ZeroDivisionError:
+            return False
+
+    def inverse(self):
+        try:
+            return self.ring(1/self.data)
+        except ZeroDivisionError:
+            raise ValueError("Is not invertible.")
 
     def __str__(self):
         return self.data.__str__()

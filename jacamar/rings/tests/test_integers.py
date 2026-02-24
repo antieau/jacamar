@@ -101,7 +101,7 @@ class TestInteger:
         """Tests __mul__."""
         assert ZZ(61146125) * ZZ(98582632) == ZZ(6027945939101000)
         assert ZZ_py(61146125) * ZZ_py(98582632) == ZZ_py(6027945939101000)
-        with pytest.raises(AttributeError):
+        with pytest.raises(TypeError):
             ZZ(7) * 7
 
     def test_imul(self):

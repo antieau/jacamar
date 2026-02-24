@@ -474,6 +474,56 @@ class TestGenericMatrices:
         b = random(RR, 2, 10, 10)
         assert a * b, f
 
+class TestSNF:
+    """Tests for smith_normal_form / snf."""
+
+    def test_basic_3x3(self):
+        M = Matrix(base_ring=ZZ, entries=[[2, 4, 4], [-6, 6, 12], [10, -4, -16]])
+        result = M.smith_normal_form()
+        assert result == Matrix(base_ring=ZZ, entries=[[2, 0, 0], [0, 6, 0], [0, 0, 12]])
+
+    def test_snf_alias(self):
+        M = Matrix(base_ring=ZZ, entries=[[2, 4, 4], [-6, 6, 12], [10, -4, -16]])
+        assert M.snf() == M.smith_normal_form()
+
+    def test_rank_deficient(self):
+        M = Matrix(base_ring=ZZ, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        result = M.snf()
+        assert result == Matrix(base_ring=ZZ, entries=[[1, 0, 0], [0, 3, 0], [0, 0, 0]])
+
+    def test_non_square_2x3(self):
+        M = Matrix(base_ring=ZZ, entries=[[1, 2, 3], [4, 5, 6]])
+        result = M.snf()
+        assert result == Matrix(base_ring=ZZ, entries=[[1, 0, 0], [0, 3, 0]])
+
+    def test_non_square_3x2(self):
+        M = Matrix(base_ring=ZZ, entries=[[1, 4], [2, 5], [3, 6]])
+        result = M.snf()
+        assert result == Matrix(base_ring=ZZ, entries=[[1, 0], [0, 3], [0, 0]])
+
+    def test_identity(self):
+        M = Matrix.identity(base_ring=ZZ, dimension=3)
+        assert M.snf() == M
+
+    def test_wrong_ring_raises(self):
+        M = Matrix(base_ring=QQ, entries=[[QQ(1, 2), QQ(1)], [QQ(3), QQ(2)]])
+        with pytest.raises(ValueError):
+            M.smith_normal_form()
+
+    def test_transform(self):
+        M = Matrix(base_ring=ZZ, entries=[[2, 4, 4], [-6, 6, 12], [10, -4, -16]])
+        snf, U, V = M.smith_normal_form(transform=True)
+        expected = Matrix(base_ring=ZZ, entries=[[2, 0, 0], [0, 6, 0], [0, 0, 12]])
+        assert snf == expected
+        assert U * M * V == snf
+
+    def test_transform_non_square(self):
+        M = Matrix(base_ring=ZZ, entries=[[1, 2, 3], [4, 5, 6]])
+        snf, U, V = M.smith_normal_form(transform=True)
+        assert U * M * V == snf
+        assert snf == Matrix(base_ring=ZZ, entries=[[1, 0, 0], [0, 3, 0]])
+
+
 class TestBlockMatrix:
     """Tests the block_matrix class method."""
     A11 = Matrix(base_ring=ZZ,entries=[[1]])

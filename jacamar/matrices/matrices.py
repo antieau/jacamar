@@ -342,12 +342,20 @@ class _MatrixGenericData:
         return self.entries[args[0]][args[1]]
 
     def copy(self):
-        """Returns a deep copy of self."""
-        import copy
+        """Returns a copy of self."""
+        def _copy_entry(e):
+            if isinstance(e, flint.nmod):
+                return flint.nmod(e, e.modulus())
+            return type(e)(e)
+
+        new_entries = [
+            [_copy_entry(e) for e in row]
+            for row in self.entries
+        ]
         return _MatrixGenericData(
             nrows=self.nrows,
             ncols=self.ncols,
-            entries=copy.deepcopy(self.entries),
+            entries=new_entries,
         )
 
     def __setitem__(self, args, val):
@@ -573,6 +581,20 @@ class Matrix:
             data=self.data.transpose(),
         )
 
+    def first_nonzero_position(self, column_order=False):
+        """Returns the first (i,j) (ordered lexicographically) such that self[i,j] is not zero."""
+        if column_order:
+            for j in range(self.ncols):
+                for i in range(self.nrows):
+                    if self[i,j] != self.base_ring.zero:
+                        return (i,j)
+        else:
+            for i in range(self.nrows):
+                for j in range(self.ncols):
+                    if self[i,j] != self.base_ring.zero:
+                        return (i,j)
+        raise ValueError("Matrix is zero.")
+
     def is_zero(self):
         """Returns True if every entry is zero."""
         for i in range(self.nrows):
@@ -714,6 +736,67 @@ class Matrix:
                     )
 
         return self.base_ring(self.data[args])
+
+    def rescale_row(self, row, scalar):
+        for j in range(self.ncols):
+            self[row,j] *= scalar
+
+    def add_multiple_of_row(self, target_row, source_row, scalar):
+        for j in range(self.ncols):
+            self[target_row,j] += self[source_row,j]*scalar
+
+    def swap_rows(self, a, b):
+        if a != b:
+            for j in range(self.ncols):
+                backup = self[a,j]
+                self[a,j] = self[b,j]
+                self[b,j] = backup
+
+    def tensor_product(self, other):
+        new_blocks = []
+        for i in range(self.nrows):
+            new_row = []
+            for j in range(self.ncols):
+                new_row.append(self[i,j]*other)
+            new_blocks.append(new_row)
+        return Matrix.block_matrix(base_ring=other.base_ring, blocks=new_blocks)
+
+    def smith_normal_form(self, transform=False):
+        """Compute the Smith normal form of self.
+
+        Only implemented when base_ring is ZZ.
+
+        Note: Python-FLINT currently only supports SNF without transformation
+        matrices. When transform=True, the cypari2 backend is used instead.
+
+        Parameters
+        ----------
+        transform : bool
+            If True, also return the unimodular transformation matrices U, V
+            such that U @ self @ V = SNF, as a tuple (SNF, U, V).
+            Uses the cypari2 backend. If False (default), returns only the SNF
+            matrix using the flint backend.
+        """
+        if self.base_ring is not ZZ:
+            raise ValueError("smith_normal_form is only implemented for base_ring=ZZ.")
+        entries = [
+            [int(self.data[i, j]) for j in range(self.ncols)]
+            for i in range(self.nrows)
+        ]
+        mat = {"format": "dense", "nrows": self.nrows, "ncols": self.ncols, "entries": entries}
+        if transform:
+            from snforacle import smith_normal_form_with_transforms as _snf_t
+            result = _snf_t(mat, backend="cypari2")
+            snf = self.__class__(base_ring=self.base_ring, entries=result.smith_normal_form.entries)
+            U = self.__class__(base_ring=self.base_ring, entries=result.left_transform.entries)
+            V = self.__class__(base_ring=self.base_ring, entries=result.right_transform.entries)
+            return snf, U, V
+        else:
+            from snforacle import smith_normal_form as _snf
+            result = _snf(mat, backend="flint")
+            return self.__class__(base_ring=self.base_ring, entries=result.smith_normal_form.entries)
+
+    snf = smith_normal_form
 
     def copy(self):
         """Returns a copy of self."""
