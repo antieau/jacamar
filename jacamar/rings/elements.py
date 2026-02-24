@@ -29,7 +29,10 @@ class AbstractRingElement:
 
     def __mul__(self, other):
         """Returns self * other with type that of other."""
-        return other.__class__(other.ring, self.data * other.data)
+        try: 
+            return other.__class__(other.ring, self.data * other.data)
+        except AttributeError:
+            return NotImplemented
 
     def __sub__(self, other):
         """Returns self - other with type that of other."""
