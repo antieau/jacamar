@@ -250,6 +250,20 @@ class _MatrixGenericData:
             entries=new_entries,
         )
 
+    def __rmul__(self, other):
+        """Assumes that other is a scalar data class."""
+        new_entries = []
+        for i in range(self.nrows):
+            new_entries.append([])
+            for j in range(self.ncols):
+                new_entries[-1].append(entries[i][j]*other)
+
+        return _MatrixGenericData(
+            nrows=self.nrows,
+            ncols=self.ncols,
+            entries=new_entries,
+        )
+
     def __sub__(self, other):
         if self.nrows != other.nrows or self.ncols != other.ncols:
             raise ValueError(
@@ -326,6 +340,15 @@ class _MatrixGenericData:
                 )
 
         return self.entries[args[0]][args[1]]
+
+    def copy(self):
+        """Returns a deep copy of self."""
+        import copy
+        return _MatrixGenericData(
+            nrows=self.nrows,
+            ncols=self.ncols,
+            entries=copy.deepcopy(self.entries),
+        )
 
     def __setitem__(self, args, val):
         """
@@ -614,6 +637,12 @@ class Matrix:
             data=self.data * other.data,
         )
 
+    def __rmul__(self, other):
+        return self.__class__(
+            base_ring = self.base_ring,
+            data = other.data * self.data
+        )
+
     def __str__(self):
         return self.data.__str__()
 
@@ -685,6 +714,22 @@ class Matrix:
                     )
 
         return self.base_ring(self.data[args])
+
+    def copy(self):
+        """Returns a copy of self."""
+        if self._is_generic:
+            return self.__class__(base_ring=self.base_ring, data=self.data.copy())
+        elif self._is_python:
+            return self.__class__(base_ring=self.base_ring, data=self.data.copy())
+        else:
+            new_entries = [
+                [self.data[i, j] for j in range(self.ncols)]
+                for i in range(self.nrows)
+            ]
+            return self.__class__(
+                base_ring=self.base_ring,
+                data=type(self.data)(new_entries),
+            )
 
     def __setitem__(self, args, val):
         self.data[args] = val.data
