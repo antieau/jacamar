@@ -26,3 +26,7 @@ class AbstractRing:
 
     def __call__(self, x):
         return self.element_class(self, x)
+
+    def is_field(self):
+        """Default is False."""
+        return False
