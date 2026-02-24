@@ -523,7 +523,6 @@ class Matrix:
                 pass
         return new_matrix
 
-
     def determinant(self):
         """Determinant method for matrices."""
         if self.nrows != self.ncols:
@@ -550,6 +549,14 @@ class Matrix:
             ncols=self.nrows,
             data=self.data.transpose(),
         )
+
+    def is_zero(self):
+        """Returns True if every entry is zero."""
+        for i in self.nrows:
+            for j in self.ncols:
+                if self[i,j] != self.base_ring.zero:
+                    return False
+        return True
 
     def __add__(self, other):
         """Returns self + other with base ring that of other."""
