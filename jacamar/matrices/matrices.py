@@ -250,6 +250,20 @@ class _MatrixGenericData:
             entries=new_entries,
         )
 
+    def __rmul__(self, other):
+        """Assumes that other is a scalar data class."""
+        new_entries = []
+        for i in range(self.nrows):
+            new_entries.append([])
+            for j in range(self.ncols):
+                new_entries[-1].append(entries[i][j]*other)
+
+        return _MatrixGenericData(
+            nrows=self.nrows,
+            ncols=self.ncols,
+            entries=new_entries,
+        )
+
     def __sub__(self, other):
         if self.nrows != other.nrows or self.ncols != other.ncols:
             raise ValueError(
@@ -271,6 +285,14 @@ class _MatrixGenericData:
         return other.__class__(
             nrows=other.nrows,
             ncols=other.ncols,
+            entries=new_entries,
+        )
+
+    def __neg__(self):
+        new_entries = [[-e for e in row] for row in self.entries]
+        return _MatrixGenericData(
+            nrows=self.nrows,
+            ncols=self.ncols,
             entries=new_entries,
         )
 
@@ -326,6 +348,23 @@ class _MatrixGenericData:
                 )
 
         return self.entries[args[0]][args[1]]
+
+    def copy(self):
+        """Returns a copy of self."""
+        def _copy_entry(e):
+            if isinstance(e, flint.nmod):
+                return flint.nmod(e, e.modulus())
+            return type(e)(e)
+
+        new_entries = [
+            [_copy_entry(e) for e in row]
+            for row in self.entries
+        ]
+        return _MatrixGenericData(
+            nrows=self.nrows,
+            ncols=self.ncols,
+            entries=new_entries,
+        )
 
     def __setitem__(self, args, val):
         """
@@ -496,6 +535,33 @@ class Matrix:
             m.data[i, i] = base_ring.one.data
         return m
 
+    @classmethod
+    def block_matrix(cls, *, base_ring, blocks):
+        """
+        Takes a list of lists and forms the associated block matrix.
+
+        TODO: create some sanity checks on the blocks.
+        """
+        new_nrows = 0
+        for row in blocks:
+            new_nrows += row[0].nrows
+        new_ncols = sum([x.ncols for x in blocks[0]])
+        # Create the zero matrix of the appropriate size.
+        new_matrix = cls.zero(base_ring=base_ring, nrows=new_nrows, ncols=new_ncols)
+        row_offset = 0
+        for row in blocks:
+            col_offset = 0
+            for entry in row:
+                for i in range(entry.nrows):
+                    for j in range(entry.ncols):
+                        new_matrix[i+row_offset,j+col_offset] = entry[i,j]
+                col_offset += entry.ncols
+            try:
+                row_offset += row[0].nrows
+            except IndexError:
+                pass
+        return new_matrix
+
     def determinant(self):
         """Determinant method for matrices."""
         if self.nrows != self.ncols:
@@ -510,13 +576,9 @@ class Matrix:
 
     det = determinant
 
-    def size(self):
+    def dimensions(self):
         """Returns size of a matrix as a tuple (rows, cols)."""
         return (self.nrows, self.ncols)
-
-    def T(self):
-        """Alias for the transpose() method."""
-        return self.transpose()
 
     def transpose(self):
         """Returns a transposed copy of self."""
@@ -526,6 +588,37 @@ class Matrix:
             ncols=self.nrows,
             data=self.data.transpose(),
         )
+
+    def first_nonzero_position(self, column_order=False):
+        """Returns the first (i,j) (ordered lexicographically) such that self[i,j] is not zero."""
+        if column_order:
+            for j in range(self.ncols):
+                for i in range(self.nrows):
+                    if self[i,j] != self.base_ring.zero:
+                        return (i,j)
+        else:
+            for i in range(self.nrows):
+                for j in range(self.ncols):
+                    if self[i,j] != self.base_ring.zero:
+                        return (i,j)
+        raise ValueError("Matrix is zero.")
+
+    def nonzero_positions(self):
+        """Returns the (i,j) such that self[i,j] is not zero."""
+        return_tuples = []
+        for i in range(self.nrows):
+            for j in range(self.ncols):
+                if self[i,j] != self.base_ring.zero:
+                    return_tuples.append((i,j))
+        return return_tuples
+
+    def is_zero(self):
+        """Returns True if every entry is zero."""
+        for i in range(self.nrows):
+            for j in range(self.ncols):
+                if self[i,j] != self.base_ring.zero:
+                    return False
+        return True
 
     def __add__(self, other):
         """Returns self + other with base ring that of other."""
@@ -539,6 +632,13 @@ class Matrix:
         return other.__class__(
             base_ring=other.base_ring,
             data=self.data - other.data,
+        )
+
+    def __neg__(self):
+        """Returns -self."""
+        return self.__class__(
+            base_ring=self.base_ring,
+            data=-self.data,
         )
 
     def __mul__(self, other):
@@ -583,6 +683,12 @@ class Matrix:
             data=self.data * other.data,
         )
 
+    def __rmul__(self, other):
+        return self.__class__(
+            base_ring = self.base_ring,
+            data = other.data * self.data
+        )
+
     def __str__(self):
         return self.data.__str__()
 
@@ -603,60 +709,155 @@ class Matrix:
     def __getitem__(self, args):
         for idx in args:
             if isinstance(idx, slice):
-                if not isinstance(args, tuple):
-                    return ValueError(
-                        "The matrix slice method takes 2 args [rows, columns], but 1 were given."
+                if not isinstance(args, tuple) or len(args) != 2:
+                    raise ValueError(
+                        "The matrix slice method takes 2 args [rows, columns], but 1 was given."
+                    )
+                r, c = args
+
+                # Build a flat Python list-of-lists of raw data values.
+                if self._is_generic:
+                    all_entries = self.data.entries
+                elif self._is_python:
+                    # numpy ndarray has tolist(); avoids numpy scalar types downstream.
+                    all_entries = self.data.tolist()
+                else:
+                    # FLINT matrices: iterate entry by entry.
+                    all_entries = [
+                        [self.data[i, j] for j in range(self.ncols)]
+                        for i in range(self.nrows)
+                    ]
+
+                # Apply row selection; normalise to a list of rows.
+                selected_rows = all_entries[r]
+                if not isinstance(r, slice):
+                    selected_rows = [selected_rows]
+
+                # Apply column selection to each row.
+                new_data = []
+                for row in selected_rows:
+                    col_data = row[c]
+                    if isinstance(col_data, list):
+                        new_data.append(col_data)
+                    else:
+                        new_data.append([col_data])
+
+                nrows = len(new_data)
+                if nrows > 0:
+                    ncols = len(new_data[0])
+                elif isinstance(c, slice):
+                    ncols = len(range(self.ncols)[c])
+                else:
+                    ncols = 1
+
+                if nrows == 0 or ncols == 0:
+                    return self.__class__(
+                        base_ring=self.base_ring, nrows=nrows, ncols=ncols
                     )
 
-                elif len(args) == 2:
-                    r, c = args
-                    if not self._is_generic:
-                        r, c = args
-                        entries = self.data.tolist()
-                    else:
-                        entries = self.data.entries
-                    new_entries = entries[r]
-                    new_data = []
-
-                    if not isinstance(new_entries[0], list):
-                        new_data = [new_entries[c]]
-                        if not isinstance(new_data[0], list):
-                            new_data = [new_data]
-                    else:
-                        for i in new_entries:
-                            if not isinstance(i[c], list):
-                                new_data.append([i[c]])
-                            else:
-                                new_data.append(i[c])
-
-                    ncols = len(new_data[0])
-                    nrows = len(new_data)
-                    if not self._is_generic:
-                        r, c = args
-                        entries = self.data.tolist()
-                        return self.__class__(
-                            base_ring=self.base_ring,
-                            nrows=nrows,
-                            ncols=ncols,
-                            entries=new_data,
-                        )
-
+                if self._is_generic:
                     return self.__class__(
                         base_ring=self.base_ring,
                         nrows=nrows,
                         ncols=ncols,
-                        entries=new_data,
                         data=_MatrixGenericData(
-                            nrows=nrows,
-                            ncols=ncols,
-                            entries=new_data,
+                            nrows=nrows, ncols=ncols, entries=new_data
                         ),
                     )
+                return self.__class__(
+                    base_ring=self.base_ring,
+                    nrows=nrows,
+                    ncols=ncols,
+                    entries=new_data,
+                )
 
         return self.base_ring(self.data[args])
 
+    def rescale_row(self, row, scalar):
+        for j in range(self.ncols):
+            self[row,j] *= scalar
+
+    def add_multiple_of_row(self, target_row, source_row, scalar):
+        for j in range(self.ncols):
+            self[target_row,j] += self[source_row,j]*scalar
+
+    def swap_rows(self, a, b):
+        if a != b:
+            for j in range(self.ncols):
+                backup = self[a,j]
+                self[a,j] = self[b,j]
+                self[b,j] = backup
+
+    def tensor_product(self, other):
+        if self.nrows == 0 or self.ncols == 0:
+            return Matrix.zero(
+                base_ring=other.base_ring,
+                nrows=self.nrows * other.nrows,
+                ncols=self.ncols * other.ncols,
+            )
+        new_blocks = []
+        for i in range(self.nrows):
+            new_row = []
+            for j in range(self.ncols):
+                new_row.append(self[i,j]*other)
+            new_blocks.append(new_row)
+        return Matrix.block_matrix(base_ring=other.base_ring, blocks=new_blocks)
+
+    def smith_normal_form(self, transform=False):
+        """Compute the Smith normal form of self.
+
+        Only implemented when base_ring is ZZ.
+
+        Note: Python-FLINT currently only supports SNF without transformation
+        matrices. When transform=True, the cypari2 backend is used instead.
+
+        Parameters
+        ----------
+        transform : bool
+            If True, also return the unimodular transformation matrices U, V
+            such that U @ self @ V = SNF, as a tuple (SNF, U, V).
+            Uses the cypari2 backend. If False (default), returns only the SNF
+            matrix using the flint backend.
+        """
+        if self.base_ring is not ZZ:
+            raise ValueError("smith_normal_form is only implemented for base_ring=ZZ.")
+        entries = [
+            [int(self.data[i, j]) for j in range(self.ncols)]
+            for i in range(self.nrows)
+        ]
+        mat = {"format": "dense", "nrows": self.nrows, "ncols": self.ncols, "entries": entries}
+        if transform:
+            from snforacle import smith_normal_form_with_transforms as _snf_t
+            result = _snf_t(mat, backend="cypari2")
+            snf = self.__class__(base_ring=self.base_ring, entries=result.smith_normal_form.entries)
+            U = self.__class__(base_ring=self.base_ring, entries=result.left_transform.entries)
+            V = self.__class__(base_ring=self.base_ring, entries=result.right_transform.entries)
+            return snf, U, V
+        else:
+            from snforacle import smith_normal_form as _snf
+            result = _snf(mat, backend="flint")
+            return self.__class__(base_ring=self.base_ring, entries=result.smith_normal_form.entries)
+
+    snf = smith_normal_form
+
+    def copy(self):
+        """Returns a copy of self."""
+        if self._is_generic:
+            return self.__class__(base_ring=self.base_ring, data=self.data.copy())
+        elif self._is_python:
+            return self.__class__(base_ring=self.base_ring, data=self.data.copy())
+        else:
+            new_entries = [
+                [self.data[i, j] for j in range(self.ncols)]
+                for i in range(self.nrows)
+            ]
+            return self.__class__(
+                base_ring=self.base_ring,
+                data=type(self.data)(new_entries),
+            )
+
     def __setitem__(self, args, val):
-        self.data[args] = val
+        self.data[args] = val.data
 
 
 # Functions for matrices

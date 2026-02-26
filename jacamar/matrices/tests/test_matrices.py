@@ -195,13 +195,13 @@ class TestMatrix:
         assert a[:, 2] == c
         assert a[1, 0:2] == d
 
-    def test_size(self):
-        """Tests .size()"""
+    def test_dimensions(self):
+        """Tests .dimensions()"""
         a = Matrix(base_ring=RR, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
         b = Matrix(base_ring=RR_py, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
-        assert a.size() == (3, 3)
-        assert b.size() == (3, 3)
+        assert a.dimensions() == (3, 3)
+        assert b.dimensions() == (3, 3)
 
     def test_det(self):
         """Tests flint determiant method."""
@@ -228,7 +228,7 @@ class TestMatrix:
         a_py = Matrix(base_ring=RR_py, entries=[[1, 2], [3, 4]])
         b_py = Matrix(base_ring=RR_py, entries=[[1, 3], [2, 4]])
         assert a_py.transpose() == b_py
-        assert a.T() == b
+        assert a.transpose() == b
 
     @pytest.mark.slow
     def test_np_construction(self):
@@ -473,3 +473,76 @@ class TestGenericMatrices:
         a = random(RR, 10, 10, 10)
         b = random(RR, 2, 10, 10)
         assert a * b, f
+
+class TestSNF:
+    """Tests for smith_normal_form / snf."""
+
+    def test_basic_3x3(self):
+        M = Matrix(base_ring=ZZ, entries=[[2, 4, 4], [-6, 6, 12], [10, -4, -16]])
+        result = M.smith_normal_form()
+        assert result == Matrix(base_ring=ZZ, entries=[[2, 0, 0], [0, 6, 0], [0, 0, 12]])
+
+    def test_snf_alias(self):
+        M = Matrix(base_ring=ZZ, entries=[[2, 4, 4], [-6, 6, 12], [10, -4, -16]])
+        assert M.snf() == M.smith_normal_form()
+
+    def test_rank_deficient(self):
+        M = Matrix(base_ring=ZZ, entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        result = M.snf()
+        assert result == Matrix(base_ring=ZZ, entries=[[1, 0, 0], [0, 3, 0], [0, 0, 0]])
+
+    def test_non_square_2x3(self):
+        M = Matrix(base_ring=ZZ, entries=[[1, 2, 3], [4, 5, 6]])
+        result = M.snf()
+        assert result == Matrix(base_ring=ZZ, entries=[[1, 0, 0], [0, 3, 0]])
+
+    def test_non_square_3x2(self):
+        M = Matrix(base_ring=ZZ, entries=[[1, 4], [2, 5], [3, 6]])
+        result = M.snf()
+        assert result == Matrix(base_ring=ZZ, entries=[[1, 0], [0, 3], [0, 0]])
+
+    def test_identity(self):
+        M = Matrix.identity(base_ring=ZZ, dimension=3)
+        assert M.snf() == M
+
+    def test_wrong_ring_raises(self):
+        M = Matrix(base_ring=QQ, entries=[[QQ(1, 2), QQ(1)], [QQ(3), QQ(2)]])
+        with pytest.raises(ValueError):
+            M.smith_normal_form()
+
+    def test_transform(self):
+        M = Matrix(base_ring=ZZ, entries=[[2, 4, 4], [-6, 6, 12], [10, -4, -16]])
+        snf, U, V = M.smith_normal_form(transform=True)
+        expected = Matrix(base_ring=ZZ, entries=[[2, 0, 0], [0, 6, 0], [0, 0, 12]])
+        assert snf == expected
+        assert U * M * V == snf
+
+    def test_transform_non_square(self):
+        M = Matrix(base_ring=ZZ, entries=[[1, 2, 3], [4, 5, 6]])
+        snf, U, V = M.smith_normal_form(transform=True)
+        assert U * M * V == snf
+        assert snf == Matrix(base_ring=ZZ, entries=[[1, 0, 0], [0, 3, 0]])
+
+
+class TestBlockMatrix:
+    """Tests the block_matrix class method."""
+    A11 = Matrix(base_ring=ZZ,entries=[[1]])
+    A12 = Matrix(base_ring=ZZ,entries=[[2]])
+    A21 = Matrix(base_ring=ZZ,entries=[[3]])
+    A22 = Matrix(base_ring=ZZ,entries=[[4]])
+    A = Matrix.block_matrix(base_ring=ZZ,blocks=[[A11,A12],[A21,A22]])
+    assert A == Matrix(base_ring=ZZ, entries=[[1,2],[3,4]])
+
+    B11 = Matrix(base_ring=ZZ,entries=[[1,2],[3,4]])
+    B12 = Matrix(base_ring=ZZ,entries=[[7],[8]])
+    B21 = Matrix(base_ring=ZZ,entries=[[13],[14],[15]])
+    B22 = Matrix(base_ring=ZZ,entries=[[10,11],[20,21],[30,31]])
+    B = Matrix.block_matrix(base_ring=ZZ,blocks=[[B11,B12],[B21,B22]])
+    assert B == Matrix(base_ring=ZZ, entries=[[1,2,7],[3,4,8],[13,10,11],[14,20,21],[15,30,31]])
+
+    C11 = Matrix(base_ring=ZZ_py,entries=[[1,2],[3,4]])
+    C12 = Matrix(base_ring=ZZ_py,entries=[[7],[8]])
+    C21 = Matrix(base_ring=ZZ_py,entries=[[13],[14],[15]])
+    C22 = Matrix(base_ring=ZZ_py,entries=[[10,11],[20,21],[30,31]])
+    C = Matrix.block_matrix(base_ring=ZZ_py,blocks=[[C11,C12],[C21,C22]])
+    assert C == Matrix(base_ring=ZZ_py, entries=[[1,2,7],[3,4,8],[13,10,11],[14,20,21],[15,30,31]])
