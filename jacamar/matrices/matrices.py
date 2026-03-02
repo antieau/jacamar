@@ -256,7 +256,7 @@ class _MatrixGenericData:
         for i in range(self.nrows):
             new_entries.append([])
             for j in range(self.ncols):
-                new_entries[-1].append(entries[i][j]*other)
+                new_entries[-1].append(self.entries[i][j] * other)
 
         return _MatrixGenericData(
             nrows=self.nrows,
@@ -448,6 +448,18 @@ class Matrix:
             if entries is None:
                 self.nrows = nrows
                 self.ncols = ncols
+                if self.base_ring == ZZ:
+                    self.data = flint.fmpz_mat(self.nrows, self.ncols)
+                    return
+                elif self.base_ring == QQ:
+                    self.data = flint.fmpq_mat(self.nrows, self.ncols)
+                    return
+                elif self.base_ring == RR:
+                    self.data = flint.arb_mat(self.nrows, self.ncols)
+                    return
+                elif self.base_ring == CC:
+                    self.data = flint.acb_mat(self.nrows, self.ncols)
+                    return
                 new_entries = self._zero_entries()
             else:
                 if isinstance(entries, dict):
